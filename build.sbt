@@ -1,6 +1,7 @@
 
 inThisBuild(Seq(
-  resolvers += "Gemini Repository" at "https://github.com/gemini-hlsw/maven-repo/raw/master/releases",
+  scalaVersion := "2.12.10",
+  resolvers    += "Gemini Repository" at "https://github.com/gemini-hlsw/maven-repo/raw/master/releases",
   addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3"),
 ))
 
@@ -14,9 +15,9 @@ lazy val engine = project
       "edu.gemini.ocs"          %% "edu-gemini-util-skycalc"     % "2019101.1.4",
       "edu.gemini.ocs"          %% "edu-gemini-shared-skyobject" % "2019101.1.4",
       "org.scala-lang.modules"  %% "scala-xml"                   % "2.0.0-M1",
-      "log4j"                    % "log4j"                       % "1.2.6",
-      "junit"                    % "junit"                       % "4.8.1"   % "test",
-      "org.mockito"              % "mockito-all"                 % "1.8.1"   % "test",
+      "log4j"                    % "log4j"                       % "1.2.17",
+      "junit"                    % "junit"                       % "4.12"    % "test",
+      "org.mockito"              % "mockito-all"                 % "1.10.19" % "test",
       "com.novocode"             % "junit-interface"             % "0.11"    % "test"
     )
   )
