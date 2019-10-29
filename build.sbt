@@ -1,18 +1,36 @@
-lazy val kindProjectorVersion = "0.10.3"
-lazy val ocsVersion           = "2020001.1.0"
 
 inThisBuild(Seq(
   resolvers += "Gemini Repository" at "https://github.com/gemini-hlsw/maven-repo/raw/master/releases",
-  addCompilerPlugin("org.typelevel" %% "kind-projector" % kindProjectorVersion),
+  addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3"),
 ))
 
-lazy val core = project
-  .in(file("modules/core"))
+lazy val engine = project
+  .in(file("modules/engine"))
+  .disablePlugins(TpolecatPlugin)
+  .settings(
+    name := "itc-cli-engine",
+    libraryDependencies ++= Seq(
+      "edu.gemini.ocs"          %% "edu-gemini-model-p1"         % "2020001.1.0",
+      "edu.gemini.ocs"          %% "edu-gemini-util-skycalc"     % "2019101.1.4",
+      "edu.gemini.ocs"          %% "edu-gemini-shared-skyobject" % "2019101.1.4",
+      "org.scala-lang.modules"  %% "scala-xml"                   % "2.0.0-M1",
+      "log4j"                    % "log4j"                       % "1.2.6",
+      "junit"                    % "junit"                       % "4.8.1"   % "test",
+      "org.mockito"              % "mockito-all"                 % "1.8.1"   % "test",
+      "com.novocode"             % "junit-interface"             % "0.11"    % "test"
+    )
+  )
+
+lazy val main = project
+  .in(file("modules/main"))
+  .dependsOn(engine)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
-    name := "itc-cli-core",
+    name := "itc-cli-main",
     libraryDependencies ++= Seq(
-      "edu.gemini.ocs" %% "edu-gemini-model-p1" % ocsVersion
-      )
+      "org.typelevel"  %% "cats-effect"         % "2.0.0",
+      "com.monovore"   %% "decline"             % "1.0.0",
+      "com.monovore"   %% "decline-effect"      % "1.0.0"
+    )
   )
 
