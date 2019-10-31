@@ -23,6 +23,8 @@ object Main extends CommandIOApp(
     "US" -> Partner("US", "United States", Percent(0.5), Set(Site.north, Site.south)),
     "CL" -> Partner("CL", "Chile", Percent(0.5), Set(Site.north, Site.south)),
     "AR" -> Partner("AR", "Argentina", Percent(0.5), Set(Site.north, Site.south)),
+    "CA" -> Partner("CA", "Canada", Percent(0.5), Set(Site.north, Site.south)),
+    "BR" -> Partner("BR", "Brazil", Percent(0.5), Set(Site.north, Site.south)),
   )
 
   val when = new Semester(2019, Semester.Half.B).getMidpointDate(edu.gemini.spModel.core.Site.GN).getTime()
@@ -30,14 +32,15 @@ object Main extends CommandIOApp(
   def main: Opts[IO[ExitCode]] =
     Opts.unit.map { _ =>
 
+      IO(System.setProperty("edu.gemini.model.p1.schemaVersion", "2020A")) *>
       ProposalLoader[IO](partners, when)
-        .load(new File("/Users/rnorris/proposals-xml/US_2019B_156.xml"))
+        .loadMany(new File("/Users/rnorris/proposals-xml"))
         .runA(JointIdGen(1))
-        .flatMap { //p =>
-          // ps.traverse_ {
-            case Left(errs) => IO(println("---")) *> errs.traverse(e => IO(println(e)))
-            case Right(ps)  => ps.traverse(p => IO(println(p)))
-          // }
+        .flatMap { ps =>
+          ps.traverse_ {
+            case (f, Left(errs)) => IO(println(s"--- $f")) *> errs.traverse(e => IO(println(e)))
+            case (f, Right(ps))  => ps.traverse(p => IO(s"--- $f\n$p"))
+          }
         }
         .as(ExitCode.Success)
 

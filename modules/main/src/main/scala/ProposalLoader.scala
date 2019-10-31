@@ -15,14 +15,17 @@ import edu.gemini.tac.qengine.p1.Proposal
 import edu.gemini.tac.qengine.p1.io.ProposalIo
 import edu.gemini.tac.qengine.p1.io.JointIdGen
 import edu.gemini.tac.qengine.ctx.Partner
+import edu.gemini.model.p1.immutable.transform.UpConverter
+import scalaz.Failure
+import scalaz.Success
+import scala.xml.XML
+import java.io.StringReader
 
 trait ProposalLoader[F[_]] {
 
-  def load(file: File): StateT[F, JointIdGen, EitherNel[String, NonEmptyList[Proposal]]]
+  def load(file: File): StateT[F, JointIdGen, (File, EitherNel[String, NonEmptyList[Proposal]])]
 
-  // problem here is all the errors are smashed together
-
-  def loadMany(file: File): StateT[F, JointIdGen, List[EitherNel[String, NonEmptyList[Proposal]]]]
+  def loadMany(dir: File): StateT[F, JointIdGen, List[(File, EitherNel[String, NonEmptyList[Proposal]])]]
 
 }
 
@@ -47,15 +50,23 @@ object ProposalLoader {
   ): ProposalLoader[F] =
     new ProposalLoader[F] {
 
-      private def unsafeLoadPhase1(file: File): I.Proposal =
-        ctor.newInstance(context.createUnmarshaller.unmarshal(file))
+      // Should we do upconversion? Unclear. Delete once we answer this.
+      val UpConvert = false
 
-      def loadPhase1(file: File): F[I.Proposal] =
-        Sync[F].delay(unsafeLoadPhase1(file))
+      // this does upconversion .. is it necessary?
+      def loadPhase1(f:File): F[I.Proposal] =
+        if  (UpConvert) {
+          Sync[F].delay(XML.loadFile(f)).map(UpConverter.upConvert).flatMap {
+            case Failure(ss) => Sync[F].raiseError(new RuntimeException(ss.list.toList.mkString("\n")))
+            case Success(r)  => ctor.newInstance(context.createUnmarshaller.unmarshal(new StringReader(r.root.toString))).pure[F]
+          }
+        } else {
+          Sync[F].delay(ctor.newInstance(context.createUnmarshaller.unmarshal(f)))
+        }
 
-      def loadManyPhase1(dir: File): F[List[I.Proposal]] =
+      def loadManyPhase1(dir: File): F[List[(File, I.Proposal)]] =
         Sync[F].delay(Option(dir.listFiles)).flatMap {
-          case Some(arr) => arr.toList.parTraverse(loadPhase1(_))
+          case Some(arr) => arr.toList.parTraverse(f => loadPhase1(f).tupleLeft(f))
           case None      => Sync[F].raiseError(new RuntimeException(s"Not a directory: $dir"))
         }
 
@@ -70,11 +81,11 @@ object ProposalLoader {
           }
         }
 
-      def load(file: File): StateT[F, JointIdGen, EitherNel[String, NonEmptyList[Proposal]]] =
-        StateT { jig => loadPhase1(file).map(read(_).run(jig).value) }
+      def load(file: File): StateT[F, JointIdGen, (File, EitherNel[String, NonEmptyList[Proposal]])] =
+        StateT { jig => loadPhase1(file).map(read(_).tupleLeft(file).run(jig).value) }
 
-      def loadMany(dir: File): StateT[F, JointIdGen, List[EitherNel[String, NonEmptyList[Proposal]]]] =
-        StateT { jig => loadManyPhase1(dir).map(_.traverse(read(_)).run(jig).value) }
+      def loadMany(dir: File): StateT[F, JointIdGen, List[(File, EitherNel[String, NonEmptyList[Proposal]])]] =
+        StateT { jig => loadManyPhase1(dir).map(_.traverse(a => read(a._2).tupleLeft(a._1)).run(jig).value) }
 
     }
 
