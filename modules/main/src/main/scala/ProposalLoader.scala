@@ -23,9 +23,9 @@ import java.io.StringReader
 
 trait ProposalLoader[F[_]] {
 
-  def load(file: File): StateT[F, JointIdGen, (File, EitherNel[String, NonEmptyList[Proposal]])]
+  def load(file: File): F[(File, EitherNel[String, NonEmptyList[Proposal]])]
 
-  def loadMany(dir: File): StateT[F, JointIdGen, List[(File, EitherNel[String, NonEmptyList[Proposal]])]]
+  def loadMany(dir: File): F[List[(File, EitherNel[String, NonEmptyList[Proposal]])]]
 
 }
 
@@ -55,18 +55,21 @@ object ProposalLoader {
 
       // this does upconversion .. is it necessary?
       def loadPhase1(f:File): F[I.Proposal] =
-        if  (UpConvert) {
+        if (UpConvert) {
           Sync[F].delay(XML.loadFile(f)).map(UpConverter.upConvert).flatMap {
             case Failure(ss) => Sync[F].raiseError(new RuntimeException(ss.list.toList.mkString("\n")))
             case Success(r)  => ctor.newInstance(context.createUnmarshaller.unmarshal(new StringReader(r.root.toString))).pure[F]
           }
         } else {
           Sync[F].delay(ctor.newInstance(context.createUnmarshaller.unmarshal(f)))
+        } .map { p =>
+          // see https://github.com/gemini-hlsw/itac/pull/29 :-(
+          p.copy(observations = p.nonEmptyObservations)
         }
 
       def loadManyPhase1(dir: File): F[List[(File, I.Proposal)]] =
         Sync[F].delay(Option(dir.listFiles)).flatMap {
-          case Some(arr) => arr.toList.parTraverse(f => loadPhase1(f).tupleLeft(f))
+          case Some(arr) => arr.sortBy(_.getAbsolutePath).toList.parTraverse(f => loadPhase1(f).tupleLeft(f))
           case None      => Sync[F].raiseError(new RuntimeException(s"Not a directory: $dir"))
         }
 
@@ -81,11 +84,11 @@ object ProposalLoader {
           }
         }
 
-      def load(file: File): StateT[F, JointIdGen, (File, EitherNel[String, NonEmptyList[Proposal]])] =
-        StateT { jig => loadPhase1(file).map(read(_).tupleLeft(file).run(jig).value) }
+      def load(file: File): F[(File, EitherNel[String, NonEmptyList[Proposal]])] =
+        loadPhase1(file).map(read(_).tupleLeft(file).runA(JointIdGen(1)).value)
 
-      def loadMany(dir: File): StateT[F, JointIdGen, List[(File, EitherNel[String, NonEmptyList[Proposal]])]] =
-        StateT { jig => loadManyPhase1(dir).map(_.traverse(a => read(a._2).tupleLeft(a._1)).run(jig).value) }
+      def loadMany(dir: File): F[List[(File, EitherNel[String, NonEmptyList[Proposal]])]] =
+        loadManyPhase1(dir).map(_.traverse(a => read(a._2).tupleLeft(a._1)).runA(JointIdGen(1)).value)
 
     }
 

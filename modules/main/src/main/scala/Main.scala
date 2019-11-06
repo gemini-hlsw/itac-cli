@@ -7,43 +7,88 @@ import cats.effect._
 import cats.implicits._
 import com.monovore.decline.effect.CommandIOApp
 import com.monovore.decline.Opts
-import java.io.File
-import edu.gemini.tac.qengine.p1.io.JointIdGen
-import edu.gemini.tac.qengine.ctx.Partner
-import edu.gemini.tac.qengine.util.Percent
-import edu.gemini.tac.qengine.ctx.Site
-import edu.gemini.spModel.core.Semester
+import java.nio.file.Path
+import java.nio.file.Paths
+import com.monovore.decline.Command
+import itac.operation._
+import cats.data.Validated
+import java.text.ParseException
+import cats.data.NonEmptyList
+import io.chrisdavenport.log4cats.Logger
+import cats.instances.`package`.long
+import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import edu.gemini.tac.qengine.ctx.Semester
+import scala.util.control.NonFatal
 
 object Main extends CommandIOApp(
-  name = "itac",
-  header = "ITAC Command Line Interface"
-) {
+  name    = "itac",
+  header  = "ITAC Command Line Interface"
+) with MoreOpts {
 
-  val partners = Map(
-    "US" -> Partner("US", "United States", Percent(0.5), Set(Site.north, Site.south)),
-    "CL" -> Partner("CL", "Chile", Percent(0.5), Set(Site.north, Site.south)),
-    "AR" -> Partner("AR", "Argentina", Percent(0.5), Set(Site.north, Site.south)),
-    "CA" -> Partner("CA", "Canada", Percent(0.5), Set(Site.north, Site.south)),
-    "BR" -> Partner("BR", "Brazil", Percent(0.5), Set(Site.north, Site.south)),
-  )
+  val init: Command[Operation[IO]] =
+    Command(
+      name   = "init",
+      header = "Initialize an ITAC workspace."
+    )(semester.map(Init[IO]))
 
-  val when = new Semester(2019, Semester.Half.B).getMidpointDate(edu.gemini.spModel.core.Site.GN).getTime()
+  val ls: Command[Operation[IO]] =
+    Command(
+      name   = "ls",
+      header = "List proposals in the workspace."
+    )(Opts.unit.as(Ls[IO]))
+
+  val command: Opts[Operation[IO]] =
+    List(init, ls).sortBy(_.name).map(Opts.subcommand(_)).foldK
 
   def main: Opts[IO[ExitCode]] =
-    Opts.unit.map { _ =>
-
-      IO(System.setProperty("edu.gemini.model.p1.schemaVersion", "2020A")) *>
-      ProposalLoader[IO](partners, when)
-        .loadMany(new File("/Users/rnorris/proposals-xml"))
-        .runA(JointIdGen(1))
-        .flatMap { ps =>
-          ps.traverse_ {
-            case (f, Left(errs)) => IO(println(s"--- $f")) *> errs.traverse(e => IO(println(e)))
-            case (f, Right(ps))  => ps.traverse(p => IO(s"--- $f\n$p"))
-          }
-        }
-        .as(ExitCode.Success)
-
+    (cwd, logger[IO], command).mapN { (cwd, log, cmd) =>
+      for {
+        _  <- IO(System.setProperty("edu.gemini.model.p1.schemaVersion", "2020.1.1")) // how do we figure out what to do here?
+        _  <- log.trace(s"main: working directory is $cwd.")
+        c  <- cmd.run(FileIO[IO](cwd, log), log).handleErrorWith {
+                case ItacException(msg) => log.error(msg).as(ExitCode.Error)
+                case NonFatal(e)        => IO.raiseError(e)
+              }
+        _  <- log.trace(s"main: exiting with ${c.code}")
+      } yield c
     }
 
-  }
+}
+
+trait MoreOpts {
+
+  val cwd: Opts[Path] =
+    Opts.option[Path](
+      short = "d",
+      long  = "dir",
+      help  = "Working directory. Defaults to current directory."
+    ) .withDefault(Paths.get(System.getProperty("user.dir")))
+      .mapValidated { p =>
+        if (p.toFile.isDirectory) p.toAbsolutePath.normalize.valid
+        else s"Not a directory: $p".invalidNel
+      }
+
+  val semester: Opts[Semester] =
+    Opts.argument[String]("semester")
+      .mapValidated { s =>
+        Validated
+          .catchOnly[ParseException](Semester.parse(s))
+          .leftMap(_ => NonEmptyList.of(s"Not a valid semester: $s"))
+      }
+
+  def logger[F[_]: Sync]: Opts[Logger[F]] =
+    Opts.option[String](
+      long = "verbose",
+      short = "v",
+      metavar = "level",
+      help = "Log verbosity. One of trace debug info warn error off. Defaults to info."
+    ) .withDefault("info")
+      .mapValidated {
+        case s @ ("trace" | "debug" | "info" | "warn" | "error" | "off") =>
+          // http://www.slf4j.org/api/org/slf4j/impl/SimpleLogger.html
+          System.setProperty("org.slf4j.simpleLogger.log.itac", s)
+          Slf4jLogger.getLoggerFromName[F]("itac").validNel[String]
+        case s => s"Invalid log level: $s".invalidNel
+      }
+
+}

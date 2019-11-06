@@ -45,3 +45,6 @@ out/
 
 # Vim
 *.swp
+
+# itac work
+work/
