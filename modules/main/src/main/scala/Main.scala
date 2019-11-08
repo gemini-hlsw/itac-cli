@@ -19,6 +19,8 @@ import cats.instances.`package`.long
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import edu.gemini.tac.qengine.ctx.Semester
 import scala.util.control.NonFatal
+import io.circe.DecodingFailure
+import io.chrisdavenport.log4cats.SelfAwareLogger
 
 object Main extends CommandIOApp(
   name    = "itac",
@@ -37,17 +39,17 @@ object Main extends CommandIOApp(
       header = "List proposals in the workspace."
     )(Opts.unit.as(Ls[IO]))
 
-  val command: Opts[Operation[IO]] =
+  val ops: Opts[Operation[IO]] =
     List(init, ls).sortBy(_.name).map(Opts.subcommand(_)).foldK
 
   def main: Opts[IO[ExitCode]] =
-    (cwd, logger[IO], command).mapN { (cwd, log, cmd) =>
+    (cwd, logger[IO], ops).mapN { (cwd, log, cmd) =>
       for {
         _  <- IO(System.setProperty("edu.gemini.model.p1.schemaVersion", "2020.1.1")) // how do we figure out what to do here?
-        _  <- log.trace(s"main: working directory is $cwd.")
-        c  <- cmd.run(FileIO[IO](cwd, log), log).handleErrorWith {
+        _  <- log.debug(s"main: workspace directory is $cwd.")
+        c  <- cmd.run(Workspace[IO](cwd, log), log).handleErrorWith {
                 case ItacException(msg) => log.error(msg).as(ExitCode.Error)
-                case NonFatal(e)        => IO.raiseError(e)
+                case NonFatal(e)        => log.error(e)(e.getMessage).as(ExitCode.Error)
               }
         _  <- log.trace(s"main: exiting with ${c.code}")
       } yield c
@@ -76,7 +78,7 @@ trait MoreOpts {
           .leftMap(_ => NonEmptyList.of(s"Not a valid semester: $s"))
       }
 
-  def logger[F[_]: Sync]: Opts[Logger[F]] =
+  def logger[F[_]: Sync]: Opts[SelfAwareLogger[F]] =
     Opts.option[String](
       long = "verbose",
       short = "v",

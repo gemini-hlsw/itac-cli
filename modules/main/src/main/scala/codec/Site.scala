@@ -12,7 +12,7 @@ trait SiteCodec {
     Encoder[String].contramap(_.abbreviation())
 
   implicit val DecoderSite: Decoder[Site] =
-    Decoder[String].emap(s => Option(Site.parse(s)).toRight(s"Could not deocde '$s' a Site."))
+    Decoder[String].emap(s => Option(Site.parse(s)).toRight(s"Not a valid site: $s"))
 
   implicit val KeyEncoderSite: KeyEncoder[Site] =
     KeyEncoder.instance(_.abbreviation)
