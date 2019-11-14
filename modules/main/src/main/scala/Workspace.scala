@@ -9,14 +9,13 @@ import cats.effect.Sync
 import cats.implicits._
 import java.nio.file.Files
 import io.chrisdavenport.log4cats.Logger
-import itac.data.CommonConfig
 import java.nio.file.Paths
-import itac.codec.commonconfig._
-import edu.gemini.tac.qengine.p1.Proposal
-import edu.gemini.tac.qengine.ctx.Site
 import cats.Parallel
 import java.nio.file.NoSuchFileException
 import io.circe.CursorOp.DownField
+import itac.config.Common
+import edu.gemini.tac.qengine.p1.Proposal
+import edu.gemini.tac.qengine.ctx.Site
 
 /** Interface for some Workspace operations. */
 trait Workspace[F[_]] {
@@ -38,7 +37,7 @@ trait Workspace[F[_]] {
    */
   def mkdirs(path: Path): F[Path]
 
-  def commonConfig: F[CommonConfig]
+  def commonConfig: F[Common]
 
   def proposals: F[List[Proposal]]
 
@@ -91,8 +90,8 @@ object Workspace {
         }
       }
 
-      def commonConfig: F[CommonConfig] =
-        readData[CommonConfig](Paths.get("common.yaml")).recoverWith {
+      def commonConfig: F[Common] =
+        readData[Common](Paths.get("common.yaml")).recoverWith {
           case _: NoSuchFileException => cwd.flatMap(p => Sync[F].raiseError(ItacException(s"Not an ITAC Workspace: $p")))
         }
 
@@ -101,7 +100,7 @@ object Workspace {
           cwd  <- cwd
           conf <- commonConfig
           p     = cwd.resolve("proposals")
-          pas   = conf.partners.map(p => (p.id -> p)).toMap
+          pas   = conf.engine.partners.map { p => (p.id, p) } .toMap
           when  = conf.semester.getMidpoint(Site.north).getTime // arbitrary
           _    <- log.debug(s"Reading proposals from $p")
           ps   <- ProposalLoader[F](pas, when).loadMany(p.toFile)

@@ -5,8 +5,7 @@ import cats.effect.ExitCode
 import cats.implicits._
 import edu.gemini.tac.qengine.ctx.Semester
 import io.chrisdavenport.log4cats.Logger
-import itac.codec.commonconfig._
-import itac.data.CommonConfig
+import itac.config.Common
 import itac.Workspace
 import itac.Operation
 import java.nio.file.Paths
@@ -23,7 +22,7 @@ object Init {
         def init: F[ExitCode] =
           for {
             _ <- List("proposals", "emails").traverse(ws.mkdirs(_))
-            _ <- ws.writeData(Paths.get("common.yaml"), CommonConfig.default(semester))
+            _ <- ws.writeData(Paths.get("common.yaml"), Common.dummy(semester))
           } yield ExitCode.Success
 
         for {

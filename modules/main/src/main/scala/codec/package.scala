@@ -6,11 +6,8 @@ package itac
 package object codec {
 
   object all
-    extends PartnerCodec
-       with PercentCodec
+    extends PercentCodec
        with SiteCodec
        with SemesterCodec
-       with LocalDateRangeCodec
-       with CommonConfigCodec
 
 }

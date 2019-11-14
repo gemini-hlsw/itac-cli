@@ -3,44 +3,26 @@
 
 package itac
 
+import cats.data.NonEmptyList
+import cats.data.Validated
 import cats.effect._
 import cats.implicits._
+import com.monovore.decline.Command
 import com.monovore.decline.effect.CommandIOApp
 import com.monovore.decline.Opts
+import edu.gemini.tac.qengine.ctx.Semester
+import io.chrisdavenport.log4cats.Logger
+import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import itac.operation._
 import java.nio.file.Path
 import java.nio.file.Paths
-import com.monovore.decline.Command
-import itac.operation._
-import cats.data.Validated
 import java.text.ParseException
-import cats.data.NonEmptyList
-import io.chrisdavenport.log4cats.Logger
-import cats.instances.`package`.long
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
-import edu.gemini.tac.qengine.ctx.Semester
 import scala.util.control.NonFatal
-import io.circe.DecodingFailure
-import io.chrisdavenport.log4cats.SelfAwareLogger
 
 object Main extends CommandIOApp(
   name    = "itac",
   header  = "ITAC Command Line Interface"
-) with MoreOpts {
-
-  val init: Command[Operation[IO]] =
-    Command(
-      name   = "init",
-      header = "Initialize an ITAC workspace."
-    )(semester.map(Init[IO]))
-
-  val ls: Command[Operation[IO]] =
-    Command(
-      name   = "ls",
-      header = "List proposals in the workspace."
-    )(Opts.unit.as(Ls[IO]))
-
-  val ops: Opts[Operation[IO]] =
-    List(init, ls).sortBy(_.name).map(Opts.subcommand(_)).foldK
+) with MainOpts {
 
   def main: Opts[IO[ExitCode]] =
     (cwd, logger[IO], ops).mapN { (cwd, log, cmd) =>
@@ -57,7 +39,8 @@ object Main extends CommandIOApp(
 
 }
 
-trait MoreOpts {
+// decline opts used by main, sliced off because it seems more tidy
+trait MainOpts { this: CommandIOApp =>
 
   val cwd: Opts[Path] =
     Opts.option[Path](
@@ -66,6 +49,7 @@ trait MoreOpts {
       help  = "Working directory. Defaults to current directory."
     ) .withDefault(Paths.get(System.getProperty("user.dir")))
       .mapValidated { p =>
+        // `isDirectory` is a side-effect, but we're only doing it once so we'll pretend it's not
         if (p.toFile.isDirectory) p.toAbsolutePath.normalize.valid
         else s"Not a directory: $p".invalidNel
       }
@@ -78,12 +62,12 @@ trait MoreOpts {
           .leftMap(_ => NonEmptyList.of(s"Not a valid semester: $s"))
       }
 
-  def logger[F[_]: Sync]: Opts[SelfAwareLogger[F]] =
+  def logger[F[_]: Sync]: Opts[Logger[F]] =
     Opts.option[String](
-      long = "verbose",
-      short = "v",
+      long    = "verbose",
+      short   = "v",
       metavar = "level",
-      help = "Log verbosity. One of trace debug info warn error off. Defaults to info."
+      help    = "Log verbosity. One of trace debug info warn error off. Defaults to info."
     ) .withDefault("info")
       .mapValidated {
         case s @ ("trace" | "debug" | "info" | "warn" | "error" | "off") =>
@@ -92,5 +76,20 @@ trait MoreOpts {
           Slf4jLogger.getLoggerFromName[F]("itac").validNel[String]
         case s => s"Invalid log level: $s".invalidNel
       }
+
+  val init: Command[Operation[IO]] =
+    Command(
+      name   = "init",
+      header = "Initialize an ITAC workspace."
+    )(semester.map(Init[IO]))
+
+  val ls: Command[Operation[IO]] =
+    Command(
+      name   = "ls",
+      header = "List proposals in the workspace."
+    )(Opts.unit.as(Ls[IO]))
+
+  val ops: Opts[Operation[IO]] =
+    List(init, ls).sortBy(_.name).map(Opts.subcommand(_)).foldK
 
 }
