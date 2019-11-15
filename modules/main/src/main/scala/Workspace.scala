@@ -1,3 +1,6 @@
+// Copyright (c) 2016-2019 Association of Universities for Research in Astronomy, Inc. (AURA)
+// For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
+
 package itac
 
 import java.nio.file.Path
@@ -16,6 +19,7 @@ import io.circe.CursorOp.DownField
 import itac.config.Common
 import edu.gemini.tac.qengine.p1.Proposal
 import edu.gemini.tac.qengine.ctx.Site
+import itac.config.Queue
 
 /** Interface for some Workspace operations. */
 trait Workspace[F[_]] {
@@ -38,6 +42,8 @@ trait Workspace[F[_]] {
   def mkdirs(path: Path): F[Path]
 
   def commonConfig: F[Common]
+
+  def queueConfig(prefix: String): F[Queue]
 
   def proposals: F[List[Proposal]]
 
@@ -93,6 +99,11 @@ object Workspace {
       def commonConfig: F[Common] =
         readData[Common](Paths.get("common.yaml")).recoverWith {
           case _: NoSuchFileException => cwd.flatMap(p => Sync[F].raiseError(ItacException(s"Not an ITAC Workspace: $p")))
+        }
+
+      def queueConfig(prefix: String): F[Queue] =
+        readData[Queue](Paths.get(s"$prefix.yaml")).recoverWith {
+          case _: NoSuchFileException => cwd.flatMap(p => Sync[F].raiseError(ItacException(s"No such queue configuration: $p")))
         }
 
       def proposals: F[List[Proposal]] =
