@@ -14,7 +14,7 @@ final case class Queue(
   bands:      BandPercentages,
   overfill:   Option[Percent],
   raBins:     Binned[Double],
-  decBins:    Binned[Double]
+  decBins:    Binned[Percent]
 ) {
 
   object engine {
@@ -54,7 +54,7 @@ object Queue {
         bands      <- c.downField("bands").as[BandPercentages]
         overfill   <- c.downField("overfill").as[Option[Percent]]
         raBins     <- c.downField("raBins").as(Binned.decoder[Double](0, 24))
-        decBins    <- c.downField("decBins").as(Binned.decoder[Double](-90, 90))
+        decBins    <- c.downField("decBins").as(Binned.decoder[Percent](-90, 90))
       } yield Queue(site, totalHours, bands, overfill, raBins, decBins)
     }
 

@@ -6,6 +6,10 @@ package test
 import itac.config.Binned
 import cats.tests.CatsSuite
 import org.scalatest.matchers.should.Matchers
+import org.scalacheck.Arbitrary
+import org.scalacheck.Arbitrary.{ arbitrary => arb }
+import org.scalacheck.Gen
+import edu.gemini.tac.qengine.util.Angle
 
 class BinnedSuite extends CatsSuite with Matchers {
 
@@ -36,7 +40,7 @@ class BinnedSuite extends CatsSuite with Matchers {
 
   test("bad keys") {
     val res = Binned(0, 24, 8, Map(-3 -> "x", 0 -> "a", 3 -> "b", 4 -> "c", 9 -> "d", 24 -> "z", 27 -> "zz"))
-    res shouldBe Left("Bin keys be multiples of 3 in [0, 24). Invalid keys found: -3 4 24 27")
+    res shouldBe Left("Bin keys must be multiples of 3 in [0, 24). Invalid keys found: -3 4 24 27")
   }
 
   test("ok") {
@@ -44,5 +48,48 @@ class BinnedSuite extends CatsSuite with Matchers {
     res.isRight shouldBe true
   }
 
+  def genBinned[A: Arbitrary](min: Int, max: Int, bins: Int): Gen[Binned[A]] =
+    Gen.listOfN(bins, arb[(A, Boolean)]).map { vs =>
+      val binSize = (max - min) / bins
+      val values  = vs.zipWithIndex.collect { case ((v, true), n) => ((min + n * binSize) -> v) } .toMap
+      Binned(min, max, bins, values) match {
+        case Left(e)  => fail(e)
+        case Right(b) => b
+      }
+    }
+
+  test("toRaBinGroup (bad)") {
+    val res = Binned[Int](0, 20, 2, Map.empty).flatMap(_.engine.toRaBinGroup(0))
+    res shouldBe Left("RA bin group must have range [0, 24) ... found [0, 20)")
+  }
+
+  test("toRaBinGroup (ok)") {
+    forAll(genBinned[Int](0, 24, 12)) { b =>
+      b.engine.toRaBinGroup(0) match {
+        case Left(e)    => fail(e)
+        case Right(rbg) =>
+          (0 until 24) foreach { a =>
+            b.values.getOrElse(a, 0) shouldBe rbg(new Angle(a.toDouble, Angle.Hr))
+          }
+        }
+    }
+  }
+
+  test("toDecBinGroup (bad)") {
+    val res = Binned[Short](0, 20, 2, Map.empty).flatMap(_.engine.toDecBinGroup(0))
+    res shouldBe Left("Declination bin group must have range [-90, 90) ... found [0, 20)")
+  }
+
+  test("toDecBinGroup (ok)") {
+    forAll(genBinned[Short](-90, 90, 18)) { b =>
+      b.engine.toDecBinGroup(0) match {
+        case Left(e)    => fail(e)
+        case Right(dbg) =>
+          (-90 until 90 by 10) foreach { a =>
+            dbg.get(new Angle(a.toDouble, Angle.Deg)).map(_.binValue) shouldBe Some(b.values.getOrElse(a, 0))
+          }
+        }
+    }
+  }
 }
 

@@ -6,7 +6,13 @@ package itac.config
 import cats.implicits._
 import io.circe._
 import io.circe.syntax._
+import edu.gemini.tac.qengine.api.config.RaBinGroup
+import edu.gemini.tac.qengine.api.config.DecBinGroup
 
+/**
+ * A map from keys in `min until max by binSize` to values of type `A`, where `min < max` and
+ * `binSize % (max - min) = 0`.
+ */
 sealed trait Binned[A] {
   def min: Int
   def max: Int
@@ -14,7 +20,21 @@ sealed trait Binned[A] {
   def bins: Int // invariant: size % bins = 0
   def binSize: Int = size / bins
   def values: Map[Int, A] // invariant: key % binSize = 0
+
+  object engine {
+
+    def toRaBinGroup(zero: A): Either[String, RaBinGroup[A]] =
+      if (min != 0 || max != 24) Left(s"RA bin group must have range [0, 24) ... found [$min, $max)")
+      else Right(RaBinGroup((0 until 24).map(values.getOrElse(_, zero))))
+
+    def toDecBinGroup(zero: A): Either[String, DecBinGroup[A]] =
+      if (min != -90 || max != 90) Left(s"Declination bin group must have range [-90, 90) ... found [$min, $max)")
+      else Right(DecBinGroup((-90 until 90 by binSize).map(values.getOrElse(_, zero))))
+
+  }
+
 }
+
 
 object Binned {
 
@@ -25,7 +45,7 @@ object Binned {
     else {
       val binSize = size / bins
       val badKeys = values.keys.toList.filterNot(k => k % binSize == 0 && k >= min && k < max)
-      if (badKeys.nonEmpty) Left(s"Bin keys be multiples of $binSize in [$min, $max). Invalid keys found: ${badKeys.sorted.mkString(" ")}")
+      if (badKeys.nonEmpty) Left(s"Bin keys must be multiples of $binSize in [$min, $max). Invalid keys found: ${badKeys.sorted.mkString(" ")}")
       else Right {
         val (min0, max0, bins0, values0) = (min, max, bins, values)
         new Binned[A] {
