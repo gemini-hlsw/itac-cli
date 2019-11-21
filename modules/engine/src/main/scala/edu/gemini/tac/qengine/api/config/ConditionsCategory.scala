@@ -7,7 +7,7 @@ import ConditionsCategory._
  * Defines valid specifications for observing conditions categories.
  */
 object ConditionsCategory {
-  trait Spec[V <: Var[V]] {
+  sealed trait Spec[V <: Var[V]] {
     /**
      * Determines whether the given conditions variable matches (falls in) the
      * category.  For example, if the category is >=CC70 then CC70, CC80, and
@@ -22,7 +22,7 @@ object ConditionsCategory {
     def canObserve(cond: V): Boolean
   }
 
-  private[ConditionsCategory] class Unspecified[V <: Var[V]]() extends Spec[V] {
+  sealed abstract class Unspecified[V <: Var[V]]() extends Spec[V] {
     override def matches(other: V): Boolean   = true
     override def canObserve(cond: V): Boolean = true
     override def toString: String = "--"

@@ -9,5 +9,8 @@ package object codec {
     extends PercentCodec
        with SiteCodec
        with SemesterCodec
+       with TokensCodecs
+       with ConditionsBinCodec
+       with ConditionsCategoryCodec
 
 }
