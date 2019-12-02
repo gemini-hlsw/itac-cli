@@ -6,7 +6,7 @@ import BlockIterator.IMap
 import edu.gemini.tac.qengine.api.queue.time.PartnerTime
 import edu.gemini.tac.qengine.ctx.Partner
 import edu.gemini.tac.qengine.p1.{Observation, Proposal}
-import org.apache.log4j.{Level, Logger}
+import org.apache.logging.log4j.{Level, Logger, LogManager}
 
 /**
  * An immutable iterator that can be used to generate time blocks across all
@@ -15,7 +15,7 @@ import org.apache.log4j.{Level, Logger}
  * time quanta.
  */
 trait BlockIterator {
-  private val LOGGER : Logger = Logger.getLogger(this.getClass)
+  private val LOGGER : Logger = LogManager.getLogger(this.getClass)
 
   val allPartners: List[Partner]
 
@@ -158,7 +158,7 @@ object BlockIterator {
           val iterMap: IMap) extends BlockIterator {
 
     def mkIterator(s: Seq[Partner], t: Time, m: IMap) = {
-      Logger.getLogger(this.getClass).log(Level.DEBUG, "BlockIterator: " + seq.head + " remTime " + remTime)
+      LogManager.getLogger(this.getClass).log(Level.DEBUG, "BlockIterator: " + seq.head + " remTime " + remTime)
       //QueueCalculationLog.logger.log(Level.INFO, (<Event source="BlockIterator" event="mkIterator">{s.head.fullName}</Event>).toString)
       new BlockIteratorImpl(allPartners, quantaMap, s, t, m)
     }

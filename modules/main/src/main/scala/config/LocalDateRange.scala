@@ -16,6 +16,7 @@ sealed abstract case class LocalDateRange(
 ) {
   // Sanity check, should be correct on construction
   assert(!end.isBefore(start))
+
 }
 
 object LocalDateRange {

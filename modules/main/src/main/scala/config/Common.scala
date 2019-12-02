@@ -6,22 +6,47 @@ package itac.config
 import cats.implicits._
 import io.circe._
 import io.circe.generic.semiauto._
+import scala.xml.Elem
+import edu.gemini.tac.qengine.api.config.Shutdown
+import java.{util => ju}
+import java.time.LocalDate
 
 final case class Common(
   semester: Semester,
   shutdown: PerSite[List[LocalDateRange]],
   partners: Partner => PartnerConfig,
   sequence: PerSite[List[Partner]]
-) {
+) { self =>
 
   object engine {
     import edu.gemini.tac.qengine.ctx.{ Partner => ItacPartner }
+    import edu.gemini.tac.qengine.api.config.{ PartnerSequence => ItacPartnerSequence }
 
-    def partners: List[ItacPartner] =
+    val partnersMap: Map[Partner, ItacPartner] =
       Partner.all.map { p =>
         val cfg = Common.this.partners(p)
-        ItacPartner(p.id, p.name, cfg.percent, cfg.sites.toSet)
-    }
+        p -> ItacPartner(p.id, p.name, cfg.percent, cfg.sites.toSet)
+      } .toMap
+
+    val partners: List[ItacPartner] =
+      partnersMap.values.toList
+
+    def partnerSequence(site: Site): ItacPartnerSequence =
+      new ItacPartnerSequence {
+        def sequence = self.sequence.forSite(site).map(partnersMap).toStream
+        def configuration: Elem = ???
+      }
+
+    def shutdowns(site: Site): List[Shutdown] =
+      shutdown.forSite(site).map { ldr =>
+        // Turn a LocalDate to a ju.Date at noon at `site`.
+        def date(ldt: LocalDate): ju.Date = {
+          val zid  = site.timeZone.toZoneId
+          val zdt = ldt.atStartOfDay(zid).plusHours(12L)
+          new ju.Date(zdt.toEpochSecond * 1000)
+        }
+        Shutdown(site, date(ldr.start), date(ldr.end))
+      }
 
   }
 

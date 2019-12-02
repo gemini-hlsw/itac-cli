@@ -6,13 +6,13 @@ import edu.gemini.tac.qengine.log.{RejectOverAllocation, RejectMessage, RejectPa
 import edu.gemini.tac.qengine.p1.QueueBand.Category.Guaranteed
 import edu.gemini.tac.qengine.impl.queue.ProposalQueueBuilder
 import edu.gemini.tac.qengine.p1.{ObsConditions, Target}
-import org.apache.log4j.{Level, Logger}
+import org.apache.logging.log4j.{Level, Logger, LogManager}
 
 final class SemesterResource(
         val ra: RaResourceGroup,
         val time: TimeResourceGroup,
         val band: BandResource) extends Resource {
-  private val LOGGER = Logger.getLogger(this.getClass)
+  private val LOGGER = LogManager.getLogger(this.getClass)
   type T = SemesterResource
 
   private def reserveAll(block: Block, queue: ProposalQueueBuilder): RejectMessage Either SemesterResource =

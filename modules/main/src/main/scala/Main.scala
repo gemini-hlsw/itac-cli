@@ -18,6 +18,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.text.ParseException
 import scala.util.control.NonFatal
+import edu.gemini.tac.qengine.impl.QueueEngine
 
 object Main extends CommandIOApp(
   name    = "itac",
@@ -29,7 +30,8 @@ object Main extends CommandIOApp(
       for {
         _  <- IO(System.setProperty("edu.gemini.model.p1.schemaVersion", "2020.1.1")) // how do we figure out what to do here?
         _  <- log.debug(s"main: workspace directory is $cwd.")
-        c  <- cmd.run(Workspace[IO](cwd, log), log).handleErrorWith {
+        ws <- Workspace[IO](cwd, log)
+        c  <- cmd.run(ws, log).handleErrorWith {
                 case ItacException(msg) => log.error(msg).as(ExitCode.Error)
                 case NonFatal(e)        => log.error(e)(e.getMessage).as(ExitCode.Error)
               }
@@ -50,8 +52,9 @@ trait MainOpts { this: CommandIOApp =>
     ) .withDefault(Paths.get(System.getProperty("user.dir")))
       .mapValidated { p =>
         // `isDirectory` is a side-effect, but we're only doing it once so we'll pretend it's not
-        if (p.toFile.isDirectory) p.toAbsolutePath.normalize.valid
-        else s"Not a directory: $p".invalidNel
+        val pʹ = p.toAbsolutePath.normalize
+        if (pʹ.toFile.isDirectory) pʹ.valid
+        else s"Not a directory: $pʹ".invalidNel
       }
 
   val semester: Opts[Semester] =
@@ -89,7 +92,13 @@ trait MainOpts { this: CommandIOApp =>
       header = "List proposals in the workspace."
     )(Opts.unit.as(Ls[IO]))
 
+  val queue: Command[Operation[IO]] =
+    Command(
+      name   = "queue",
+      header  = "Generate a queue."
+    )(Opts.unit.as(Queue[IO](QueueEngine)))
+
   val ops: Opts[Operation[IO]] =
-    List(init, ls).sortBy(_.name).map(Opts.subcommand(_)).foldK
+    List(init, ls, queue).sortBy(_.name).map(Opts.subcommand(_)).foldK
 
 }

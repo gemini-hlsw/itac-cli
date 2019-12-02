@@ -2,7 +2,7 @@ package edu.gemini.tac.qengine.api.queue.time
 
 import edu.gemini.tac.qengine.util.{Percent, Time}
 import edu.gemini.tac.qengine.ctx.{Partner, Site}
-import org.apache.log4j.{Logger, Level}
+import org.apache.logging.log4j.{Logger, Level, LogManager}
 
 /**
  * Wraps a map Partner -> Time with some convenience.  Guarantees that the
@@ -54,7 +54,7 @@ class PartnerTime private(val partners: List[Partner], val map: Map[Partner, Tim
 }
 
 object PartnerTime {
-  val LOGGER = Logger.getLogger(classOf[PartnerTime])
+  val LOGGER = LogManager.getLogger(classOf[PartnerTime])
 
   /**
    * Creates a PartnerTime object using the given partial function to map from

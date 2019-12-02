@@ -1,13 +1,13 @@
 package edu.gemini.tac.qengine.api.config
 
 import edu.gemini.tac.qengine.ctx.{Site, Partner}
-import org.apache.log4j.{Level, Logger}
+import org.apache.logging.log4j.{Level, Logger, LogManager}
 import xml.Elem
 
 class ProportionalPartnerSequence(seq: List[Partner], val site: Site, val initialPick: Partner) extends  edu.gemini.tac.qengine.api.config.PartnerSequence {
   def this(seq : List[Partner], site : Site) = this(seq, site, seq.sortWith(_.percentAt(site) > _.percentAt(site)).head)
 
-  private val LOGGER : Logger = Logger.getLogger(classOf[ProportionalPartnerSequence])
+  private val LOGGER : Logger = LogManager.getLogger(classOf[ProportionalPartnerSequence])
 
   private def filter(site: Site) = seq.filter(_.sites.contains(site))
 

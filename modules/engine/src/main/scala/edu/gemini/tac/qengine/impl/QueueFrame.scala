@@ -5,7 +5,7 @@ import edu.gemini.tac.qengine.impl.resource.SemesterResource
 import edu.gemini.tac.qengine.log.{AcceptMessage, RejectMessage}
 import queue.ProposalQueueBuilder
 import edu.gemini.tac.qengine.p1.{Observation, Proposal}
-import org.apache.log4j.{Logger,  Level}
+import org.apache.logging.log4j.{Logger,  Level, LogManager}
 import edu.gemini.tac.qengine.p1.QueueBand.Category
 
 /**
@@ -16,7 +16,7 @@ import edu.gemini.tac.qengine.p1.QueueBand.Category
  * the proposal is skipped.
  */
 final class QueueFrame(val queue: ProposalQueueBuilder, val iter: BlockIterator, val res: SemesterResource) {
-  private val LOGGER = Logger.getLogger(this.getClass)
+  private val LOGGER = LogManager.getLogger(this.getClass)
   private val applicationLogger = QueueCalculationLog.logger
 
   val lName = LOGGER.getName
