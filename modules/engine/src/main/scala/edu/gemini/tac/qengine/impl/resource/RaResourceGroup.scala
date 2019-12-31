@@ -6,6 +6,7 @@ import edu.gemini.tac.qengine.log.{RejectToo, RejectMessage}
 import edu.gemini.tac.qengine.impl.queue.ProposalQueueBuilder
 import edu.gemini.tac.qengine.p1._
 import edu.gemini.tac.qengine.api.config.{SiteSemesterConfig, RaBinGroup}
+import org.slf4j.LoggerFactory
 
 object RaResourceGroup {
   // Creates an RA resource group from the site/semester configuration.
@@ -18,11 +19,14 @@ object RaResourceGroup {
  *
  * A resource that encapsulates RaBinGroup[RaResource] (n.b. RaResource contains a DecResourceGroup encapsulating a DecBinGroup)
  */
-class RaResourceGroup(val grp: RaBinGroup[RaResource]) extends Resource {
+case class RaResourceGroup(val grp: RaBinGroup[RaResource]) extends Resource {
   type T = RaResourceGroup
 
-  def reserve(block: Block, queue: ProposalQueueBuilder): RejectMessage Either RaResourceGroup =
+  val LOG = LoggerFactory.getLogger(getClass)
+
+  def reserve(block: Block, queue: ProposalQueueBuilder): RejectMessage Either RaResourceGroup = {
     if (block.prop.too != Too.none) reserveToo(block, queue) else reserveNonToo(block, queue)
+  }
 
   // Splits the block into one block/RaReservation according to the amount of
   // time to distribute to each RaReservation.  If the split is successful,
@@ -48,7 +52,14 @@ class RaResourceGroup(val grp: RaBinGroup[RaResource]) extends Resource {
 
   private def reserveNonToo(block: Block, queue: ProposalQueueBuilder): RejectMessage Either RaResourceGroup = {
     val ra = block.obs.target.ra
-    grp(ra).reserve(block, queue).right.map(bin => new RaResourceGroup(grp.updated(ra, bin)))
+    grp(ra).reserve(block, queue) match {
+      case Right(bin) =>
+        LOG.debug(s"  💚  I was able to reserve time for this RA ($ra).")
+        Right(new RaResourceGroup(grp.updated(ra, bin)))
+      case Left(err)  =>
+        LOG.debug(s"  ❌  I was unable to reserve time for this RA ($ra).")
+        Left(err)
+    }
   }
 
   def tooBlocks(block: Block): Option[Seq[Block]] =

@@ -109,7 +109,7 @@ trait PartnerBlockIterator{
  */
 object PartnerBlockIterator {
 
-  private object Empty extends PartnerBlockIterator {
+  case object Empty extends PartnerBlockIterator {
     val remainingProposals: List[Proposal] = Nil
     val remainingObservationsInActiveList: List[Observation] = Nil
     val currentObservationRemainingTime: Time = Time.Zero
@@ -118,9 +118,10 @@ object PartnerBlockIterator {
     def mkIterator(propList: List[Proposal], obsList: List[Observation], time: Time, start: Boolean): PartnerBlockIterator = this
   }
 
-  private class NormalIterator(val remainingProposals: List[Proposal], val remainingObservationsInActiveList: List[Observation], val currentObservationRemainingTime: Time, val isStartBlock: Boolean) extends PartnerBlockIterator {
+  private case class NormalIterator(val remainingProposals: List[Proposal], val remainingObservationsInActiveList: List[Observation], val currentObservationRemainingTime: Time, val isStartBlock: Boolean) extends PartnerBlockIterator {
     def mkIterator(propList: List[Proposal], obsList: List[Observation], time: Time, start: Boolean): PartnerBlockIterator =
       new NormalIterator(propList, obsList, time, start)
+    override def toString = s"NormalIterator(${remainingProposals.length} proposals remaining, ${remainingObservationsInActiveList.length} observations active, ${currentObservationRemainingTime} of ${currentProposal.time} remaining in current obs)"
   }
 
   private def init(l: List[Proposal], activeList : Proposal => List[Observation]): (List[Observation], Time) = {

@@ -61,14 +61,15 @@ object Fixture {
   def mkProp(ntac: Ntac, obsDefs: (Target, ObsConditions, Time)*): CoreProposal =
     CoreProposal(ntac, site = site, obsList = obsDefs.map(tup => Observation(tup._1, tup._2, tup._3)).toList)
 
-  val emptyQueue = ProposalQueueBuilder(QueueTime(Site.north, PartnerTime.empty(partners).map, partners))
+  val emptyQueue = ProposalQueueBuilder(QueueTime(Site.north, PartnerTime.empty(partners).map, partners), ProposalQueueBuilder.DefaultStrategy)
   def evenQueue(hrs: Double): ProposalQueueBuilder =
     evenQueue(hrs, Some(QueueTime.DefaultPartnerOverfillAllowance))
 
   def evenQueue(hrs: Double, overfill: Option[Percent]): ProposalQueueBuilder = {
     val pt = PartnerTime(partners, partners.map(p => (p, Time.hours(hrs))): _*)
     ProposalQueueBuilder(
-      new QueueTime(site, pt, partnerOverfillAllowance = overfill)
+      new QueueTime(site, pt, partnerOverfillAllowance = overfill),
+      ProposalQueueBuilder.DefaultStrategy
     )
   }
 }

@@ -70,13 +70,13 @@ trait MainOpts { this: CommandIOApp =>
       long    = "verbose",
       short   = "v",
       metavar = "level",
-      help    = "Log verbosity. One of trace debug info warn error off. Defaults to info."
+      help    = "Log verbosity. One of: trace debug info warn error off. Defaults to info."
     ) .withDefault("info")
       .mapValidated {
         case s @ ("trace" | "debug" | "info" | "warn" | "error" | "off") =>
           // http://www.slf4j.org/api/org/slf4j/impl/SimpleLogger.html
-          System.setProperty("org.slf4j.simpleLogger.log.itac", s)
-          Slf4jLogger.getLoggerFromName[F]("itac").validNel[String]
+          System.setProperty("org.slf4j.simpleLogger.log.edu", s)
+          Slf4jLogger.getLoggerFromName[F]("edu.gemini.itac").validNel[String]
         case s => s"Invalid log level: $s".invalidNel
       }
 

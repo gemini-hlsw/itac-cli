@@ -8,13 +8,14 @@ import edu.gemini.tac.qengine.p2.rollover.RolloverReport
 import java.util.logging.{Level, Logger}
 
 import scala.collection.JavaConverters._
+import org.slf4j.LoggerFactory
 
 /**
  * Contains calculations of various PartnerTime categories that go into the
  * final QueueTime.
  */
 object PartnerTimeCalc {
-  val Log = Logger.getLogger(this.getClass.getName)
+  val Log = LoggerFactory.getLogger(this.getClass.getName)
 
   /**
    * Distributes the total queue over the partners for the given site according
@@ -89,9 +90,9 @@ case class PartnerTimeCalc(partners: List[Partner],
                            exchange: PartnerTime,
                            adjustment: PartnerTime,
                            partnerTrade: PartnerTime) {
-  Log.log(Level.FINE, "PartnerTimeCalc.base = " + base.toString)
+  Log.trace("PartnerTimeCalc.base = " + base.toString)
 
   val net: PartnerTime = PartnerTimeCalc.net(base, partners, classical, rollover, exchange, adjustment, partnerTrade)
-  Log.log(Level.FINE, "PartnerTimeCalc.net = " + net.toString)
+  Log.trace("PartnerTimeCalc.net = " + net.toString)
 }
 

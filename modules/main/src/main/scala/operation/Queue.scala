@@ -46,7 +46,24 @@ object Queue {
               )
             ),
           )
-          _ <- queueCalc.queue.bandedQueue.toList.traverse(p => Sync[F].delay(println(p)))
+          // _  <- ps.traverse { p =>
+
+                  // val msgs: List[LogMessage] = QueueBand.Category.values.flatMap(queueCalc.proposalLog.get(p.id, _))
+                  // Sync[F].delay(print(p.id)) *>
+                  // Sync[F].delay(print(" *")).whenA(msgs.isEmpty) *>
+                  // Sync[F].delay(println())
+                  // Sync[F].delay(println(p.id)) *>
+                  // QueueBand.Category.values.traverse { qv =>
+                  //   val msg = queueCalc.proposalLog.get(p.id, qv)
+                  //   msg.traverse { m => Sync[F].delay(println(s"  $qv: ${m.getClass.getSimpleName}")) }
+                  // }
+              //  }
+          // _ <- Sync[F].delay(println(qc.engine.raLimits.toXML))
+          // _ <- Sync[F].delay(println(qc.engine.decLimits.toXML))
+          // _ <- Sync[F].delay(println(queueCalc.bucketsAllocation))
+          _  <- queueCalc.queue.bandedQueue.toList.traverse { case (b, ps) =>
+                  Sync[F].delay { println(b); ps.foreach(p => println(" " + p.id.reference)) }
+                }
         } yield ExitCode.Success
 
   }

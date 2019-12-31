@@ -1,4 +1,5 @@
 package edu.gemini.tac.qengine.util
+import org.slf4j.LoggerFactory
 
 /**
  * A class that represents a limited amount of time and the current amount used.
@@ -63,7 +64,7 @@ final case class BoundedTime(limit: Time, used: Time = Time.Zero) {
    */
   def fillExact = if (used == limit) this else BoundedTime(limit, limit)
 
-  private def doReserve(time: Time, overbook: Boolean): Option[BoundedTime] =
+  private def doReserve(time: Time, overbook: Boolean): Option[BoundedTime] = {
     if (time == Time.Zero)
       Some(this)
     else {
@@ -73,7 +74,7 @@ final case class BoundedTime(limit: Time, used: Time = Time.Zero) {
       else
         if (tmp < Time.Zero) None else Some(BoundedTime(limit, tmp))
     }
-
+  }
 
   /**
    * Reserves the given time amount into a new BoundedTime instance together

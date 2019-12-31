@@ -5,8 +5,8 @@ import edu.gemini.tac.qengine.impl.resource.SemesterResource
 import edu.gemini.tac.qengine.log.{AcceptMessage, RejectMessage}
 import queue.ProposalQueueBuilder
 import edu.gemini.tac.qengine.p1.{Observation, Proposal}
-import org.apache.logging.log4j.{Logger,  Level, LogManager}
 import edu.gemini.tac.qengine.p1.QueueBand.Category
+import org.slf4j.LoggerFactory
 
 /**
  * QueueFrame represents the state of the queue generation process at a
@@ -15,9 +15,9 @@ import edu.gemini.tac.qengine.p1.QueueBand.Category
  * from the point at which the rejected proposal was introduced are removed and
  * the proposal is skipped.
  */
-final class QueueFrame(val queue: ProposalQueueBuilder, val iter: BlockIterator, val res: SemesterResource) {
-  private val LOGGER = LogManager.getLogger(this.getClass)
-  private val applicationLogger = QueueCalculationLog.logger
+final case class QueueFrame(val queue: ProposalQueueBuilder, val iter: BlockIterator, val res: SemesterResource) {
+  private val LOGGER = LoggerFactory.getLogger(this.getClass)
+  private val applicationLogger = LoggerFactory.getLogger(getClass())
 
   val lName = LOGGER.getName
 
@@ -35,25 +35,32 @@ final class QueueFrame(val queue: ProposalQueueBuilder, val iter: BlockIterator,
       val prop     = block.prop
       val partner  = prop.id.partner
       val newQueue = queue :+ prop
-      applicationLogger.log(Level.INFO, "accept(): " + block.toString)
+      applicationLogger.debug("  💚  Block was accepted. 👍")
       (newQueue, Some(AcceptMessage(prop, newQueue.bounds(partner), newQueue.bounds)))
-    } else
+    } else {
       // More blocks for this proposal so we can't accept it yet.
+      applicationLogger.debug("  ⚠️  So far so good, but there are more blocks so we can't accept yet.")
       (queue, None)
+    }
 
   private def logBlock(block : Block) = {
-    val msg = "Block of time " + block.time.toHours + " proposed for Proposal[" +block.prop.id + "] w observation time=" + block.obs.time.toHours.toString + "" +
-      " Proposal Awarded [" + block.prop.ntac.awardedTime.toHours.toString + "] by " + block.prop.ntac.partner.id + "]"
-    LOGGER.log(Level.DEBUG, msg)
-    //applicationLogger.log(Level.INFO, "next():" + block.toString);
+    val msg = s"👉  Proposing a block of ${block.time.toHours} for a ${block.obs.time.toHours} obs in ${Console.BOLD}${block.prop.id.reference}${Console.RESET}, which was awarded ${block.prop.ntac.awardedTime.toHours} by ${block.prop.ntac.partner.id}."
+    LOGGER.debug(msg)
+    //applicationLogger.info("next():" + block.toString);
   }
 
   def next(activeList : Proposal=>List[Observation]): RejectMessage Either Next = {
+    LOGGER.debug("👉  Next frame.")
     val (block, newIter) = iter.next(activeList)
     logBlock(block)
-    res.reserve(block, queue).right map {
-      r => val (updatedQueue, accept) = updated(block)
-           Next(new QueueFrame(updatedQueue, newIter, r), accept)
+    res.reserve(block, queue) match {
+      case Right(r) =>
+        val (updatedQueue, accept) = updated(block)
+        LOGGER.debug(s"  💚  Success: ${accept.map(_.detail).getOrElse("")}")
+        Right(Next(new QueueFrame(updatedQueue, newIter, r), accept))
+      case Left(e) =>
+        LOGGER.debug(s"  ❌  Failed: ${e.detail}")
+        Left(e)
     }
   }
 
@@ -63,13 +70,11 @@ final class QueueFrame(val queue: ProposalQueueBuilder, val iter: BlockIterator,
   def emptyOrOtherCategory(cat : Category) : Boolean = {
     val noMoreQueueFrames = ! this.hasNext
     val finishedBand = ! this.queue.band.isIn(cat)
-    if (noMoreQueueFrames || finishedBand){
-      LOGGER.log(Level.DEBUG, "QueueCalcStage.emptyOrOtherCategory leaving band %s caused by No more time blocks for current partner (%s) or finished band (%s)".format(cat, noMoreQueueFrames, finishedBand))
-      applicationLogger.log(Level.INFO, "emptyOrOtherCategory == true")
-      true
-    }else{
-      false
-    }
+
+    if (noMoreQueueFrames) LOGGER.debug("👉  Last block in the iterator.")
+    if (finishedBand) LOGGER.debug(s"👉  Finished with ${queue.band}.")
+
+    noMoreQueueFrames || finishedBand
   }
 
   def toXML = <QueueFrame/>

@@ -1,13 +1,13 @@
 package edu.gemini.tac.qengine.api.config
 
 import edu.gemini.tac.qengine.ctx.{Site, Partner}
-import org.apache.logging.log4j.{Level, Logger, LogManager}
 import xml.Elem
+import org.slf4j.LoggerFactory
 
 class ProportionalPartnerSequence(seq: List[Partner], val site: Site, val initialPick: Partner) extends  edu.gemini.tac.qengine.api.config.PartnerSequence {
   def this(seq : List[Partner], site : Site) = this(seq, site, seq.sortWith(_.percentAt(site) > _.percentAt(site)).head)
 
-  private val LOGGER : Logger = LogManager.getLogger(classOf[ProportionalPartnerSequence])
+  private val LOGGER = LoggerFactory.getLogger(classOf[ProportionalPartnerSequence])
 
   private def filter(site: Site) = seq.filter(_.sites.contains(site))
 
@@ -38,13 +38,13 @@ class ProportionalPartnerSequence(seq: List[Partner], val site: Site, val initia
       achievedToDate.values.sum
     }
     val achievedPercentages = achievedToDate.mapValues(v => v / toDateTotal)
-    LOGGER.log(Level.DEBUG, "Desired percentages:" + desiredPercentages)
-    LOGGER.log(Level.DEBUG, "Achieved percentages: " + achievedPercentages)
+    LOGGER.debug("Desired percentages:" + desiredPercentages)
+    LOGGER.debug("Achieved percentages: " + achievedPercentages)
     val gaps = achievedPercentages.map {
       case (k, v) => k -> (desiredPercentages(k) - v)
     }
     val maxUnder = gaps.values.toList.sortWith(_ > _).head
-    LOGGER.log(Level.DEBUG, maxUnder)
+    LOGGER.debug(maxUnder.toString())
     //Now find the key whose current gap corresponds to biggest under-served element
     val gapsForMaxUnder = gaps.mapValues {
       v => Math.abs(v - maxUnder) < Double.MinPositiveValue
@@ -59,7 +59,7 @@ class ProportionalPartnerSequence(seq: List[Partner], val site: Site, val initia
         }
       }
 
-    LOGGER.log(Level.DEBUG, "Served by " + keysByHasMaxUnder(true))
+    LOGGER.debug("Served by " + keysByHasMaxUnder(true))
     keysByHasMaxUnder(true)
   }
 

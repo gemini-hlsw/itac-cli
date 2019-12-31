@@ -14,13 +14,11 @@ lazy val engine = project
       "edu.gemini.ocs"          %% "edu-gemini-model-p1"         % "2020001.1.0",
       "edu.gemini.ocs"          %% "edu-gemini-shared-skyobject" % "2019101.1.4",
       "edu.gemini.ocs"          %% "edu-gemini-util-skycalc"     % "2019101.1.4",
-      "org.apache.logging.log4j" % "log4j-api"                   % "2.12.1",
-      "org.apache.logging.log4j" % "log4j-core"                  % "2.12.1",
-      "org.apache.logging.log4j" % "log4j-to-slf4j"              % "2.12.1",
       "org.scala-lang.modules"  %% "scala-xml"                   % "2.0.0-M1",
-      "com.novocode"             % "junit-interface"             % "0.11"         % "test",
-      "junit"                    % "junit"                       % "4.12"         % "test",
-      "org.mockito"              % "mockito-all"                 % "1.10.19"      % "test",
+      "org.slf4j"                % "slf4j-api"                   % "1.7.28",
+      "com.novocode"             % "junit-interface"             % "0.11"    % "test",
+      "junit"                    % "junit"                       % "4.12"    % "test",
+      "org.mockito"              % "mockito-all"                 % "1.10.19" % "test",
     )
   )
 
@@ -33,17 +31,16 @@ lazy val main = project
     libraryDependencies ++= Seq(
       "com.monovore"      %% "decline-effect"         % "1.0.0",
       "com.monovore"      %% "decline"                % "1.0.0",
+      "io.chrisdavenport" %% "log4cats-slf4j"         % "1.0.1",
       "io.circe"          %% "circe-core"             % "0.11.1",
       "io.circe"          %% "circe-generic"          % "0.11.1",
       "io.circe"          %% "circe-parser"           % "0.11.1",
       "io.circe"          %% "circe-yaml"             % "0.10.0",
-      "io.chrisdavenport" %% "log4cats-slf4j"         % "1.0.1",
       "org.slf4j"          % "slf4j-simple"           % "1.7.28",
       "org.tpolecat"      %% "atto-core"              % "0.7.1",
       "org.typelevel"     %% "cats-effect"            % "2.0.0",
       "org.typelevel"     %% "cats-testkit"           % "2.0.0"     % "test",
       "org.typelevel"     %% "cats-testkit-scalatest" % "1.0.0-RC1" % "test",
-
     )
   )
 

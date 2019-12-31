@@ -8,7 +8,7 @@ import edu.gemini.tac.qengine.p1.{JointProposal, Proposal, JointProposalPart}
  * given step, the current queue will be closer to the final queue after all
  * proposals are considered.
  */
-object EagerMergeStrategy extends MergeStrategy {
+case object EagerMergeStrategy extends MergeStrategy {
 
   // Keeps the parts always merged, so this is a no-op
   def merge(proposals: List[Proposal]): List[Proposal] = proposals

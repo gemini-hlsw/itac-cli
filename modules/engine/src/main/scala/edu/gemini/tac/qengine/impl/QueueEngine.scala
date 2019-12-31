@@ -17,9 +17,13 @@ import edu.gemini.tac.qengine.api.queue.time.{PartnerTime, QueueTime}
 import java.util.logging.{Level, Logger}
 
 import edu.gemini.tac.qengine.util.BoundedTime
+import org.slf4j.LoggerFactory
 
 object QueueEngine extends edu.gemini.tac.qengine.api.QueueEngine {
-  private val Log = Logger.getLogger(this.getClass.getName)
+
+  // N.B. needs to be lazy because we're mucking around with system properties to configure logging
+  // and it happens *after* this class is initialized. :-\
+  private lazy val Log = LoggerFactory.getLogger(getClass())
 
   case class RaAllocation(name: String, boundedTime: BoundedTime)
   case class BucketsAllocationImpl(raBins: List[RaResource]) extends BucketsAllocation {
@@ -101,12 +105,17 @@ object QueueEngine extends edu.gemini.tac.qengine.api.QueueEngine {
     // Remove any proposals for the opposite site w/o polluting the log.
     val siteProps = proposals.filter(_.site == config.binConfig.site)
 
+    Log.debug(s"👉  Removing those not at ${config.binConfig.site}, we are down to ${siteProps.length} proposals.")
+
     // Compute the initial resource bins, pre-reserving rollover and classical
     // time in the corresponding categories.
     val bins = initBins(config, siteProps)
 
     // Remove any non-queue proposals.
-    (siteProps.filter(_.mode.schedule), bins)
+    val queueOnly = siteProps.filter(_.mode.schedule)
+    Log.debug(s"👉  Removing non-queue programs, we are down to ${queueOnly.length} proposals.")
+
+    (queueOnly, bins)
   }
 
   def fillBands1And2(orderedProposals : List[Proposal], queueTime : QueueTime, config : QueueEngineConfig, bins : RaResourceGroup ) : QueueCalcStage = {
@@ -130,33 +139,52 @@ object QueueEngine extends edu.gemini.tac.qengine.api.QueueEngine {
   }
 
   def calc(proposals: List[Proposal], queueTime: QueueTime, config: QueueEngineConfig, partners : List[Partner]): QueueCalc = {
+    Log.debug(s"👉  I was given ${proposals.length} unfiltered proposals.")
+
     val (validQueueProps, bins) = filterProposalsAndInitializeBins(proposals, config)
 
     //We need to reuse this initial calculation for Bands 3 & 4
     val initialPrep = ProposalPrep(validQueueProps)
 
+    Log.debug(s"1️⃣ 2️⃣  Filling bands 1 and 2...")
+
     // Run a queue calc stage for bands 1 and 2.  This will result in the
     // preliminary definition of bands 1 and 2, but will contain resource
     // reservations that were partially filled with band1/2 conditions.
-    val partiallyFilled = fillBands1And2(validQueueProps, queueTime, config, bins)
+    val partiallyFilled: QueueCalcStage =
+      fillBands1And2(validQueueProps, queueTime, config, bins)
+
+    Log.debug(s"👉  Done. There are now ${partiallyFilled.queue.toList.length} programs in the queue.")
+
+    Log.debug(s"1️⃣ 2️⃣  Re-filling bands 1 and 2 to prevent partial reservation of resources...")
 
     // Re-execute the band 1 and 2 stage, using only the proposals that we know
     // will be included.  This will prevent the partial reservation of resources
-    val stageWithBands12 = fillBands1And2(partiallyFilled.queue.toList, queueTime, config, bins)
+    val stageWithBands12: QueueCalcStage =
+      fillBands1And2(partiallyFilled.queue.toList, queueTime, config, bins)
+
+    Log.debug(s"👉  Done. There are now ${stageWithBands12.queue.toList.length} programs in the queue.")
+    Log.debug(s"1️⃣ 2️⃣ 3️⃣  Filling band 3...")
 
     // Prepare proposals for the band 3 phase.  Remove all that were previously
     // queued in bands 1 and 2, get rid of those that cannot be scheduled in
     // band 3.  Keep the log from the first pass and add to it.
     val stageWithBands123 = fillBand3(partners, initialPrep, stageWithBands12, partiallyFilled, config, queueTime.partnerQuanta)
 
+    Log.debug(s"👉  Done. There are now ${stageWithBands123.queue.toList.length} programs in the queue.")
+    Log.debug(s"4️⃣  Finding band 4 programs ..")
+
     // Figure out the poor weather proposals and return the result.
     val band4 = unscheduledPoorWeatherProposals(initialPrep, stageWithBands123)
+
+    Log.debug(s"👉  Done. There are ${band4.length} band 4 programs.")
+    Log.debug(s"1️⃣ 2️⃣ 3️⃣ 4️⃣  Building final queue...")
 
     // Complement the band 1,2,3 map with poor weather proposals and create
     // a final queue with it.
     val finalQueue = buildFinalQueue(stageWithBands123, band4, queueTime)
 
-    Log.log(Level.FINE, "Filtered %d to %d".format(proposals.size, validQueueProps.size))
+    Log.trace("Filtered %d to %d".format(proposals.size, validQueueProps.size))
     new QueueCalcImpl(config.binConfig.context, finalQueue, stageWithBands123.log, BucketsAllocationImpl(stageWithBands123.resource.ra.grp.bins.toList))
   }
 }

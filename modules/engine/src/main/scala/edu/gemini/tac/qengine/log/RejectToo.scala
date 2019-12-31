@@ -18,4 +18,5 @@ object RejectToo {
 final case class RejectToo(prop: Proposal, obs: Observation, band: QueueBand, remaining: Time) extends ObsRejectMessage {
   def reason: String = RejectToo.name
   def detail: String = RejectToo.detail(prop, obs, band, remaining)
+  override def toString = s"RejectToo($detail)"
 }

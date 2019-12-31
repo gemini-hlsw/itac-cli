@@ -8,6 +8,7 @@ import edu.gemini.tac.qengine.p1.{JointProposal, JointProposalPart, Proposal, Qu
 import edu.gemini.tac.qengine.util.Percent
 import edu.gemini.tac.qengine.impl.queue.ProposalQueueBuilder
 import xml.Elem
+import org.slf4j.LoggerFactory
 
 /**
  * Wraps BandRestrictions in a Resource interface.  The restrictions are not
@@ -16,6 +17,7 @@ import xml.Elem
  */
 final class BandResource(val lst: List[BandRestriction]) extends Resource {
   type T = BandResource
+  val LOG = LoggerFactory.getLogger(getClass)
 
   /**
    * Determines the band to consider this proposal in.  If a non-joint, we'll
@@ -67,7 +69,18 @@ final class BandResource(val lst: List[BandRestriction]) extends Resource {
     // immediately will prevent a rollback.  Checking at the end is critical
     // because there we have better information about where the proposal will
     // actually fall in the queue.
-    if (block.isStart || block.isFinal) checkBand(block.prop, queue) else Right(this)
+    if (block.isStart || block.isFinal) {
+      checkBand(block.prop, queue) match {
+        case Right(a) =>
+          LOG.debug(s"  💚  Band resource check passed.")
+          Right(a)
+        case Left(e)  =>
+          LOG.debug(s"  ❌  Band resource check failed: $e")
+          Left(e)
+      }
+    } else {
+      Right(this)
+    }
 
 
   // --------------------------------------------------------------------------

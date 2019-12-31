@@ -13,11 +13,13 @@ import edu.gemini.tac.qengine.util.BoundedTime
 import edu.gemini.tac.qengine.api.queue.time.{PartnerTime, QueueTime}
 import edu.gemini.tac.qengine.ctx.Partner
 import java.util.logging.{Level, Logger}
+import org.slf4j.LoggerFactory
+import edu.gemini.tac.qengine.impl.queue.EagerMergeStrategy
 
 object QueueCalcStage {
   type Result = (QueueFrame, ProposalLog)
 
-  private val Log = Logger.getLogger(this.getClass.getName)
+  private val Log = LoggerFactory.getLogger(this.getClass.getName)
 
   object Params {
     //Sets parameters for Band1 and 2
@@ -26,7 +28,7 @@ object QueueCalcStage {
       val cat = Category.B1_2
 
       // Initialize an empty, starting queue state.
-      val queue = ProposalQueueBuilder(qtime)
+      val queue = ProposalQueueBuilder(qtime, EagerMergeStrategy)
 
       // Create a new block iterator that will step through the proposals
       // according to partner sequence and time quantum
@@ -40,7 +42,7 @@ object QueueCalcStage {
       val time = new TimeResourceGroup(rbins.map(new TimeResource(_)))
       val band = new BandResource(config.restrictedBinConfig.bandRestrictions)
       val semRes = new SemesterResource(bins, time, band)
-      Log.log(Level.FINE, semRes.toXML.toString())
+      // Log.trace(semRes.toXML.toString())
 
       new Params(cat, queue, iter, _.obsList, semRes, props.log)
     }
@@ -103,15 +105,18 @@ object QueueCalcStage {
   // the next proposal in the sequence.
   //
   @tailrec private def compute(cat: Category, stack: List[QueueFrame], log: ProposalLog, activeList : Proposal=>List[Observation]): Result = {
+    Log.debug("👉  Compute!")
     val stackHead = stack.head
-    Log.log(Level.FINE, stackHead.toXML.toString())
+    // Log.trace(stackHead.toXML.toString())
     if (stackHead.emptyOrOtherCategory(cat)) {
-      Log.log(Level.FINE, "Stack is empty [" + ! stackHead.hasNext + "] or in other category [Expected : " + cat + " Actual: " + stackHead.queue.band + "]")
+      // Log.trace("Stack is empty [" + ! stackHead.hasNext + "] or in other category [Expected : " + cat + " Actual: " + stackHead.queue.band + "]")
       (stackHead, log.updated(stackHead.iter.remPropList, cat, RejectCategoryOverAllocation(_, cat)))
     } else stackHead.next(activeList) match {
       case Left(msg) => //Error, so roll back (and recurse)
+        Log.debug("❌  Error, rolling back.")
         compute(cat, rollback(stack, msg.prop, activeList), log.updated(msg.prop.id, cat, msg), activeList)
       case Right(frameNext) => //OK, so accept (and recurse)
+        Log.debug("💚  Continuing.")
         val updatedLog = frameNext.accept.map(msg => log.updated(msg.prop.id, cat, msg)).getOrElse(log)
         compute(cat, frameNext.frame :: stack, updatedLog, activeList)
     }
@@ -139,7 +144,7 @@ object QueueCalcStage {
 /**
  * Contains the result of calculating (a portion of) the queue.
  */
-final class QueueCalcStage private(cat: Category, result: QueueCalcStage.Result) {
+case class QueueCalcStage private(cat: Category, result: QueueCalcStage.Result) {
   private val frame: QueueFrame = result._1
 
   val resource = frame.res

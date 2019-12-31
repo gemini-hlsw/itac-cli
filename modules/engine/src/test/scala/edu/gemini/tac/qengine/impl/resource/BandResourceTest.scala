@@ -41,7 +41,7 @@ class BandResourceTest {
 
   val br      = new BandResource(Default.BandRestrictions)
   val timeMap: Map[Partner,Time] = Map(US -> Time.hours(100))
-  val queue   = ProposalQueueBuilder(QueueTime(Site.south, timeMap, partners))
+  val queue   = ProposalQueueBuilder(QueueTime(Site.south, timeMap, partners), ProposalQueueBuilder.DefaultStrategy)
 
   // Band 1: ( 0, 30]
   // Band 2: (30, 60]

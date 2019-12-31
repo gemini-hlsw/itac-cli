@@ -51,7 +51,7 @@ class ProposalBuilderTest {
     Map(QBand1 -> band1, QBand2 -> band2, QBand3 -> band3, QBand4 -> band4)
   }
 
-  private val qs = ProposalQueueBuilder(QueueTime(Site.south, Map(GS -> Time.hours(100)), partners))
+  private val qs = ProposalQueueBuilder(QueueTime(Site.south, Map(GS -> Time.hours(100)), partners), ProposalQueueBuilder.DefaultStrategy)
 
   // Expects a list of three times, one per queue band, which are matched
   // one after the other with the result of calling the function f
@@ -174,7 +174,7 @@ class ProposalBuilderTest {
 
   @Test def testAddJointProposal() {
     val site = Site.south
-    val qs = ProposalQueueBuilder(new QueueTime(site, PartnerTime.distribute(Time.hours(100), site, partners)))
+    val qs = ProposalQueueBuilder(new QueueTime(site, PartnerTime.distribute(Time.hours(100), site, partners)), ProposalQueueBuilder.DefaultStrategy)
     val propGS = mkProp(10, "gs1")
     val propUS = mkProp(US, 20, "us1")
     val joint = new JointProposal("j1", propGS, List(propGS.ntac, propUS.ntac))

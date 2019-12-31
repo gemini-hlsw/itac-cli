@@ -123,7 +123,7 @@ class ConditionsResourceTest {
   @Test def testBand3ConditionsUsedinBand3() {
     // Create a proposal to fill the first two queue bands and put us into
     // band 3.
-    val q0 = ProposalQueueBuilder(QueueTime(Site.south, Map(GS -> Time.minutes(166)), partners))
+    val q0 = ProposalQueueBuilder(QueueTime(Site.south, Map(GS -> Time.minutes(166)), partners), ProposalQueueBuilder.DefaultStrategy)
     val q1 = q0 :+ mkProp(mkConds(CC50))
     assertEquals(QueueBand.QBand3, q1.band)
     val template : Observation = mkProp(mkConds(CC50)).obsList.head

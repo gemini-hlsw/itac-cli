@@ -7,6 +7,7 @@ import edu.gemini.tac.qengine.log.{RejectTarget, RejectMessage}
 import edu.gemini.tac.qengine.util.{BoundedTime, Time}
 import edu.gemini.tac.qengine.impl.queue.ProposalQueueBuilder
 import xml.Elem
+import org.slf4j.LoggerFactory
 
 object RaResource {
   def apply(t: Time, c: SiteSemesterConfig): RaResource = {
@@ -21,7 +22,7 @@ object RaResource {
  *
  * Used as the parameterized type to RaResourceGroup
  */
-final class RaResource(val absBounds: BoundedTime, val decRes: DecResourceGroup, val condsRes: ConditionsResourceGroup) extends Resource {
+case class RaResource(val absBounds: BoundedTime, val decRes: DecResourceGroup, val condsRes: ConditionsResourceGroup) extends Resource {
   type T = RaResource
 
   // There is an absolute time limit for the RA, but the time limit for a
@@ -51,7 +52,7 @@ final class RaResource(val absBounds: BoundedTime, val decRes: DecResourceGroup,
   def isFull(c: ObsConditions): Boolean            = isFull || condsRes.isFull(c)
   def isFull(t: Target, c: ObsConditions): Boolean = isFull(t) || isFull(c)
 
-  override def reserve(block: Block, queue: ProposalQueueBuilder): RejectMessage Either RaResource =
+  override def reserve(block: Block, queue: ProposalQueueBuilder): RejectMessage Either RaResource = {
     absBounds.reserve(block.time) match {
       case None =>
         Left(new RejectTarget(block.prop, block.obs, queue.band, RejectTarget.Ra, absBounds.used, absBounds.limit))
@@ -61,6 +62,7 @@ final class RaResource(val absBounds: BoundedTime, val decRes: DecResourceGroup,
           newCondsRes <- condsRes.reserve(block, queue).right
         } yield new RaResource(newAbsBounds, newDecRes, newCondsRes)
     }
+  }
 
   def reserveAvailable(time: Time, target: Target, conds: ObsConditions): (RaResource, Time) = {
     val (newAbs, rem1) = absBounds.reserveAvailable(time)

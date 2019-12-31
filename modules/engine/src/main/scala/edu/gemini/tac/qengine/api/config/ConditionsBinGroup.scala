@@ -16,7 +16,7 @@ object ConditionsBinGroup {
     apply(ConditionsBin.percentBins(bins: _*))
 }
 
-class ConditionsBinGroup[T] private (val bins: Map[Cat, T], val searchPath: Cat.SearchPath) {
+case class ConditionsBinGroup[T] private (val bins: Map[Cat, T], val searchPath: Cat.SearchPath) {
 
   def updated(that: Seq[ConditionsBin[T]]): ConditionsBinGroup[T] =
     updated(that.map(bin => (bin.cat, bin.binValue)))

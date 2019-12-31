@@ -6,7 +6,7 @@ import BlockIterator.IMap
 import edu.gemini.tac.qengine.api.queue.time.PartnerTime
 import edu.gemini.tac.qengine.ctx.Partner
 import edu.gemini.tac.qengine.p1.{Observation, Proposal}
-import org.apache.logging.log4j.{Level, Logger, LogManager}
+import org.slf4j.LoggerFactory
 
 /**
  * An immutable iterator that can be used to generate time blocks across all
@@ -15,7 +15,7 @@ import org.apache.logging.log4j.{Level, Logger, LogManager}
  * time quanta.
  */
 trait BlockIterator {
-  private val LOGGER : Logger = LogManager.getLogger(this.getClass)
+  private val LOGGER = LoggerFactory.getLogger(this.getClass)
 
   val allPartners: List[Partner]
 
@@ -68,17 +68,31 @@ trait BlockIterator {
    * Generates the next TimeBlock and a new iterator configured to produce the
    * remaining blocks.
    */
-  def next(activeList : Proposal=>List[Observation]) : (Block, BlockIterator) = {
+  final def next(activeList : Proposal=>List[Observation]) : (Block, BlockIterator) = {
+
     // Advance the partner time block iterator.  Use at most remTime time.
     // This may cause the iterator to generate a block for part of an
     // observation, which is fine.
-    val (block, iter) = iterMap(currentPartner).next(remTime, activeList)
+    val curr = iterMap(currentPartner)
+    val (block, iter) = curr.next(remTime, activeList)
+
+    LoggerFactory.getLogger(this.getClass).debug(s"  👉  Current partner is ${Console.BOLD}$currentPartner${Console.RESET}.")
+    LoggerFactory.getLogger(this.getClass).debug(s"       current: $curr")
+    // LoggerFactory.getLogger(this.getClass).debug(s"       next:    $iter")
+    LoggerFactory.getLogger(this.getClass).debug(s"       block:   $block")
 
     // Return the block and advance this iterator.  This may move to another
     // observation in the same time quantum or, if we've reached the end of the
     // quantum, it will advance to the next partner in the sequence.  Use the
     // updated map of partner time block iterators.
-    (block, advance(block.time, iterMap.updated(currentPartner, iter)))
+    val updated = iterMap.updated(currentPartner, iter)
+    val nextIter = advance(block.time, updated)
+
+
+    // if (!nextIter.hasNext)
+      // LoggerFactory.getLogger(this.getClass).debug(s"  👉  This will be the last iterator.")
+
+    (block, nextIter)
   }
 
   /**
@@ -98,9 +112,16 @@ trait BlockIterator {
     if (partnerIter.hasNext) mkIterator(seq, remTime, m) else advancePartner(m)
   }
 
-  private def advance(t: Time, m: IMap): BlockIterator =
-    if ((remTime > t) && m(currentPartner).hasNext) mkIterator(seq, remTime - t, m)
-    else advancePartner(m)
+  private def advance(t: Time, m: IMap): BlockIterator = {
+    LoggerFactory.getLogger(this.getClass).debug(s"  👉  Advance. Compute the next iterator.")
+    if ((remTime > t) && m(currentPartner).hasNext) {
+      LoggerFactory.getLogger(this.getClass).debug(s"    👉  Next proposal for $currentPartner.")
+      mkIterator(seq, remTime - t, m)
+    } else {
+      LoggerFactory.getLogger(this.getClass).debug(s"    👉  No more time in quantum, or $currentPartner has no more proposals.")
+      advancePartner(m)
+    }
+  }
 
   private def advancePartner(m: IMap): BlockIterator =
     advancePartner(seq.tail, m)
@@ -108,7 +129,7 @@ trait BlockIterator {
   private def advancePartner(s: Seq[Partner], blockIteratorByPartner: IMap, remaining: Set[Partner] = BlockIterator.validpartners(allPartners, quantaMap)): BlockIterator = {
     if (remaining.isEmpty || s.isEmpty){
       //QueueCalculationLog.logger.log(Level.INFO, "BlockIterator.empty()")
-      LOGGER.log(Level.DEBUG, <Event source="BlockIterator" event="Empty"/>.toString())
+      // LOGGER.debug(<Event source="BlockIterator" event="Empty"/>.toString())
       new BlockIterator.Empty(allPartners)
     } else {
       val hasNext1 = blockIteratorByPartner(s.head).hasNext
@@ -118,12 +139,12 @@ trait BlockIterator {
       } else {
         val moreSeq = s.tail
         moreSeq.isEmpty match {
-          case true => LOGGER.log(Level.DEBUG, "End of sequence")
+          case true => // LOGGER.debug("End of sequence")
           case false => {
             val nextPartner = moreSeq.head
-            LOGGER.log(Level.DEBUG, <Event source="BlockIterator" event="advancePartner">
-              {nextPartner.fullName}
-            </Event>)
+            // LOGGER.debug(<Event source="BlockIterator" event="advancePartner">
+              // {nextPartner.fullName}
+            // </Event>.toString)
           }
         }
         //QueueCalculationLog.logger.log(Level.INFO, (<Event source="BlockIterator" event="advancePartner">{s.head.fullName}</Event>).toString)
@@ -138,7 +159,7 @@ trait BlockIterator {
 object BlockIterator {
   type IMap = Map[Partner, PartnerBlockIterator]
 
-  private class Empty(val allPartners: List[Partner]) extends BlockIterator {
+  private case class Empty(val allPartners: List[Partner]) extends BlockIterator {
     val quantaMap: PartnerTime = PartnerTime.empty(allPartners)
     val seq: Seq[Partner] = Seq.empty
     val remTime: Time = Time.Zero
@@ -150,7 +171,7 @@ object BlockIterator {
     def mkIterator(s: Seq[Partner], t: Time, m: IMap) = this
   }
 
-  private class BlockIteratorImpl(
+  private case class BlockIteratorImpl(
           val allPartners: List[Partner],
           val quantaMap: PartnerTime,
           val seq: Seq[Partner],
@@ -158,7 +179,6 @@ object BlockIterator {
           val iterMap: IMap) extends BlockIterator {
 
     def mkIterator(s: Seq[Partner], t: Time, m: IMap) = {
-      LogManager.getLogger(this.getClass).log(Level.DEBUG, "BlockIterator: " + seq.head + " remTime " + remTime)
       //QueueCalculationLog.logger.log(Level.INFO, (<Event source="BlockIterator" event="mkIterator">{s.head.fullName}</Event>).toString)
       new BlockIteratorImpl(allPartners, quantaMap, s, t, m)
     }
@@ -194,11 +214,24 @@ object BlockIterator {
   def apply(allPartners: List[Partner], quantaMap: PartnerTime, seq: Seq[Partner], propLists: Map[Partner, List[Proposal]], activeList : Proposal=>List[Observation]): BlockIterator = {
     val iterMap = genIterMap(allPartners, propLists, activeList)
 
-    init(quantaMap, iterMap, seq, validpartners(allPartners, quantaMap)) match {
+    // HMM: `filterNot` below causes a test failure
+    // LoggerFactory.getLogger(this.getClass).debug(s"👉  Initial partner block iterators:")
+    // iterMap.filterNot(_._2 == PartnerBlockIterator.Empty).foreach { case (k, v) =>
+    //   LoggerFactory.getLogger(this.getClass).debug(s"     $k: $v")
+    // }
+
+    val x = init(quantaMap, iterMap, seq, validpartners(allPartners, quantaMap)) match {
       case (s, t) if s.isEmpty => new Empty(allPartners)
       case (partnerSeq, remainingTime) => {
         new BlockIteratorImpl(allPartners, quantaMap, partnerSeq, remainingTime, iterMap)
       }
     }
+
+    // x.toList(activeList).foreach { b =>
+    //   LoggerFactory.getLogger(this.getClass).debug(s" Block:     $b")
+    // }
+
+    x
+
   }
 }

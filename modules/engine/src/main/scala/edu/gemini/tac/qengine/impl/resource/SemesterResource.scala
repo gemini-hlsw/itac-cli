@@ -6,13 +6,13 @@ import edu.gemini.tac.qengine.log.{RejectOverAllocation, RejectMessage, RejectPa
 import edu.gemini.tac.qengine.p1.QueueBand.Category.Guaranteed
 import edu.gemini.tac.qengine.impl.queue.ProposalQueueBuilder
 import edu.gemini.tac.qengine.p1.{ObsConditions, Target}
-import org.apache.logging.log4j.{Level, Logger, LogManager}
+import org.slf4j.LoggerFactory
 
-final class SemesterResource(
+final case class SemesterResource(
         val ra: RaResourceGroup,
         val time: TimeResourceGroup,
         val band: BandResource) extends Resource {
-  private val LOGGER = LogManager.getLogger(this.getClass)
+  private val LOGGER = LoggerFactory.getLogger(this.getClass)
   type T = SemesterResource
 
   private def reserveAll(block: Block, queue: ProposalQueueBuilder): RejectMessage Either SemesterResource =
@@ -58,16 +58,16 @@ final class SemesterResource(
     // considered.
     if (block.isStart && partnerOverallocated(block, queue)) {
       val p = block.prop.ntac.partner
-      LOGGER.log(Level.DEBUG, "Rejected due to partner overallocation")
+      LOGGER.debug("  ❌  Rejected due to partner overallocation")
       Left(RejectPartnerOverAllocation(block.prop, queue.bounds(Guaranteed, p), queue.bounds(p)))
     } else if (queueTooFull(block, queue)) {
-      LOGGER.log(Level.DEBUG, "Rejected due to queue too full")
+      LOGGER.debug("  ❌  Rejected due to queue too full")
       Left(RejectOverAllocation(block.prop, queue.remainingTime(Guaranteed), queue.remainingTime))
     }
     else {
-      LOGGER.log(Level.DEBUG, "Block OK")
+      LOGGER.debug("  💚  There is sufficient time, so this block will be considered.")
       if(block.isFinal){
-        LOGGER.log(Level.DEBUG, "Block is final; proposal will be accepted")
+        // LOGGER.debug("     This is also the last block to consider for this program.")
       }
       reserveAll(block, queue)
     }

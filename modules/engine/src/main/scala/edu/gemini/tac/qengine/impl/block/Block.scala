@@ -18,14 +18,8 @@ final case class Block(prop: Proposal, obs: Observation, time: Time, isStart: Bo
   def toFinal: Block = Block(prop, obs, time, isStart, isFinal = true)
   def updated(t: Time): Block = Block(prop, obs, t, isStart, isFinal)
 
-  override def toString: String = "Block(%s(%s), %s, %s, %s, %s)".format(
-    prop.ntac.partner.id,
-    prop.ntac.reference,
-    obs,
-    time,
-    if (isStart) "start" else "not start",
-    if (isFinal) "final" else "not final"
-  )
+  override def toString: String =
+    s"Block(${prop.ntac.reference}, ..., $time, start = $isStart, final = $isFinal)"
 }
 
 object Block {

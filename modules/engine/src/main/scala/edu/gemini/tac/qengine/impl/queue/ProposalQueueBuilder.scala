@@ -18,22 +18,22 @@ import edu.gemini.tac.qengine.ctx.Partner
  * extract the queue for each of the 3 queue bands.
  */
 object ProposalQueueBuilder {
-  private val DefaultStrategy = EagerMergeStrategy
+  val DefaultStrategy = EagerMergeStrategy
 
   /**
    * Definition data that doesn't change as proposals are added to the queue.
    */
-  final class Config(val queueTime: QueueTime, val strategy: MergeStrategy)
+  final case class Config(val queueTime: QueueTime, val strategy: MergeStrategy)
 
   /**
    * Factory for ProposalQueue implementations.  QueueTime is required, but the
    * band percentages and merge strategy are optional.
    */
-  def apply(queueTime: QueueTime, strategy: MergeStrategy = DefaultStrategy): ProposalQueueBuilder =
+  def apply(queueTime: QueueTime, strategy: MergeStrategy): ProposalQueueBuilder =
     new ProposalQueueBuilder(queueTime.fullPartnerTime.partners, new Config(queueTime, strategy), PartnerTime.empty(queueTime.fullPartnerTime.partners))
 }
 
-class ProposalQueueBuilder(
+case class ProposalQueueBuilder(
   val partners: List[Partner],
   val config: ProposalQueueBuilder.Config,
   val usedGuaranteed: PartnerTime,

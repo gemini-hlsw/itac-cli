@@ -3,6 +3,7 @@ package edu.gemini.tac.qengine.impl
 import edu.gemini.tac.qengine.log._
 import edu.gemini.tac.qengine.p1.{QueueBand, Proposal}
 import edu.gemini.tac.qengine.ctx.Partner
+import org.slf4j.LoggerFactory
 
 /**
  * A ProposalPrep is used to filter and massage a list of proposals into a
@@ -68,6 +69,8 @@ final class ProposalPrep private (val propList: List[Proposal], val cat: QueueBa
 }
 
 object ProposalPrep {
+  val LOG = LoggerFactory.getLogger(getClass)
+
   def apply(propList: List[Proposal], log: ProposalLog = ProposalLog.Empty): ProposalPrep = {
     // Expand any joint proposals into their parts.
     val expanded = Proposal.expandJoints(propList)
@@ -77,8 +80,11 @@ object ProposalPrep {
     val unique   = expanded.groupBy(_.id).values.map(_.head).toList
 
     val prep = new ProposalPrep(unique, QueueBand.Category.B1_2, log)
+
     val withTime = prep.withTime
+    LOG.debug(s"👉  Removing those with no time given, we are down to ${withTime.propList.length} proposals.")
     val withObservations = withTime.withObservations
+    LOG.debug(s"👉  Removing those with no observations, we are down to ${withObservations.propList.length} proposals.")
     withObservations
   }
 }

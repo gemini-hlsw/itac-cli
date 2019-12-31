@@ -8,6 +8,7 @@ import edu.gemini.tac.qengine.util.{BoundedTime, Percent, Time}
 import edu.gemini.tac.qengine.p1.ObsConditions
 import edu.gemini.tac.qengine.impl.queue.ProposalQueueBuilder
 import xml.Elem
+import org.slf4j.LoggerFactory
 
 object ConditionsResourceGroup {
 
@@ -39,7 +40,7 @@ object ConditionsResourceGroup {
  * observing conditions categories.  Handles spilling the time across better
  * categories when necessary and possible.
  */
-final class ConditionsResourceGroup private (val bins: ConditionsBinGroup[BoundedTime]) extends Resource {
+final case class ConditionsResourceGroup private (val bins: ConditionsBinGroup[BoundedTime]) extends Resource {
   type T = ConditionsResourceGroup
 
   private def sum(c: ObsConditions, f: (BoundedTime => Time)): Time = {
