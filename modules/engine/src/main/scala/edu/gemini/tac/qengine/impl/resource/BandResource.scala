@@ -72,10 +72,10 @@ final class BandResource(val lst: List[BandRestriction]) extends Resource {
     if (block.isStart || block.isFinal) {
       checkBand(block.prop, queue) match {
         case Right(a) =>
-          LOG.debug(s"  💚  Band resource check passed.")
+          LOG.debug(s"    💚  Band resource check passed.")
           Right(a)
         case Left(e)  =>
-          LOG.debug(s"  ❌  Band resource check failed: $e")
+          LOG.debug(s"    ❌  Band resource check failed: $e")
           Left(e)
       }
     } else {

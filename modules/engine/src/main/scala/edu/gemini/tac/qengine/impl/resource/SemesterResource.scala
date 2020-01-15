@@ -58,14 +58,14 @@ final case class SemesterResource(
     // considered.
     if (block.isStart && partnerOverallocated(block, queue)) {
       val p = block.prop.ntac.partner
-      LOGGER.debug("  ❌  Rejected due to partner overallocation")
+      LOGGER.debug("    ❌  Rejected due to partner overallocation")
       Left(RejectPartnerOverAllocation(block.prop, queue.bounds(Guaranteed, p), queue.bounds(p)))
     } else if (queueTooFull(block, queue)) {
-      LOGGER.debug("  ❌  Rejected due to queue too full")
+      LOGGER.debug("    ❌  Rejected due to queue too full")
       Left(RejectOverAllocation(block.prop, queue.remainingTime(Guaranteed), queue.remainingTime))
     }
     else {
-      LOGGER.debug("  💚  There is sufficient time, so this block will be considered.")
+      LOGGER.debug("    💚  There is sufficient time, so this block will be considered.")
       if(block.isFinal){
         // LOGGER.debug("     This is also the last block to consider for this program.")
       }

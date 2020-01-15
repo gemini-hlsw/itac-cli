@@ -109,6 +109,7 @@ object QueueCalcStage {
     val stackHead = stack.head
     // Log.trace(stackHead.toXML.toString())
     if (stackHead.emptyOrOtherCategory(cat)) {
+      Log.debug(s"❌  Stack empty or other category ($cat).")
       // Log.trace("Stack is empty [" + ! stackHead.hasNext + "] or in other category [Expected : " + cat + " Actual: " + stackHead.queue.band + "]")
       (stackHead, log.updated(stackHead.iter.remPropList, cat, RejectCategoryOverAllocation(_, cat)))
     } else stackHead.next(activeList) match {

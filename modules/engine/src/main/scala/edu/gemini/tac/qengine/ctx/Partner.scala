@@ -30,7 +30,7 @@ case class Partner(id: String, fullName: String, share: Percent, sites: Set[Site
    */
   def percentAt(s: Site): Double = if (sites.contains(s)) share.doubleValue else 0.0
 
-  override def toString: String = id
+  override def toString: String = s"Partner($id,$share,${sites.map(_.abbreviation).mkString("/")})"
 
   def toXML : Elem = <Partner id={id}>
       <fullName>{fullName}</fullName>

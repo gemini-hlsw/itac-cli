@@ -14,10 +14,10 @@ class TimeResourceGroup(val lst: List[TimeResource]) extends Resource {
   def reserve(block: Block, queue: ProposalQueueBuilder): RejectMessage Either TimeResourceGroup =
     Resource.reserveAll(block, queue, lst) match {
       case Right(resource) =>
-        LOG.debug(s"  💚  I was able to meet bin restrictions.")
+        LOG.debug(s"    💚  I was able to meet bin restrictions.")
         Right(new TimeResourceGroup(resource))
       case Left(err) =>
-        LOG.debug(s"  ❌  I was unable to meet bin restrictions")
+        LOG.debug(s"    ❌  I was unable to meet bin restrictions")
         Left(err)
     }
 

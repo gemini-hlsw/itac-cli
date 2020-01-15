@@ -44,19 +44,19 @@ final case class QueueFrame(val queue: ProposalQueueBuilder, val iter: BlockIter
     }
 
   private def logBlock(block : Block) = {
-    val msg = s"👉  Proposing a block of ${block.time.toHours} for a ${block.obs.time.toHours} obs in ${Console.BOLD}${block.prop.id.reference}${Console.RESET}, which was awarded ${block.prop.ntac.awardedTime.toHours} by ${block.prop.ntac.partner.id}."
+    val msg = s"  👉  Proposing a block of ${block.time.toHours} for a ${block.obs.time.toHours} obs in ${Console.BOLD}${block.prop.id.reference}${Console.RESET}, which was awarded ${block.prop.ntac.awardedTime.toHours} by ${block.prop.ntac.partner.id}."
     LOGGER.debug(msg)
     //applicationLogger.info("next():" + block.toString);
   }
 
   def next(activeList : Proposal=>List[Observation]): RejectMessage Either Next = {
-    LOGGER.debug("👉  Next frame.")
+    LOGGER.debug("  👉  Next frame.")
     val (block, newIter) = iter.next(activeList)
     logBlock(block)
     res.reserve(block, queue) match {
       case Right(r) =>
         val (updatedQueue, accept) = updated(block)
-        LOGGER.debug(s"  💚  Success: ${accept.map(_.detail).getOrElse("")}")
+        LOGGER.debug(s"  💚  Success: ${accept.map(_.detail).getOrElse("«no message»")}")
         Right(Next(new QueueFrame(updatedQueue, newIter, r), accept))
       case Left(e) =>
         LOGGER.debug(s"  ❌  Failed: ${e.detail}")

@@ -33,15 +33,16 @@ final case class Common(
 
     def partnerSequence(site: Site): ItacPartnerSequence =
       new ItacPartnerSequence {
-        def sequence = self.sequence.forSite(site).map(partnersMap).toStream
+        def sequence = self.sequence.forSite(site).map(partnersMap).toStream #::: sequence
         def configuration: Elem = ???
+        override def toString = s"ItacPartnerSequence(${sequence.mkString(",")})"
       }
 
     def shutdowns(site: Site): List[Shutdown] =
       shutdown.forSite(site).map { ldr =>
         // Turn a LocalDate to a ju.Date at noon at `site`.
         def date(ldt: LocalDate): ju.Date = {
-          val zid  = site.timeZone.toZoneId
+          val zid = site.timeZone.toZoneId
           val zdt = ldt.atStartOfDay(zid).plusHours(12L)
           new ju.Date(zdt.toEpochSecond * 1000)
         }

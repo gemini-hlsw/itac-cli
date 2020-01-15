@@ -41,7 +41,10 @@ class PartnerTime private(val partners: List[Partner], val map: Map[Partner, Tim
    * the PartnerTime object, returning a new PartnerTime containing the results.
    */
   def mapTimes(f: (Partner, Time) => Time): PartnerTime =
-    new PartnerTime(partners, Partner.mkMap(partners, p => f(p, mapOrElseZero(p))))
+    new PartnerTime(partners, Partner.mkMap(partners, { p =>
+      // println(s">> mapTimes: total = $total; f($p, ${mapOrElseZero(p)}) = ${f(p, mapOrElseZero(p))}")
+      f(p, mapOrElseZero(p))
+    }))
 
   /**
    * Adds the given amount of time associated with the given partner returning
@@ -87,7 +90,7 @@ object PartnerTime {
     val timeByPartner = partners.map { p =>
       p -> Time.hours(total.toHours.value * p.percentAt(site) / 100.0)
     }.toMap
-    LOGGER.debug("PartnerTime.distribute: " + timeByPartner)
+    // println(">>> PartnerTime.distribute: " + timeByPartner)
     new PartnerTime(partners, timeByPartner)
   }
 

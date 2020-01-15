@@ -31,6 +31,10 @@ case class ProposalPosition(index: Int, time: Time, band: QueueBand, bandIndex: 
     val (i, t) = if (nextBand == band) (bandIndex+1, bandTime + propTime) else (0, Time.Zero)
     ProposalPosition(index+1, time + propTime, nextBand, i, t)
   }
+
+  def programNumber: Int =
+    band.number * 100 + bandIndex
+
 }
 
 object ProposalPosition {

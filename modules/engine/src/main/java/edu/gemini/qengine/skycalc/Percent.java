@@ -39,6 +39,6 @@ public final class Percent {
     }
 
     @Override
-    public String toString() { return String.format("%.2f%%", perc); }
+    public String toString() { return String.format("%2.3f%%", perc); }
 
 }

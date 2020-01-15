@@ -54,10 +54,10 @@ case class RaResourceGroup(val grp: RaBinGroup[RaResource]) extends Resource {
     val ra = block.obs.target.ra
     grp(ra).reserve(block, queue) match {
       case Right(bin) =>
-        LOG.debug(s"  💚  I was able to reserve time for this RA ($ra).")
+        LOG.debug(s"    💚  I was able to reserve time for this RA ($ra).")
         Right(new RaResourceGroup(grp.updated(ra, bin)))
       case Left(err)  =>
-        LOG.debug(s"  ❌  I was unable to reserve time for this RA ($ra).")
+        LOG.debug(s"    ❌  I was unable to reserve time for this RA ($ra).")
         Left(err)
     }
   }

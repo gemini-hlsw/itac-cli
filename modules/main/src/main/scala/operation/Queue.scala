@@ -23,6 +23,9 @@ object Queue {
           qc <- ws.queueConfig("example")
           ps <- ws.proposals
           partners  = cc.engine.partners
+          // _ = println(s">> partners = $partners")
+          // _ = println(s">> partnersSequence = ${cc.engine.partnerSequence(qc.site)}")
+          // _ = println(s">> partner quanta = ${qc.engine.queueTime(partners).partnerQuanta}")
           queueCalc = qe.calc(
             proposals = ps,
             queueTime = qc.engine.queueTime(partners),
@@ -46,24 +49,12 @@ object Queue {
               )
             ),
           )
-          // _  <- ps.traverse { p =>
-
-                  // val msgs: List[LogMessage] = QueueBand.Category.values.flatMap(queueCalc.proposalLog.get(p.id, _))
-                  // Sync[F].delay(print(p.id)) *>
-                  // Sync[F].delay(print(" *")).whenA(msgs.isEmpty) *>
-                  // Sync[F].delay(println())
-                  // Sync[F].delay(println(p.id)) *>
-                  // QueueBand.Category.values.traverse { qv =>
-                  //   val msg = queueCalc.proposalLog.get(p.id, qv)
-                  //   msg.traverse { m => Sync[F].delay(println(s"  $qv: ${m.getClass.getSimpleName}")) }
-                  // }
-              //  }
-          // _ <- Sync[F].delay(println(qc.engine.raLimits.toXML))
-          // _ <- Sync[F].delay(println(qc.engine.decLimits.toXML))
-          // _ <- Sync[F].delay(println(queueCalc.bucketsAllocation))
-          _  <- queueCalc.queue.bandedQueue.toList.traverse { case (b, ps) =>
-                  Sync[F].delay { println(b); ps.foreach(p => println(" " + p.id.reference)) }
+          _  <- {
+            val q = queueCalc.queue
+            q.bandedQueue.toList.traverse { case (b, ps) =>
+                  Sync[F].delay { println(b); ps.foreach(p => println(" " + p.id.reference + s" -> ${qc.site.abbreviation()}-${cc.semester}-Q-" + (q.positionOf(p).get.programNumber))) }
                 }
+              }
         } yield ExitCode.Success
 
   }

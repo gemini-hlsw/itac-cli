@@ -84,7 +84,7 @@ final case class Percent(value: BigDecimal) extends Ordered[Percent] {
   def +(that: Percent): Percent = Percent(value + that.value)
   def -(that: Percent): Percent = Percent(value - that.value)
 
-  override def toString: String = value + "%"
+  override def toString: String =  f"$value%2.0f%%"
 
   def compare(that: Percent): Int = value.compare(that.value)
 

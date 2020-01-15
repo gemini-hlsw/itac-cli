@@ -11,6 +11,7 @@ import edu.gemini.tac.qengine.api.config.RaBinGroup
 import edu.gemini.tac.qengine.api.config.DecBinGroup
 import edu.gemini.tac.qengine.api.config.ConditionsBin
 import edu.gemini.tac.qengine.api.config.ConditionsBinGroup
+// import edu.gemini.tac.qengine.api.queue.time.PartnerTime
 
 // queue configuration
 final case class QueueConfig(
@@ -29,11 +30,15 @@ final case class QueueConfig(
     import edu.gemini.tac.qengine.api.queue.time.{ QueueTime => ItacQueueTime }
     import edu.gemini.tac.qengine.api.queue.time.{ PartnerTime => ItacPartnerTime }
 
-    def fullPartnerTime(allPartners: List[ItacPartner]): ItacPartnerTime = {
-      ItacPartnerTime(
+    def fullPartnerTime(allPartners: List[ItacPartner]): ItacPartnerTime =
+      // PartnerTime.distribute(Time.hours(totalHours), site, allPartners)
+    {
+      val pt = ItacPartnerTime(
         allPartners,
-        allPartners.fproduct(p => Time.hours(totalHours * p.share.value.toDouble)).toMap
+        allPartners.fproduct(p => Time.hours(totalHours * p.percentAt(site) / 100.0)).toMap
       )
+      // println(s">> fullPartnerTime: $pt")
+      pt
     }
 
     def queueTime(allPartners: List[ItacPartner]): ItacQueueTime =

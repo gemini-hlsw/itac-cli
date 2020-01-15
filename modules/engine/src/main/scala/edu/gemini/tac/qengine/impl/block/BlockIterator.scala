@@ -76,10 +76,10 @@ trait BlockIterator {
     val curr = iterMap(currentPartner)
     val (block, iter) = curr.next(remTime, activeList)
 
-    LoggerFactory.getLogger(this.getClass).debug(s"  👉  Current partner is ${Console.BOLD}$currentPartner${Console.RESET}.")
-    LoggerFactory.getLogger(this.getClass).debug(s"       current: $curr")
+    LoggerFactory.getLogger(this.getClass).debug(s"    👉  Current partner is ${Console.BOLD}$currentPartner${Console.RESET}.")
+    LoggerFactory.getLogger(this.getClass).debug(s"         current: $curr")
     // LoggerFactory.getLogger(this.getClass).debug(s"       next:    $iter")
-    LoggerFactory.getLogger(this.getClass).debug(s"       block:   $block")
+    LoggerFactory.getLogger(this.getClass).debug(s"         block:   $block")
 
     // Return the block and advance this iterator.  This may move to another
     // observation in the same time quantum or, if we've reached the end of the
@@ -113,13 +113,14 @@ trait BlockIterator {
   }
 
   private def advance(t: Time, m: IMap): BlockIterator = {
-    LoggerFactory.getLogger(this.getClass).debug(s"  👉  Advance. Compute the next iterator.")
+    LoggerFactory.getLogger(this.getClass).debug(s"    👉  Pre-compute the next state. There are ${remTime - t} remaining in this quantum. There are${if (m(currentPartner).hasNext) "" else "no"} remaining proposal(s) for ${currentPartner.id}.")
     if ((remTime > t) && m(currentPartner).hasNext) {
-      LoggerFactory.getLogger(this.getClass).debug(s"    👉  Next proposal for $currentPartner.")
+      LoggerFactory.getLogger(this.getClass).debug(s"      👉  Next proposal for $currentPartner.")
       mkIterator(seq, remTime - t, m)
     } else {
-      LoggerFactory.getLogger(this.getClass).debug(s"    👉  No more time in quantum, or $currentPartner has no more proposals.")
-      advancePartner(m)
+      val it =       advancePartner(m)
+      LoggerFactory.getLogger(this.getClass).debug(s"      👉  Advancing to next partner.")
+      it
     }
   }
 
@@ -128,6 +129,8 @@ trait BlockIterator {
 
   private def advancePartner(s: Seq[Partner], blockIteratorByPartner: IMap, remaining: Set[Partner] = BlockIterator.validpartners(allPartners, quantaMap)): BlockIterator = {
     if (remaining.isEmpty || s.isEmpty){
+      LoggerFactory.getLogger(this.getClass).debug(s"        👉  remaining=$remaining seq=$s")
+
       //QueueCalculationLog.logger.log(Level.INFO, "BlockIterator.empty()")
       // LOGGER.debug(<Event source="BlockIterator" event="Empty"/>.toString())
       new BlockIterator.Empty(allPartners)

@@ -126,21 +126,30 @@ class QueueTime(site: Site,
    */
   private def quantum(p: Partner, t: Time): Time = {
     val fullQueueTimeForThisPartnerTimesOneHundred = full.toHours.value * p.percentAt(site)
-    if (fullQueueTimeForThisPartnerTimesOneHundred == 0) Time.ZeroHours else {
-      val d1 = t.toHours.value * QueueTime.CycleTimeConstant
+    val d1 = t.toHours.value * QueueTime.CycleTimeConstant
+    val r = if (fullQueueTimeForThisPartnerTimesOneHundred == 0) Time.ZeroHours else {
       Time.hours(d1/fullQueueTimeForThisPartnerTimesOneHundred)
     }
+    // println(s">> quantum: ${p.id} -> $d1 / $fullQueueTimeForThisPartnerTimesOneHundred = $r")
+    r
   }
 
   /**
    * Size of time quantum us
    * (partner queue time * 300) / (total queue time * partner percentage share)
    */
-  def quantum(p: Partner): Time = quantum(p, fullPartnerTime(p))
+  final def quantum(p: Partner): Time = {
+    val t = quantum(p, fullPartnerTime(p))
+    // println(s">> quantum: ${p.id} -> $t")
+    t
+  }
 
   /**
    * Gets a map of Partner -> Time quantum with keys for all partners.
    */
-  def partnerQuanta: PartnerTime =
-    fullPartnerTime.mapTimes(quantum)
+  def partnerQuanta: PartnerTime = {
+    val pt = fullPartnerTime.mapTimes(quantum)
+    // println(s">> QueueTime.partnerQuanta: $pt")
+    pt
+  }
 }
