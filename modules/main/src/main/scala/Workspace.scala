@@ -20,6 +20,9 @@ import edu.gemini.tac.qengine.p1.Proposal
 import edu.gemini.tac.qengine.ctx.Site
 import itac.config.QueueConfig
 import cats.effect.concurrent.Ref
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.nio.file.Paths
 
 /** Interface for some Workspace operations. */
 trait Workspace[F[_]] {
@@ -47,6 +50,12 @@ trait Workspace[F[_]] {
 
   def proposals: F[List[Proposal]]
 
+  /**
+   * Create a directory under `cwd` with a name like GN-20190524-103322 and return its path
+   * relative to the workspace root.
+   */
+  def newQueueFolder(site: Site): F[Path]
+
 }
 
 object Workspace {
@@ -68,7 +77,7 @@ object Workspace {
             val p = dir.resolve(path)
             map.get(path) match {
               case Some(a) => log.debug(s"Getting $p from cache.").as(a.asInstanceOf[A])
-              case None    => log.info(s"Reading config: $p") *>
+              case None    => log.info(s"Reading: $p") *>
                 Sync[F].delay(new String(Files.readAllBytes(p), "UTF-8")).map(parser.parse(_)).flatMap[A] {
                   case Left(e)  => Sync[F].raiseError(ItacException(s"Failure reading $p\n$e.message"))
                   case Right(j) => j.as[A] match {
@@ -87,7 +96,7 @@ object Workspace {
           val p = dir.resolve(path)
           Sync[F].delay(p.toFile.isFile).flatMap {
             case true  => Sync[F].raiseError(ItacException(s"File exists: $p"))
-            case false => log.info(s"Writing config: $p") *>
+            case false => log.info(s"Writing: $p") *>
               Sync[F].delay(Files.write(dir.resolve(path), a.asJson.asYaml.spaces2.getBytes("UTF-8")))
           }
         }
@@ -95,8 +104,8 @@ object Workspace {
         def mkdirs(path: Path): F[Path] = {
           val p = dir.resolve(path)
           Sync[F].delay(p.toFile.isDirectory) flatMap {
-            case true  => log.debug(s"Already exists: $p").as(p)
-            case false => log.info(s"Creating $p") *>
+            case true  => log.debug(s"Already exists: $path").as(p)
+            case false => log.info(s"Creating folder: $path") *>
               Sync[F].delay(Files.createDirectories(dir.resolve(path)))
           }
         }
@@ -124,6 +133,15 @@ object Workspace {
             psʹ   = ps.collect { case (_, Right(ps)) => ps.toList } .flatten
             _    <- log.info(s"Read ${ps.length} proposals.")
           } yield ps.collect { case (_, Right(ps)) => ps.toList } .flatten
+
+        def newQueueFolder(site: Site): F[Path] =
+          for {
+            dt <- Sync[F].delay(LocalDateTime.now)
+            f   = DateTimeFormatter.ofPattern("yyyyMMdd-HHmms")
+            n   = s"${site.abbreviation}-${f.format(dt)}"
+            p   = Paths.get(n)
+            _  <- mkdirs(p)
+          } yield p
 
       }
     }
