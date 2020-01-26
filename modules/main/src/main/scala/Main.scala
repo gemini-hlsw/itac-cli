@@ -50,12 +50,6 @@ trait MainOpts { this: CommandIOApp =>
       long  = "dir",
       help  = "Working directory. Default: current directory."
     ) .withDefault(Paths.get(System.getProperty("user.dir")))
-      // .mapValidated { p =>
-      //   // `isDirectory` is a side-effect, but we're only doing it once so we'll pretend it's not
-      //   val pʹ = p.toAbsolutePath.normalize
-      //   if (pʹ.toFile.isDirectory) pʹ.valid
-      //   else s"Not a directory: $pʹ".invalidNel
-      // }
 
   val commonConfig: Opts[Path] =
     Opts.option[Path](
@@ -70,6 +64,13 @@ trait MainOpts { this: CommandIOApp =>
       long  = "site",
       help  = "Site-specific configuation file, relative to workspace (or absolute)."
     )
+
+  def out(default: Path): Opts[Path] =
+    Opts.option[Path](
+      short = "o",
+      long  = "out",
+      help  = s"Output file. Default: $default"
+    ).withDefault(default)
 
   val semester: Opts[Semester] =
     Opts.argument[String]("semester")
@@ -104,7 +105,7 @@ trait MainOpts { this: CommandIOApp =>
     Command(
       name   = "ls",
       header = "List proposals in the workspace."
-    )(Opts.unit.as(Ls[IO]))
+    )(Ls[IO].pure[Opts])
 
   val queue: Command[Operation[IO]] =
     Command(
@@ -112,7 +113,13 @@ trait MainOpts { this: CommandIOApp =>
       header = "Generate a queue."
     )(siteConfig.map(sc => Queue[IO](QueueEngine, sc)))
 
+  val ntac: Command[Operation[IO]] =
+    Command(
+      name   = "ntac",
+      header = "TBD"
+    )(out(Paths.get("ntac.yaml"))).map(Ntac[IO](_))
+
   val ops: Opts[Operation[IO]] =
-    List(init, ls, queue).sortBy(_.name).map(Opts.subcommand(_)).foldK
+    List(init, ls, queue, ntac).sortBy(_.name).map(Opts.subcommand(_)).foldK
 
 }

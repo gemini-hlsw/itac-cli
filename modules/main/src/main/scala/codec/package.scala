@@ -13,5 +13,6 @@ package object codec {
        with ConditionsBinCodec
        with ConditionsCategoryCodec
        with QueueCalcEncoder
+       with NtacCodec
 
 }
