@@ -26,11 +26,11 @@ object Main extends CommandIOApp(
 ) with MainOpts {
 
   def main: Opts[IO[ExitCode]] =
-    (cwd, logger[IO], ops).mapN { (cwd, log, cmd) =>
+    (cwd, commonConfig, logger[IO], ops).mapN { (cwd, commonConfig, log, cmd) =>
       for {
         _  <- IO(System.setProperty("edu.gemini.model.p1.schemaVersion", "2020.1.1")) // how do we figure out what to do here?
         _  <- log.debug(s"main: workspace directory is $cwd.")
-        ws <- Workspace[IO](cwd, log)
+        ws <- Workspace[IO](cwd, commonConfig, log)
         c  <- cmd.run(ws, log).handleErrorWith {
                 case ItacException(msg) => log.error(msg).as(ExitCode.Error)
                 case NonFatal(e)        => log.error(e)(e.getMessage).as(ExitCode.Error)
@@ -48,14 +48,28 @@ trait MainOpts { this: CommandIOApp =>
     Opts.option[Path](
       short = "d",
       long  = "dir",
-      help  = "Working directory. Defaults to current directory."
+      help  = "Working directory. Default: current directory."
     ) .withDefault(Paths.get(System.getProperty("user.dir")))
-      .mapValidated { p =>
-        // `isDirectory` is a side-effect, but we're only doing it once so we'll pretend it's not
-        val pʹ = p.toAbsolutePath.normalize
-        if (pʹ.toFile.isDirectory) pʹ.valid
-        else s"Not a directory: $pʹ".invalidNel
-      }
+      // .mapValidated { p =>
+      //   // `isDirectory` is a side-effect, but we're only doing it once so we'll pretend it's not
+      //   val pʹ = p.toAbsolutePath.normalize
+      //   if (pʹ.toFile.isDirectory) pʹ.valid
+      //   else s"Not a directory: $pʹ".invalidNel
+      // }
+
+  val commonConfig: Opts[Path] =
+    Opts.option[Path](
+      short = "c",
+      long  = "common",
+      help  = "Common configuation file, relative to workspace (or absolute). Default: common.yaml"
+    ).withDefault(Paths.get("common.yaml"))
+
+  val siteConfig: Opts[Path] =
+    Opts.option[Path](
+      short = "s",
+      long  = "site",
+      help  = "Site-specific configuation file, relative to workspace (or absolute)."
+    )
 
   val semester: Opts[Semester] =
     Opts.argument[String]("semester")
@@ -95,8 +109,8 @@ trait MainOpts { this: CommandIOApp =>
   val queue: Command[Operation[IO]] =
     Command(
       name   = "queue",
-      header  = "Generate a queue."
-    )(Opts.unit.as(Queue[IO](QueueEngine)))
+      header = "Generate a queue."
+    )(siteConfig.map(sc => Queue[IO](QueueEngine, sc)))
 
   val ops: Opts[Operation[IO]] =
     List(init, ls, queue).sortBy(_.name).map(Opts.subcommand(_)).foldK

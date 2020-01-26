@@ -16,10 +16,10 @@ object RejectPartnerOverAllocation {
   def detail(p: Partner, t: Time, guaranteed: BoundedTime, all: BoundedTime): String = {
     val perc = (guaranteed.limit.toHours.value / all.limit.toHours.value * 100.0).toInt
     if (guaranteed.isFull)
-      fullTemplate.format(p, perc, LogMessage.formatBoundedTime(all))
+      fullTemplate.format(p.id, perc, LogMessage.formatBoundedTime(all))
     else {
       val s = all.overbook(t) map { b => LogMessage.formatBoundedTime(b) } getOrElse ""
-      longTemplate.format(t.toHours.value, p, perc, s)
+      longTemplate.format(t.toHours.value, p.id, perc, s)
     }
   }
 }

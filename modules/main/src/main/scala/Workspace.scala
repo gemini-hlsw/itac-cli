@@ -12,7 +12,6 @@ import cats.effect.Sync
 import cats.implicits._
 import java.nio.file.Files
 import io.chrisdavenport.log4cats.Logger
-import java.nio.file.Paths
 import cats.Parallel
 import java.nio.file.NoSuchFileException
 import io.circe.CursorOp.DownField
@@ -44,7 +43,7 @@ trait Workspace[F[_]] {
 
   def commonConfig: F[Common]
 
-  def queueConfig(prefix: String): F[QueueConfig]
+  def queueConfig(path: Path): F[QueueConfig]
 
   def proposals: F[List[Proposal]]
 
@@ -52,7 +51,7 @@ trait Workspace[F[_]] {
 
 object Workspace {
 
-  def apply[F[_]: Sync: Parallel](dir: Path, log: Logger[F]): F[Workspace[F]] =
+  def apply[F[_]: Sync: Parallel](dir: Path, cc: Path, log: Logger[F]): F[Workspace[F]] =
     Ref[F].of(Map.empty[Path, Any]).map { cache =>
       new Workspace[F] {
 
@@ -69,7 +68,7 @@ object Workspace {
             val p = dir.resolve(path)
             map.get(path) match {
               case Some(a) => log.debug(s"Getting $p from cache.").as(a.asInstanceOf[A])
-              case None    => log.debug(s"Reading yaml $p") *>
+              case None    => log.info(s"Reading config: $p") *>
                 Sync[F].delay(new String(Files.readAllBytes(p), "UTF-8")).map(parser.parse(_)).flatMap[A] {
                   case Left(e)  => Sync[F].raiseError(ItacException(s"Failure reading $p\n$e.message"))
                   case Right(j) => j.as[A] match {
@@ -88,7 +87,7 @@ object Workspace {
           val p = dir.resolve(path)
           Sync[F].delay(p.toFile.isFile).flatMap {
             case true  => Sync[F].raiseError(ItacException(s"File exists: $p"))
-            case false => log.debug(s"Writing yaml $p") *>
+            case false => log.info(s"Writing config: $p") *>
               Sync[F].delay(Files.write(dir.resolve(path), a.asJson.asYaml.spaces2.getBytes("UTF-8")))
           }
         }
@@ -97,19 +96,19 @@ object Workspace {
           val p = dir.resolve(path)
           Sync[F].delay(p.toFile.isDirectory) flatMap {
             case true  => log.debug(s"Already exists: $p").as(p)
-            case false => log.debug(s"Creating $p") *>
+            case false => log.info(s"Creating $p") *>
               Sync[F].delay(Files.createDirectories(dir.resolve(path)))
           }
         }
 
         def commonConfig: F[Common] =
-          readData[Common](Paths.get("common.yaml")).recoverWith {
+          readData[Common](cc).recoverWith {
             case _: NoSuchFileException => cwd.flatMap(p => Sync[F].raiseError(ItacException(s"Not an ITAC Workspace: $p")))
           }
 
-        def queueConfig(prefix: String): F[QueueConfig] =
-          readData[QueueConfig](Paths.get(s"$prefix.yaml")).recoverWith {
-            case _: NoSuchFileException => Sync[F].raiseError(ItacException(s"No such queue configuration: $prefix.yaml"))
+        def queueConfig(path: Path): F[QueueConfig] =
+          readData[QueueConfig](path).recoverWith {
+            case _: NoSuchFileException => cwd.flatMap(p => Sync[F].raiseError(ItacException(s"Site-specific configuration file not found: ${p.resolve(path)}")))
           }
 
         def proposals: F[List[Proposal]] =
@@ -119,13 +118,12 @@ object Workspace {
             p     = cwd.resolve("proposals")
             pas   = conf.engine.partners.map { p => (p.id, p) } .toMap
             when  = conf.semester.getMidpoint(Site.north).getTime // arbitrary
-            _    <- log.debug(s"Reading proposals from $p")
+            _    <- log.info(s"Reading proposals from $p")
             ps   <- ProposalLoader[F](pas, when).loadMany(p.toFile)
             _    <- ps.traverse { case (f, Left(es)) => log.warn(s"$f: ${es.toList.mkString(", ")}") ; case _ => ().pure[F] }
-          } yield ps.collect {
-            case (_, Right(ps)) => ps.toList
-          } .flatten
-
+            psʹ   = ps.collect { case (_, Right(ps)) => ps.toList } .flatten
+            _    <- log.info(s"Read ${ps.length} proposals.")
+          } yield ps.collect { case (_, Right(ps)) => ps.toList } .flatten
 
       }
     }

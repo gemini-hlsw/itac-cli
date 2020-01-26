@@ -12,5 +12,6 @@ package object codec {
        with TokensCodecs
        with ConditionsBinCodec
        with ConditionsCategoryCodec
+       with QueueEncoder
 
 }
