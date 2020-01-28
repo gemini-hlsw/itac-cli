@@ -35,29 +35,29 @@ trait ConditionsCategoryParser {
       string(cc.toString).as(cc) | p
     }
 
-  private def spec[A <: ObservingCondition: Ordering](cond: Parser[A]): Parser[Spec[A]] =
+  private def spec[A <: ObservingCondition: Ordering](cond: Parser[A]): Parser[Specification[A]] =
     (comparator, cond).mapN {
       case (None,      c) => Eq(c)
       case (Some(Gte), c) => Le(c)
       case (Some(Lte), c) => Ge(c)
     }
 
-  private val cc: Parser[Spec[CloudCover]]    =
+  private val cc: Parser[Specification[CloudCover]]    =
     opt(spec[CloudCover](fromToString(CloudCover.values))).map(_.getOrElse(UnspecifiedCC))
 
-  private val iq: Parser[Spec[ImageQuality]]  =
+  private val iq: Parser[Specification[ImageQuality]]  =
     opt(spec[ImageQuality](fromToString(ImageQuality.values))).map(_.getOrElse(UnspecifiedIQ))
 
-  private val sb: Parser[Spec[SkyBackground]] =
+  private val sb: Parser[Specification[SkyBackground]] =
     opt(spec[SkyBackground](fromToString(SkyBackground.values))).map(_.getOrElse(UnspecifiedSB))
 
-  private val wv: Parser[Spec[WaterVapor]]    =
+  private val wv: Parser[Specification[WaterVapor]]    =
     opt(spec[WaterVapor](fromToString(WaterVapor.values))).map(_.getOrElse(UnspecifiedWV))
 
   private val cat: Parser[ConditionsCategory] =
     (cc.token, iq.token, sb.token, wv.token).mapN(ConditionsCategory(_, _, _, _, None))
 
-  private def formatSpec(a: Spec[_]): String =
+  private def formatSpec(a: Specification[_]): String =
     a match {
       case _: Unspecified[_] => ""
       case Eq(a) => a.toString
