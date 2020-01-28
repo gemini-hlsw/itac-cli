@@ -88,13 +88,13 @@ object ObservationIo {
     Target(c.ra.toAngle.toDegrees, c.dec.toDegrees, ~Option(t.name))
   }
 
-  private def conditions(o: im.Observation): ValidationNel[String, ObsConditions] = {
-    o.condition.map(conditions).fold(MISSING_CONDITIONS.failureNel[ObsConditions]) {
+  private def conditions(o: im.Observation): ValidationNel[String, ObservingConditions] = {
+    o.condition.map(conditions).fold(MISSING_CONDITIONS.failureNel[ObservingConditions]) {
       _.successNel[String]
     }
   }
 
-  def conditions(c: im.Condition): ObsConditions = {
+  def conditions(c: im.Condition): ObservingConditions = {
     val cc = c.cc match {
       case `cc50`  => CloudCover.CC50
       case `cc70`  => CloudCover.CC70
@@ -123,7 +123,7 @@ object ObservationIo {
       case `wv100` => WaterVapor.WVAny
     }
 
-    ObsConditions(cc, iq, sb, wv)
+    ObservingConditions(cc, iq, sb, wv)
   }
 
   def time(o: im.Observation): ValidationNel[String, Time] =

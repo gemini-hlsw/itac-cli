@@ -81,7 +81,7 @@ case class RaResourceGroup(val grp: RaBinGroup[RaResource]) extends Resource {
   def reserveAvailable(
     time: Time,
     target: Target,
-    conds: ObsConditions
+    conds: ObservingConditions
   ): (RaResourceGroup, Time) = {
     val (bin, rem) = grp(target.ra).reserveAvailable(time, target, conds)
     (new RaResourceGroup(grp.updated(target.ra, bin)), rem)

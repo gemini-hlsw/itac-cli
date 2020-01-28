@@ -27,7 +27,7 @@ class DecResourceTest {
 //  private val target19  = target(19.99) // within bin2
   private val target20 = target(20) // after bin2
 
-  private val conds = ObsConditions.AnyConditions
+  private val conds = ObservingConditions.AnyConditions
   private val ntac  = Ntac(GS, "x", 0, Time.Zero)
 
   private def mkProp(target: Target): CoreProposal =

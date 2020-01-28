@@ -51,16 +51,16 @@ object Fixture {
     new SemesterResource(raResGroup, timeResourceGroup(total), bandResource)
 
   // Falls in the first conditions bin (<=CC70)
-  val goodCC = ObsConditions(CC50, IQAny, SBAny, WVAny)
+  val goodCC = ObservingConditions(CC50, IQAny, SBAny, WVAny)
 
   // Falls in the second conditions bin (>=CC80)
-  val badCC = ObsConditions(CC80, IQAny, SBAny, WVAny)
+  val badCC = ObservingConditions(CC80, IQAny, SBAny, WVAny)
 
   def genQuanta(hrs: Double): PartnerTime = PartnerTime.constant(Time.hours(hrs), partners)
 
   // Makes a proposal with the given ntac info, and observations according
   // to the descriptions (target, conditions, time)
-  def mkProp(ntac: Ntac, obsDefs: (Target, ObsConditions, Time)*): CoreProposal =
+  def mkProp(ntac: Ntac, obsDefs: (Target, ObservingConditions, Time)*): CoreProposal =
     CoreProposal(
       ntac,
       site = site,

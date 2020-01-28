@@ -48,8 +48,8 @@ class RandomQueueTest {
   private def gnABinConfig: SiteSemesterConfig =
     new SiteSemesterConfig(site, semester, raLimits, decBins, List.empty)
 
-  private def randomConditions: ObsConditions =
-    ObsConditions(
+  private def randomConditions: ObservingConditions =
+    ObservingConditions(
       CloudCover.values(rand.nextInt(CloudCover.values.size)),
       ImageQuality.values(rand.nextInt(ImageQuality.values.size)),
       SkyBackground.values(rand.nextInt(SkyBackground.values.size)),

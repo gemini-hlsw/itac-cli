@@ -20,7 +20,7 @@ object RolloverFixture {
       CoordinateFields.parse("10:10:10").get.asHrs,
       CoordinateFields.parse("20:20:20").get.asDeg
     ),
-    ObsConditions(CC50, IQ20, SB20, WV20),
+    ObservingConditions(CC50, IQ20, SB20, WV20),
     Time.hours(1.0)
   )
 
@@ -32,7 +32,7 @@ object RolloverFixture {
       CoordinateFields.parse("12:11:10").get.asHrs,
       CoordinateFields.parse("09:08:07").get.asDeg
     ),
-    ObsConditions(CC70, IQ70, SB50, WV50),
+    ObservingConditions(CC70, IQ70, SB50, WV50),
     Time.hours(2.0)
   )
 
@@ -44,7 +44,7 @@ object RolloverFixture {
       CoordinateFields.parse("03:04:05").get.asHrs,
       CoordinateFields.parse("06:07:08").get.asDeg
     ),
-    ObsConditions(CCAny, IQAny, SBAny, WVAny),
+    ObservingConditions(CCAny, IQAny, SBAny, WVAny),
     Time.hours(3.0)
   )
 
@@ -55,7 +55,7 @@ object RolloverFixture {
       CoordinateFields.parse("01:01:01").get.asHrs,
       CoordinateFields.parse("02:02:02").get.asDeg
     ),
-    ObsConditions(CCAny, IQAny, SBAny, WVAny),
+    ObservingConditions(CCAny, IQAny, SBAny, WVAny),
     Time.hours(4.0)
   )
 

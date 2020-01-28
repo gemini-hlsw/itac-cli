@@ -24,7 +24,7 @@ class BandResourceTest {
   private val target = Target(0.0, 0.0) // not used
 
   private def conds(iq: ImageQuality, cc: CloudCover = CCAny) =
-    ObsConditions(cc, iq, SBAny, WVAny)
+    ObservingConditions(cc, iq, SBAny, WVAny)
 
   private def mkProp(time: Time): CoreProposal =
     CoreProposal(

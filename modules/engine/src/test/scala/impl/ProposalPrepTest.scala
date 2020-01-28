@@ -13,7 +13,7 @@ class ProposalPrepTest {
   import edu.gemini.tac.qengine.ctx.TestPartners._
 
   val target: Target               = Target(0.0, 0.0)
-  val conds: ObsConditions         = ObsConditions.AnyConditions
+  val conds: ObservingConditions         = ObservingConditions.AnyConditions
   val noneBand3: List[Observation] = List.empty
   val someBand3: List[Observation] = List(Observation(target, conds, Time.hours(1)))
   val noneObs: List[Observation]   = Nil

@@ -5,7 +5,7 @@ package edu.gemini.tac.qengine.p1
 
 import edu.gemini.tac.qengine.util.Time
 
-case class Observation(target: Target, conditions: ObsConditions, time: Time, lgs: Boolean = false)
+case class Observation(target: Target, conditions: ObservingConditions, time: Time, lgs: Boolean = false)
     extends CategorizedTime
 
 object Observation {

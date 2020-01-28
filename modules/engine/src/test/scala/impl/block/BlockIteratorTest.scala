@@ -13,7 +13,7 @@ class BlockIteratorTest {
   val partners = All
 
   val target = Target(0.0, 0.0) // required but not used for this test
-  val conds  = ObsConditions.AnyConditions // required by not used
+  val conds  = ObservingConditions.AnyConditions // required by not used
   val e      = 0.000001
 
   def mkObs(hrs: Double): Observation = Observation(target, conds, Time.hours(hrs))

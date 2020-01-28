@@ -5,7 +5,7 @@ package edu.gemini.tac.qengine.p2.rollover
 
 import edu.gemini.tac.qengine.p2.ObservationId
 import edu.gemini.tac.qengine.util.Time
-import edu.gemini.tac.qengine.p1.{CategorizedTime, ObsConditions, Target}
+import edu.gemini.tac.qengine.p1.{CategorizedTime, ObservingConditions, Target}
 import edu.gemini.tac.qengine.ctx.Partner
 import edu.gemini.spModel.core.Site
 
@@ -17,7 +17,7 @@ case class RolloverObservation(
   partner: Partner,
   obsId: ObservationId,
   target: Target,
-  conditions: ObsConditions,
+  conditions: ObservingConditions,
   time: Time
 ) extends CategorizedTime {
 

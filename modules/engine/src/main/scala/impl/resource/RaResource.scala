@@ -3,7 +3,7 @@
 
 package edu.gemini.tac.qengine.impl.resource
 
-import edu.gemini.tac.qengine.p1.{ObsConditions, Target}
+import edu.gemini.tac.qengine.p1.{ObservingConditions, Target}
 import edu.gemini.tac.qengine.impl.block.Block
 import edu.gemini.tac.qengine.api.config.SiteSemesterConfig
 import edu.gemini.tac.qengine.log.{RejectTarget, RejectMessage}
@@ -37,8 +37,8 @@ case class RaResource(
 
   def limit: Time                              = absBounds.limit
   def limit(t: Target): Time                   = limit min decRes.limit(t)
-  def limit(c: ObsConditions): Time            = limit min condsRes.limit(c)
-  def limit(t: Target, c: ObsConditions): Time = limit(t) min limit(c)
+  def limit(c: ObservingConditions): Time            = limit min condsRes.limit(c)
+  def limit(t: Target, c: ObservingConditions): Time = limit(t) min limit(c)
 
   // There is an absolute amount of time remaining for the RA, but the time
   // remaining for a particular dec (as indicated by a target) or for a
@@ -46,8 +46,8 @@ case class RaResource(
 
   def remaining: Time                              = absBounds.remaining
   def remaining(t: Target): Time                   = remaining min decRes.remaining(t)
-  def remaining(c: ObsConditions): Time            = remaining min condsRes.remaining(c)
-  def remaining(t: Target, c: ObsConditions): Time = remaining(t) min remaining(c)
+  def remaining(c: ObservingConditions): Time            = remaining min condsRes.remaining(c)
+  def remaining(t: Target, c: ObservingConditions): Time = remaining(t) min remaining(c)
 
   // If the RA bin is full, then it is full at any dec or observing conditions.
   // However, the RA as a whole may not be full yet a particular dec or set of
@@ -55,8 +55,8 @@ case class RaResource(
 
   def isFull: Boolean                              = absBounds.isFull
   def isFull(t: Target): Boolean                   = isFull || decRes.isFull(t)
-  def isFull(c: ObsConditions): Boolean            = isFull || condsRes.isFull(c)
-  def isFull(t: Target, c: ObsConditions): Boolean = isFull(t) || isFull(c)
+  def isFull(c: ObservingConditions): Boolean            = isFull || condsRes.isFull(c)
+  def isFull(t: Target, c: ObservingConditions): Boolean = isFull(t) || isFull(c)
 
   override def reserve(
     block: Block,
@@ -82,7 +82,7 @@ case class RaResource(
     }
   }
 
-  def reserveAvailable(time: Time, target: Target, conds: ObsConditions): (RaResource, Time) = {
+  def reserveAvailable(time: Time, target: Target, conds: ObservingConditions): (RaResource, Time) = {
     val (newAbs, rem1) = absBounds.reserveAvailable(time)
     val (newDec, rem2) = decRes.reserveAvailable(time, target)
     val (newCon, rem3) = condsRes.reserveAvailable(time, conds)

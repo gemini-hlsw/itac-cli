@@ -125,13 +125,13 @@ class QueueEngineTest {
     new Angle(mag, Angle.Deg)
   }
 
-  def randomCondition(maybeCC: Option[CloudCover] = None): ObsConditions = {
+  def randomCondition(maybeCC: Option[CloudCover] = None): ObservingConditions = {
     val cc = maybeCC.getOrElse(CloudCover.values.apply(random.nextInt(4)))
     val iq = ImageQuality.values.apply(random.nextInt(4))
     val sb = SkyBackground.values.apply(random.nextInt(4))
     val wv = WaterVapor.values.apply(random.nextInt(4))
 
-    new ObsConditions(cc, iq, sb, wv)
+    new ObservingConditions(cc, iq, sb, wv)
   }
 
   def randomTime: Time = {
@@ -186,7 +186,7 @@ class QueueEngineTest {
 
   def tinyPs: List[CoreProposal] = {
     val t      = new Target(randomRA, randomDec, None)
-    val tinyO  = Observation(t, ObsConditions.AnyConditions, Time.minutes(10), lgs = false)
+    val tinyO  = Observation(t, ObservingConditions.AnyConditions, Time.minutes(10), lgs = false)
     val tinyOs = List(tinyO)
 
     val s0 = coreProposal("S0", GS, 1, 0.25, Site.GS, tinyOs, b3s = List.empty)
@@ -198,7 +198,7 @@ class QueueEngineTest {
 
   def psWithBothB1B2AndB3Os: List[CoreProposal] = {
     val t      = new Target(randomRA, randomDec, None)
-    val tinyO  = Observation(t, ObsConditions.AnyConditions, Time.minutes(10), lgs = false)
+    val tinyO  = Observation(t, ObservingConditions.AnyConditions, Time.minutes(10), lgs = false)
     val tinyOs = List(tinyO)
 
     val s0 = coreProposal("S0", GS, 1, 0.15, Site.GS, tinyOs, b3s = tinyOs)

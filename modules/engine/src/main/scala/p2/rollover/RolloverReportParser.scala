@@ -70,7 +70,7 @@ class RolloverReportParser(partners: List[Partner]) {
           partner,
           obsId,
           Target(ra, dec),
-          ObsConditions(cc, iq, sb, wv),
+          ObservingConditions(cc, iq, sb, wv),
           hr
         )
       case _ => Left(LINE_FORMAT(n, rolloverObsStr))

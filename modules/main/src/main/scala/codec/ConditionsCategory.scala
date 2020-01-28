@@ -35,7 +35,7 @@ trait ConditionsCategoryParser {
       string(cc.toString).as(cc) | p
     }
 
-  private def spec[A <: Var[A]](cond: Parser[A]): Parser[Spec[A]] =
+  private def spec[A <: ObservingCondition: Ordering](cond: Parser[A]): Parser[Spec[A]] =
     (comparator, cond).mapN {
       case (None,      c) => Eq(c)
       case (Some(Gte), c) => Le(c)

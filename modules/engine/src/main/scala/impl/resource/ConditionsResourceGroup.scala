@@ -12,7 +12,7 @@ import edu.gemini.tac.qengine.log._
 import annotation.tailrec
 import edu.gemini.tac.qengine.impl.block.Block
 import edu.gemini.tac.qengine.util.{BoundedTime, Percent, Time}
-import edu.gemini.tac.qengine.p1.ObsConditions
+import edu.gemini.tac.qengine.p1.ObservingConditions
 import edu.gemini.tac.qengine.impl.queue.ProposalQueueBuilder
 import xml.Elem
 
@@ -54,16 +54,16 @@ final case class ConditionsResourceGroup private (val bins: ConditionsBinGroup[B
     extends Resource {
   type T = ConditionsResourceGroup
 
-  private def sum(c: ObsConditions, f: (BoundedTime => Time)): Time = {
+  private def sum(c: ObservingConditions, f: (BoundedTime => Time)): Time = {
     val cats = bins.searchPath(c)
     cats.foldLeft(Time.Minutes.zero)((t: Time, cat: Cat) => t + f(bins(cat)))
   }
 
-  def limit(c: ObsConditions): Time     = sum(c, _.limit)
-  def remaining(c: ObsConditions): Time = sum(c, _.remaining)
-  def isFull(c: ObsConditions): Boolean = remaining(c).isZero
+  def limit(c: ObservingConditions): Time     = sum(c, _.limit)
+  def remaining(c: ObservingConditions): Time = sum(c, _.remaining)
+  def isFull(c: ObservingConditions): Boolean = remaining(c).isZero
 
-  private def conds(block: Block): ObsConditions =
+  private def conds(block: Block): ObservingConditions =
     block.obs.conditions
 
   /**
@@ -90,7 +90,7 @@ final case class ConditionsResourceGroup private (val bins: ConditionsBinGroup[B
    * returned.   Returns a new conditions resource group with the reserved time
    * along with any remaining time that could not be reserved.
    */
-  def reserveAvailable(time: Time, conds: ObsConditions): (ConditionsResourceGroup, Time) = {
+  def reserveAvailable(time: Time, conds: ObservingConditions): (ConditionsResourceGroup, Time) = {
     val (updatedBins, rem) =
       ConditionsResourceGroup.reserveAvailable(time, bins.searchBins(conds), Nil)
     (new ConditionsResourceGroup(bins.updated(updatedBins)), rem)

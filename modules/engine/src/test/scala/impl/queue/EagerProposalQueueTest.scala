@@ -23,7 +23,7 @@ class EagerProposalQueueTest {
   val partners = All
 
   // Need obsConds, but we don't use it for this test
-  private val obsConds = ObsConditions(CC50, IQ70, SB20, WV50)
+  private val obsConds = ObservingConditions(CC50, IQ70, SB20, WV50)
 
   private def mkProp(propTimeHours: Int, ref: String): CoreProposal = {
     val ntac = Ntac(GS, ref, 0, Time.hours(propTimeHours))

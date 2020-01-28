@@ -22,7 +22,7 @@ class ProposalTest {
   val US = mockPartner("US", 0.42)
 
   val target = Target(0.0, 0.0) // required but not used for this test
-  val conds  = ObsConditions(cc = CloudCover.CC50)
+  val conds  = ObservingConditions(cc = CloudCover.CC50)
   val e      = 0.000001
 
   def mkObs(hrs: Double): Observation = Observation(target, conds, Time.hours(hrs))
@@ -36,12 +36,12 @@ class ProposalTest {
   @Test def testObsConditionsDifferForBand3() {
     val proto = mkProp(10, 10) // times are irrelevant for this test
     val prop = proto.copy(band3Observations =
-      List(Observation(target, ObsConditions.AnyConditions, Time.hours(10)))
+      List(Observation(target, ObservingConditions.AnyConditions, Time.hours(10)))
     )
 
     prop.obsList.map(o => assertEquals(conds, o.conditions))
     assertEquals(1, prop.band3Observations.size)
-    prop.band3Observations.map(o => assertEquals(ObsConditions.AnyConditions, o.conditions))
+    prop.band3Observations.map(o => assertEquals(ObservingConditions.AnyConditions, o.conditions))
 
   }
 

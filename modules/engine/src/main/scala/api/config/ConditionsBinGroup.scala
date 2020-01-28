@@ -4,7 +4,7 @@
 package edu.gemini.tac.qengine.api.config
 
 import edu.gemini.tac.qengine.api.config.{ConditionsCategory => Cat}
-import edu.gemini.tac.qengine.p1.ObsConditions
+import edu.gemini.tac.qengine.p1.ObservingConditions
 import edu.gemini.tac.qengine.util.Percent
 
 object ConditionsBinGroup {
@@ -32,7 +32,7 @@ case class ConditionsBinGroup[T] private (val bins: Map[Cat, T], val searchPath:
     new ConditionsBinGroup[T](bins ++ that, searchPath)
   }
 
-  def updated(oc: ObsConditions, newValue: T): ConditionsBinGroup[T] =
+  def updated(oc: ObservingConditions, newValue: T): ConditionsBinGroup[T] =
     updated(category(oc), newValue)
 
   def updated(c: Cat, newValue: T): ConditionsBinGroup[T] = {
@@ -45,13 +45,13 @@ case class ConditionsBinGroup[T] private (val bins: Map[Cat, T], val searchPath:
   def map[U](f: T => U): ConditionsBinGroup[U] =
     new ConditionsBinGroup[U](bins.mapValues(f(_)), searchPath)
 
-  def category(oc: ObsConditions): ConditionsCategory = searchPath.category(oc)
+  def category(oc: ObservingConditions): ConditionsCategory = searchPath.category(oc)
 
   /**
    * Gets the ordered list of ConditionsBin associated with the category into
    * which the given observing conditions fall.
    */
-  def searchBins(oc: ObsConditions): List[ConditionsBin[T]] =
+  def searchBins(oc: ObservingConditions): List[ConditionsBin[T]] =
     searchPath(oc).map(cat => ConditionsBin(cat, bins(cat)))
 
   def toXML = <ConditionsBinGroup>

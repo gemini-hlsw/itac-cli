@@ -5,7 +5,7 @@ package edu.gemini.tac.qengine.api.config
 
 import edu.gemini.tac.qengine.api.config.{ConditionsCategory => Cat}
 import Cat._
-import edu.gemini.tac.qengine.p1.ObsConditions
+import edu.gemini.tac.qengine.p1.ObservingConditions
 import edu.gemini.tac.qengine.p1.CloudCover
 import edu.gemini.tac.qengine.p1.CloudCover._
 import edu.gemini.tac.qengine.p1.ImageQuality
@@ -59,7 +59,7 @@ object Default {
       iq <- ImageQuality.values
       cc <- CloudCover.values
       sb <- SkyBackground.values
-    } yield ObsConditions(cc, iq, sb, WVAny)
+    } yield ObservingConditions(cc, iq, sb, WVAny)
 
     ocList foreach { oc =>
       val ocString   = "%s,%s,%s".format(oc.iq, oc.cc, oc.sb)

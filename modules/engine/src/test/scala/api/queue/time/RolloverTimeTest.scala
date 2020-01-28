@@ -6,7 +6,7 @@ import Assert._
 import edu.gemini.tac.qengine.api.queue.time.PartnerTimeCalc._
 import edu.gemini.tac.qengine.p2.rollover.{RolloverObservation, RolloverReport}
 import edu.gemini.tac.qengine.p2.ObservationId
-import edu.gemini.tac.qengine.p1.{ObsConditions, Target}
+import edu.gemini.tac.qengine.p1.{ObservingConditions, Target}
 import edu.gemini.tac.qengine.util.Time
 import edu.gemini.spModel.core.Site
 
@@ -23,7 +23,7 @@ class RolloverTimeTest extends PartnerTimeCalcTestBase {
   val partner = CA
   val obsId   = ObservationId.parse("GN-2011A-Q-1-2").get
   val target  = Target(15.0, 2.0)
-  val conds   = ObsConditions.AnyConditions
+  val conds   = ObservingConditions.AnyConditions
   val time    = Time.hours(100.0)
 
   val ro = RolloverObservation(partner, obsId, target, conds, time)
@@ -49,7 +49,7 @@ class RolloverTimeTest extends PartnerTimeCalcTestBase {
     val partner = BR
     val obsId   = ObservationId.parse("GS-2011A-Q-3-4").get
     val target  = Target(30.0, 3.0)
-    val conds   = ObsConditions.AnyConditions
+    val conds   = ObservingConditions.AnyConditions
     val time    = Time.hours(6.0)
 
     val roSouth = RolloverObservation(partner, obsId, target, conds, time)

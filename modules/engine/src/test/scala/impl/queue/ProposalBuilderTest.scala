@@ -21,7 +21,7 @@ class ProposalBuilderTest {
   val partners = All
 
   // Need obsConds, but we don't use it for this test
-  private val obsConds = ObsConditions(CC50, IQ70, SB20, WV50)
+  private val obsConds = ObservingConditions(CC50, IQ70, SB20, WV50)
 
   private def mkProp(partner: Partner, propTimeHours: Int, id: String): CoreProposal = {
     val ntac = Ntac(partner, id, 0, Time.hours(propTimeHours))
@@ -44,7 +44,7 @@ class ProposalBuilderTest {
     val ra  = Angle.angleDeg0
     val dec = Angle.angleDeg0
     val t   = new Target(ra, dec)
-    val c   = ObsConditions.AnyConditions
+    val c   = ObservingConditions.AnyConditions
     new Observation(t, c, Time.hours(1))
   }
 

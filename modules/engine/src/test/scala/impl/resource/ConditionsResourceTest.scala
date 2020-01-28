@@ -39,13 +39,13 @@ class ConditionsResourceTest {
   private val ntac   = Ntac(GS, "x", 0, Time.minutes(100)) // not used
   private val target = Target(0, 0)                        // not used
 
-  private def mkProp(obsConds: ObsConditions): CoreProposal = {
+  private def mkProp(obsConds: ObservingConditions): CoreProposal = {
     val obsList = List(Observation(target, obsConds, Time.minutes(10)))
     CoreProposal(ntac, site = Site.GS, obsList = obsList)
   }
 
-  private def mkConds(cc: CloudCover): ObsConditions =
-    ObsConditions(cc, IQ20, SB20, WV20)
+  private def mkConds(cc: CloudCover): ObservingConditions =
+    ObservingConditions(cc, IQ20, SB20, WV20)
 
   // Verify that the given remaining times match -- times must be specified
   // in order of CloudCover values.
@@ -58,7 +58,7 @@ class ConditionsResourceTest {
     }
   }
 
-  private def testSuccess(time: Time, cnds: ObsConditions, mins: Int*) {
+  private def testSuccess(time: Time, cnds: ObservingConditions, mins: Int*) {
     val (newResGrp, rem) = resGrp.reserveAvailable(time, cnds)
     assertEquals(Time.Zero, rem)
     verifyTimes(newResGrp, mins: _*)
@@ -135,7 +135,7 @@ class ConditionsResourceTest {
     assertEquals(QueueBand.QBand3, q1.band)
     val template: Observation = mkProp(mkConds(CC50)).obsList.head
     val templateConditions    = template.conditions
-    val cs = ObsConditions(
+    val cs = ObservingConditions(
       CloudCover.CC80,
       templateConditions.iq,
       templateConditions.sb,

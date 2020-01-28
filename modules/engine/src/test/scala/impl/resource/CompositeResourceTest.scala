@@ -45,7 +45,7 @@ class CompositeResourceTest {
 
   private val ntac   = Ntac(US, "x", 0, Time.hours(10))
   private val target = Target(0.0, 0.0) // not used
-  private val conds  = ObsConditions.AnyConditions
+  private val conds  = ObservingConditions.AnyConditions
   private val prop = CoreProposal(
     ntac,
     site = Site.GS,

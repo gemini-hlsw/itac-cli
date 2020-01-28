@@ -5,12 +5,13 @@ package edu.gemini.tac.qengine.api.config
 
 import edu.gemini.tac.qengine.p1._
 import ConditionsCategory._
+import scala.Ordering.Implicits._
 
 /**
  * Defines valid specifications for observing conditions categories.
  */
 object ConditionsCategory {
-  sealed trait Spec[V <: Var[V]] {
+  sealed trait Spec[V <: ObservingCondition] {
 
     /**
      * Determines whether the given conditions variable matches (falls in) the
@@ -26,7 +27,7 @@ object ConditionsCategory {
     def canObserve(cond: V): Boolean
   }
 
-  sealed abstract class Unspecified[V <: Var[V]]() extends Spec[V] {
+  sealed abstract class Unspecified[V <: ObservingCondition]() extends Spec[V] {
     override def matches(other: V): Boolean   = true
     override def canObserve(cond: V): Boolean = true
     override def toString: String             = "--"
@@ -37,7 +38,7 @@ object ConditionsCategory {
   object UnspecifiedSB extends Unspecified[SkyBackground]
   object UnspecifiedWV extends Unspecified[WaterVapor]
 
-  case class Le[V <: Var[V]](ocVar: V) extends Spec[V] {
+  case class Le[V <: ObservingCondition : Ordering](ocVar: V) extends Spec[V] {
     override def matches(other: V): Boolean = other <= ocVar
     // When the category is anything better than or equal to X, we are saying
     // that the better conditions are essentially the same. For example,
@@ -47,13 +48,13 @@ object ConditionsCategory {
     override def toString: String              = "<=" + ocVar
   }
 
-  case class Eq[V <: Var[V]](ocVar: V) extends Spec[V] {
+  case class Eq[V <: ObservingCondition: Ordering](ocVar: V) extends Spec[V] {
     override def matches(other: V): Boolean    = other == ocVar
     override def canObserve(other: V): Boolean = ocVar <= other
     override def toString: String              = ocVar.toString
   }
 
-  case class Ge[V <: Var[V]](ocVar: V) extends Spec[V] {
+  case class Ge[V <: ObservingCondition: Ordering](ocVar: V) extends Spec[V] {
     override def matches(other: V): Boolean    = other >= ocVar
     override def canObserve(other: V): Boolean = ocVar <= other
     override def toString: String              = ">=" + ocVar
@@ -71,12 +72,12 @@ object ConditionsCategory {
   }
 
   case class SearchPath(cats: List[ConditionsCategory]) {
-    def apply(oc: ObsConditions): List[ConditionsCategory] =
+    def apply(oc: ObservingConditions): List[ConditionsCategory] =
       cats.foldLeft(List.empty[ConditionsCategory]) { (upgradePath, cat) =>
         if (cat.canObserve(oc)) cat :: upgradePath else upgradePath
       }
 
-    def category(oc: ObsConditions): ConditionsCategory =
+    def category(oc: ObservingConditions): ConditionsCategory =
       cats.find(_.matches(oc)).get
   }
 }
@@ -93,11 +94,11 @@ final case class ConditionsCategory(
   name: Option[String] = None
 ) {
 
-  def matches(oc: ObsConditions): Boolean =
+  def matches(oc: ObservingConditions): Boolean =
     ccSpec.matches(oc.cc) && iqSpec.matches(oc.iq) &&
       sbSpec.matches(oc.sb) && wvSpec.matches(oc.wv)
 
-  def canObserve(oc: ObsConditions): Boolean =
+  def canObserve(oc: ObservingConditions): Boolean =
     ccSpec.canObserve(oc.cc) && iqSpec.canObserve(oc.iq) &&
       sbSpec.canObserve(oc.sb) && wvSpec.canObserve(oc.wv)
 

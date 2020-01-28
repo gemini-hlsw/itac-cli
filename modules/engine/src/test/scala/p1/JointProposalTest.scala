@@ -23,7 +23,7 @@ class JointProposalTest {
 
   val site    = Site.GS
   val target0 = Target(0.0, 0.0) // required but not used for this test
-  val conds50 = ObsConditions(cc = CloudCover.CC50)
+  val conds50 = ObservingConditions(cc = CloudCover.CC50)
 
   def mkObs(hrs: Double): Observation = Observation(target0, conds50, Time.hours(hrs))
 
