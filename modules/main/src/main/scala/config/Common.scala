@@ -6,7 +6,6 @@ package itac.config
 import cats.implicits._
 import io.circe._
 import io.circe.generic.semiauto._
-import scala.xml.Elem
 import edu.gemini.tac.qengine.api.config.Shutdown
 import java.{util => ju}
 import java.time.LocalDate
@@ -34,7 +33,6 @@ final case class Common(
     def partnerSequence(site: Site): ItacPartnerSequence =
       new ItacPartnerSequence {
         def sequence = self.sequence.forSite(site).map(partnersMap).toStream #::: sequence
-        def configuration: Elem = ???
         override def toString = s"ItacPartnerSequence(${sequence.mkString(",")})"
       }
 

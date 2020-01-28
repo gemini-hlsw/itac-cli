@@ -4,12 +4,15 @@
 package edu.gemini.tac.qengine.api.config
 
 import edu.gemini.tac.qengine.ctx.Partner
-import xml.Elem
 import org.slf4j.LoggerFactory
 import edu.gemini.spModel.core.Site
 
-class ProportionalPartnerSequence(seq: List[Partner], val site: Site, val initialPick: Partner)
-    extends edu.gemini.tac.qengine.api.config.PartnerSequence {
+class ProportionalPartnerSequence(
+      seq:         List[Partner],
+  val site:        Site,
+  val initialPick: Partner
+) extends PartnerSequence {
+
   def this(seq: List[Partner], site: Site) =
     this(seq, site, seq.sortWith(_.percentAt(site) > _.percentAt(site)).head)
 
@@ -34,9 +37,7 @@ class ProportionalPartnerSequence(seq: List[Partner], val site: Site, val initia
     )
   }
 
-  /**
-  Returns the key whose achieved proportions are most below desired proportions
-   */
+  /** Key whose achieved proportions are most below desired proportions */
   private def next[T](proportions: Map[T, Double], achievedToDate: Map[T, Double]): T = {
     val proportionsSum     = proportions.values.sum
     val desiredPercentages = proportions.mapValues(v => v / proportionsSum)
@@ -72,9 +73,7 @@ class ProportionalPartnerSequence(seq: List[Partner], val site: Site, val initia
     keysByHasMaxUnder(true)
   }
 
-  /**
-  Stream of most-fair next element
-   */
+  /** Stream of most-fair next element */
   private def proportionalStream[T](
     proportions: Map[T, Double],
     toDate: Map[T, Double]
@@ -94,10 +93,6 @@ class ProportionalPartnerSequence(seq: List[Partner], val site: Site, val initia
     proportionalStream(proportions, none).dropWhile(p => p != initialPick)
   }
 
-  def configuration: Elem =
-    <ProportionalPartnerSequence name="ProportionalPartnerSequence" initialPick={initialPick.id}>
-    {seq.map(_.toXML)}
-  </ProportionalPartnerSequence>
-
   override def toString = sequence.take(100).toList.mkString(",")
+
 }

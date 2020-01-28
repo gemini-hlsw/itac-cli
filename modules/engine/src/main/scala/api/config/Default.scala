@@ -17,7 +17,7 @@ import edu.gemini.tac.qengine.util.{Time, Percent}
 
 object Default {
 
-  val Conditions = ConditionsBinGroup.percentBins(
+  val Conditions = ConditionsBinGroup.ofPercent(
     (Cat(Eq(CC50), Eq(IQ20), Le(SB50), UnspecifiedWV, Some("1")), 4),
     (Cat(Eq(CC50), Eq(IQ20), Ge(SB80), UnspecifiedWV, Some("2")), 4),
     (Cat(Ge(CC70), Eq(IQ20), UnspecifiedSB, UnspecifiedWV, Some("3")), 3),

@@ -56,7 +56,7 @@ final case class QueueConfig(
       decBins.map(d => Percent(d.doubleValue)).engine.toDecBinGroup(Percent.Zero).right.get // TODO: validate on decoding!
 
     lazy val conditionsBins: ConditionsBinGroup[Percent] =
-      ConditionsBinGroup(QueueConfig.this.conditionsBins)
+      ConditionsBinGroup.of(QueueConfig.this.conditionsBins)
 
   }
 

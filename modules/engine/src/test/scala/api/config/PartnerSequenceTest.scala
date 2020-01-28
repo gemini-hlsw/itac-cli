@@ -60,9 +60,4 @@ class PartnerSequenceTest {
     }
   }
 
-  @Test
-  def xmlRepresentation() {
-    val elem = new ProportionalPartnerSequence(partners, Site.GN).configuration
-    assertTrue(elem.size > 0)
-  }
 }

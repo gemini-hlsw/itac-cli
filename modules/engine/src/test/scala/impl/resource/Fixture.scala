@@ -29,7 +29,7 @@ object Fixture {
 
   // <=CC70 50%
   // >=CC80 50%
-  val condsBins = ConditionsBinGroup.percentBins(
+  val condsBins = ConditionsBinGroup.ofPercent(
     (ConditionsCategory(Le(CC70)), 50),
     (ConditionsCategory(Ge(CC80)), 50)
   )

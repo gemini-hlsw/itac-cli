@@ -9,7 +9,6 @@ import edu.gemini.tac.qengine.api.config.SiteSemesterConfig
 import edu.gemini.tac.qengine.log.{RejectTarget, RejectMessage}
 import edu.gemini.tac.qengine.util.{BoundedTime, Time}
 import edu.gemini.tac.qengine.impl.queue.ProposalQueueBuilder
-import xml.Elem
 
 object RaResource {
   def apply(t: Time, c: SiteSemesterConfig): RaResource = {
@@ -89,9 +88,4 @@ case class RaResource(
     (new RaResource(newAbs, newDec, newCon), rem1 max rem2 max rem3)
   }
 
-  def toXML: Elem = <RaResource>
-    {absBounds.toXML}
-    {decRes.toXML}
-    {condsRes.toXML}
-    </RaResource>
 }

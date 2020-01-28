@@ -25,7 +25,7 @@ class ConditionsBinGroupTest {
   val oc2  = ObservingConditions(CC80, IQ20, SB20, WV20)
   val oc3  = ObservingConditions(CCAny, IQ20, SB20, WV20)
 
-  val grp = ConditionsBinGroup(List(bin0, bin1, bin2, bin3))
+  val grp = ConditionsBinGroup.of(List(bin0, bin1, bin2, bin3))
 
   def validatePath(grp: ConditionsBinGroup[_]) {
     assertEquals(List(cat0), grp.searchPath(oc0))

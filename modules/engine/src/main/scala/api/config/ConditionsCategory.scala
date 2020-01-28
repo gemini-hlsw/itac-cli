@@ -9,11 +9,11 @@ import scala.Ordering.Implicits._
 
 /** Specification for a set of observing conditions. */
 final case class ConditionsCategory(
-  ccSpec: Specification[CloudCover] = UnspecifiedCC,
-  iqSpec: Specification[ImageQuality] = UnspecifiedIQ,
+  ccSpec: Specification[CloudCover]    = UnspecifiedCC,
+  iqSpec: Specification[ImageQuality]  = UnspecifiedIQ,
   sbSpec: Specification[SkyBackground] = UnspecifiedSB,
-  wvSpec: Specification[WaterVapor] = UnspecifiedWV,
-  name: Option[String] = None
+  wvSpec: Specification[WaterVapor]    = UnspecifiedWV,
+  name:   Option[String]               = None
 ) {
 
   def matches(oc: ObservingConditions): Boolean =
@@ -83,22 +83,11 @@ object ConditionsCategory {
     override def toString: String              = ">=" + oc
   }
 
-  object SearchPath {
-
-    /**
-     * Creates a CategorySearchPath from the given list of conditions bins.
-     * WARNING: assumes bins are sorted.
-     */
-    def apply(sortedBins: Seq[ConditionsBin[_]]): SearchPath = {
-      new SearchPath(sortedBins.map(_.cat).toList)
-    }
-  }
-
+  // RCN: I don't understand this.
   case class SearchPath(cats: List[ConditionsCategory]) {
+
     def apply(oc: ObservingConditions): List[ConditionsCategory] =
-      cats.foldLeft(List.empty[ConditionsCategory]) { (upgradePath, cat) =>
-        if (cat.canObserve(oc)) cat :: upgradePath else upgradePath
-      }
+      cats.filter(_.canObserve(oc)).reverse // why?
 
     def category(oc: ObservingConditions): ConditionsCategory =
       cats.find(_.matches(oc)).get

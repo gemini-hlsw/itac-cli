@@ -26,14 +26,14 @@ class ConditionsResourceTest {
   import edu.gemini.tac.qengine.ctx.TestPartners._
   val partners = All
 
-  private val bins = ConditionsBin.list(
+  private val bins = ConditionsBin.of(
     (Cat(Eq(CC50)), Percent(25)),
     (Cat(Eq(CC70)), Percent(25)),
     (Cat(Eq(CC80)), Percent(25)),
     (Cat(Eq(CCAny)), Percent(25))
   )
 
-  private val binGrp = ConditionsBinGroup(bins)
+  private val binGrp = ConditionsBinGroup.of(bins)
   private val resGrp = ConditionsResourceGroup(Time.minutes(100), binGrp)
 
   private val ntac   = Ntac(GS, "x", 0, Time.minutes(100)) // not used

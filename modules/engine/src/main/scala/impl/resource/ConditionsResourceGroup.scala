@@ -14,7 +14,6 @@ import edu.gemini.tac.qengine.impl.block.Block
 import edu.gemini.tac.qengine.util.{BoundedTime, Percent, Time}
 import edu.gemini.tac.qengine.p1.ObservingConditions
 import edu.gemini.tac.qengine.impl.queue.ProposalQueueBuilder
-import xml.Elem
 
 object ConditionsResourceGroup {
 
@@ -95,9 +94,5 @@ final case class ConditionsResourceGroup private (val bins: ConditionsBinGroup[B
       ConditionsResourceGroup.reserveAvailable(time, bins.searchBins(conds), Nil)
     (new ConditionsResourceGroup(bins.updated(updatedBins)), rem)
   }
-
-  def toXML: Elem = <ConditionsResourceGroup>
-    {bins.toXML}
-    </ConditionsResourceGroup>
 
 }
