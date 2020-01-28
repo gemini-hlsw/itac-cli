@@ -14,5 +14,5 @@ final case class RejectNoObs(prop: Proposal) extends RejectMessage {
   def reason: String = RejectNoObs.name
   def detail: String = RejectNoObs.description
 
-  override def subToXML : Elem = <NoObs><Proposal id= { prop.id.toString }/></NoObs>
+  override def subToXML: Elem = <NoObs><Proposal id= {prop.id.toString}/></NoObs>
 }

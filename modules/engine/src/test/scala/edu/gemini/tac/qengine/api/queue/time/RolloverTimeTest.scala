@@ -15,7 +15,7 @@ class RolloverTimeTest extends PartnerTimeCalcTestBase {
   val partners = All
 
   @Test def testEmptyReport() {
-    val rop = RolloverReport.empty
+    val rop              = RolloverReport.empty
     val partnersExceptCL = partners.filter(p => p != CL && p.id != "KECK" && p.id != "SUBARU")
     assertZero(partnersExceptCL, rollover(Site.north, rop, partners))
   }
@@ -26,13 +26,18 @@ class RolloverTimeTest extends PartnerTimeCalcTestBase {
   val conds   = ObsConditions.AnyConditions
   val time    = Time.hours(100.0)
 
-  val ro      = RolloverObservation(partner, obsId, target, conds, time)
+  val ro = RolloverObservation(partner, obsId, target, conds, time)
 
   private def assert100Even(rop: RolloverReport): Unit = {
     val pt = rollover(Site.north, rop, partners)
     assertEquals(pt.total.toHours.value, 100.0, Double.MinValue)
-    partners.foreach {
-      p => assertEquals("Wrong time for " + p.id , pt(p).toHours.value, p.percentAt(Site.north), Double.MinValue)
+    partners.foreach { p =>
+      assertEquals(
+        "Wrong time for " + p.id,
+        pt(p).toHours.value,
+        p.percentAt(Site.north),
+        Double.MinValue
+      )
     }
   }
 
@@ -49,7 +54,7 @@ class RolloverTimeTest extends PartnerTimeCalcTestBase {
 
     val roSouth = RolloverObservation(partner, obsId, target, conds, time)
 
-    val rop     = new RolloverReport(List(ro, roSouth))
+    val rop = new RolloverReport(List(ro, roSouth))
     assert100Even(rop)
   }
 }

@@ -11,10 +11,10 @@ object QEngineUtil {
 
   // Tail recursive implementation of promoteEither.
   @tailrec
-  private def promoteEither[L,R](rem: List[Either[L, R]], res: List[R]): Either[L, List[R]] =
+  private def promoteEither[L, R](rem: List[Either[L, R]], res: List[R]): Either[L, List[R]] =
     rem match {
-      case Nil => Right(res.reverse)
-      case Left(l)  :: _ => Left(l)
+      case Nil              => Right(res.reverse)
+      case Left(l) :: _     => Left(l)
       case Right(r) :: tail => promoteEither(tail, r :: res)
     }
 
@@ -23,7 +23,7 @@ object QEngineUtil {
    * when the entire list should be treated as a failure if any element of the
    * list represents failure.
    */
-  def promoteEither[L,R](rem: List[Either[L, R]]): Either[L, List[R]] =
+  def promoteEither[L, R](rem: List[Either[L, R]]): Either[L, List[R]] =
     promoteEither(rem, Nil)
 
   /**

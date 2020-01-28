@@ -19,14 +19,16 @@ class TimeRestrictionTest {
   private def conds(wv: WaterVapor) =
     ObsConditions(CCAny, IQAny, SBAny, wv)
 
-  private val bin = TimeRestriction("wv", Percent(10)) {
-    (prop, obs, _) => obs.conditions.wv <= WV50
+  private val bin = TimeRestriction("wv", Percent(10)) { (prop, obs, _) =>
+    obs.conditions.wv <= WV50
   }
 
   private def mkProp(wv: WaterVapor): Proposal =
-    CoreProposal(ntac, site = Site.south, obsList = List(Observation(target, conds(wv), Time.hours(10))))
-
-
+    CoreProposal(
+      ntac,
+      site = Site.south,
+      obsList = List(Observation(target, conds(wv), Time.hours(10)))
+    )
   @Test def testMatches() {
     val propList = WaterVapor.values.map(mkProp(_))
     val boolList = propList.map(prop => bin.matches(prop, prop.obsList.head, QueueBand.QBand1))

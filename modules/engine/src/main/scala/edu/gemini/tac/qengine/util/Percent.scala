@@ -6,8 +6,8 @@ import scala.math.BigDecimal.RoundingMode.HALF_UP
 
 object Percent {
   val DefaultPrecision = 2
-  val Zero    = Percent(  0)
-  val Hundred = Percent(100)
+  val Zero             = Percent(0)
+  val Hundred          = Percent(100)
 
   /**
    * Create a percentage from a double representation.  For example, 57.7%
@@ -37,14 +37,16 @@ object Percent {
    * @return List of Percentage where the i'th Percentage in the list
    *         corresponds to the i'th value in the list of ts
    */
-  def relativePercentages[T](ts: List[T], precision: Int = DefaultPrecision)(implicit num: Numeric[T]): List[Percent] = {
+  def relativePercentages[T](ts: List[T], precision: Int = DefaultPrecision)(
+    implicit num: Numeric[T]
+  ): List[Percent] = {
     require(precision >= 0)
 
     val sum   = num.toDouble(ts.foldLeft(num.zero) { num.plus })
     val total = pow(10, 2.0 + precision).toInt
 
     // Percentages expressed as raw Doubles
-    val percs = ts.map(t => num.toDouble(t)/sum * total)
+    val percs = ts.map(t => num.toDouble(t) / sum * total)
 
     // List of percentages broken into triplets of
     // (whole number: Int, fraction: Double [0, 1), index: Int)
@@ -69,7 +71,7 @@ object Percent {
 
     // Round and then sort back to the original order.  These are the final
     // unscaled values.
-    val normalized = (round.map { case (w, i) => (w+1, i)} ++ trunc).sortBy(_._2).unzip._1
+    val normalized = (round.map { case (w, i) => (w + 1, i) } ++ trunc).sortBy(_._2).unzip._1
 
     normalized.map(i => Percent(BigDecimal(i.toLong, precision, Mc)))
   }
@@ -84,7 +86,7 @@ final case class Percent(value: BigDecimal) extends Ordered[Percent] {
   def +(that: Percent): Percent = Percent(value + that.value)
   def -(that: Percent): Percent = Percent(value - that.value)
 
-  override def toString: String =  f"$value%2.0f%%"
+  override def toString: String = f"$value%2.0f%%"
 
   def compare(that: Percent): Int = value.compare(that.value)
 

@@ -2,7 +2,6 @@ package edu.gemini.tac.qengine.api.config
 
 import xml.Elem
 
-
 object DecBin {
   def apply[T](startDeg: Int, endDeg: Int, binValue: T): DecBin[T] =
     new DecBin[T](DecRange(startDeg, endDeg), binValue)
@@ -27,11 +26,11 @@ final case class DecBin[T](range: DecRange, binValue: T) {
   def inclusive: DecBin[T] =
     if (range.isInclusive) this else DecBin(range.inclusive, binValue)
 
-  def map[U](f: T => U): DecBin[U] = DecBin(range, f(binValue))
+  def map[U](f: T => U): DecBin[U]    = DecBin(range, f(binValue))
   def updated(newValue: T): DecBin[T] = DecBin[T](range, newValue)
 
-  def toXML : Elem = <DecBin>
-    { range.toXML }
+  def toXML: Elem = <DecBin>
+    {range.toXML}
     <!-- binValue toXML or string? -->
     </DecBin>
 }

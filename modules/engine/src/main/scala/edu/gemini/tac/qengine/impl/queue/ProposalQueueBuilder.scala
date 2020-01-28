@@ -30,7 +30,11 @@ object ProposalQueueBuilder {
    * band percentages and merge strategy are optional.
    */
   def apply(queueTime: QueueTime, strategy: MergeStrategy): ProposalQueueBuilder =
-    new ProposalQueueBuilder(queueTime.fullPartnerTime.partners, new Config(queueTime, strategy), PartnerTime.empty(queueTime.fullPartnerTime.partners))
+    new ProposalQueueBuilder(
+      queueTime.fullPartnerTime.partners,
+      new Config(queueTime, strategy),
+      PartnerTime.empty(queueTime.fullPartnerTime.partners)
+    )
 }
 
 case class ProposalQueueBuilder(
@@ -38,13 +42,14 @@ case class ProposalQueueBuilder(
   val config: ProposalQueueBuilder.Config,
   val usedGuaranteed: PartnerTime,
   val usedTime: Time = Time.ZeroHours,
-  val proposals: List[Proposal] = Nil) extends edu.gemini.tac.qengine.api.queue.ProposalQueue {
+  val proposals: List[Proposal] = Nil
+) extends edu.gemini.tac.qengine.api.queue.ProposalQueue {
 
   def queueTime: QueueTime = config.queueTime
 
   // We explicitly track guaranteed time because we need it very frequently
   // to know when partners pass this limit.
-  override def usedTime(c: Category, p: Partner): Time  =
+  override def usedTime(c: Category, p: Partner): Time =
     if (c == Category.Guaranteed) usedGuaranteed(p) else super.usedTime(c, p)
 
   override def usedTime(c: Category): Time =
@@ -63,7 +68,6 @@ case class ProposalQueueBuilder(
         usedGuaranteed.add(prop.ntac.partner, prop.time)
     }
 
-
   /**
    * Adds the given proposal to the queue and returns a new ProposalQueue
    * reflecting the change.
@@ -75,13 +79,17 @@ case class ProposalQueueBuilder(
   def :+(prop: Proposal): ProposalQueueBuilder = {
     val curBand = band
 
-    require((curBand == QBand4) || ((usedTime + prop.time) <= queueTime.full),
-      "Cannot schedule guaranteed time past the total available queue time.")
+    require(
+      (curBand == QBand4) || ((usedTime + prop.time) <= queueTime.full),
+      "Cannot schedule guaranteed time past the total available queue time."
+    )
 
     // See ITAC-415, ITAC-416.  If we do not filter out band 3 during band
     // restriction tests, we cannot have this requirement.
-    require((curBand != QBand3) || prop.band3Observations.size != 0,
-      "Proposal cannot be scheduled in band 3.")
+    require(
+      (curBand != QBand3) || prop.band3Observations.size != 0,
+      "Proposal cannot be scheduled in band 3."
+    )
 
     val newUsedGuaranteed =
       if (!curBand.isIn(Category.Guaranteed))
@@ -98,12 +106,10 @@ case class ProposalQueueBuilder(
    * Adds all the proposals to the queue in the traversal order.
    */
   def ++(props: Traversable[Proposal]): ProposalQueueBuilder =
-    props.foldLeft(this) {
-      (q, p) =>
+    props.foldLeft(this) { (q, p) =>
 //        println("%d - %s - %.1f".format(q.band.number, p.id, q.usedTime.toHours.value))
-        q :+ p
+      q :+ p
     }
-
 
   /**
    * Gets the queue band at which the next proposal will be added.
@@ -125,9 +131,13 @@ case class ProposalQueueBuilder(
   }
 
   @tailrec
-  private def zipWithPosition(pos: ProposalPosition, rem: List[Proposal], res: List[(Proposal, ProposalPosition)]): List[(Proposal, ProposalPosition)] =
+  private def zipWithPosition(
+    pos: ProposalPosition,
+    rem: List[Proposal],
+    res: List[(Proposal, ProposalPosition)]
+  ): List[(Proposal, ProposalPosition)] =
     rem match {
-      case Nil          =>
+      case Nil =>
         res.reverse
       case head :: tail =>
         zipWithPosition(pos.next(head, queueTime.band _), tail, (head, pos) :: res)
@@ -140,9 +150,13 @@ case class ProposalQueueBuilder(
    * Tail recursive implementation of positionOf.
    */
   @tailrec
-  private def positionOf(prop: Proposal, pos: ProposalPosition, remaining: List[Proposal]): Option[ProposalPosition] =
+  private def positionOf(
+    prop: Proposal,
+    pos: ProposalPosition,
+    remaining: List[Proposal]
+  ): Option[ProposalPosition] =
     remaining match {
-      case Nil          => None
+      case Nil => None
       case head :: tail =>
         if (head.containsId(prop.id))
           Some(pos)
@@ -153,16 +167,20 @@ case class ProposalQueueBuilder(
   def positionOf(prop: Proposal): Option[ProposalPosition] =
     positionOf(prop, ProposalPosition(queueTime), toList)
 
-
   private def extractIds(propList: List[Proposal]): Set[Proposal.Id] =
-    propList.foldLeft(Set.empty[Proposal.Id]) {
-      (set, prop) => set + prop.id
+    propList.foldLeft(Set.empty[Proposal.Id]) { (set, prop) =>
+      set + prop.id
     }
 
   @tailrec
-  private def calcRemoveSet(f: (Proposal, ProposalPosition) => Boolean, pos: ProposalPosition, remaining: List[Proposal], res: List[Proposal]): List[Proposal] =
+  private def calcRemoveSet(
+    f: (Proposal, ProposalPosition) => Boolean,
+    pos: ProposalPosition,
+    remaining: List[Proposal],
+    res: List[Proposal]
+  ): List[Proposal] =
     remaining match {
-      case Nil          => res
+      case Nil => res
       case head :: tail =>
         if (f(head, pos))
           // advance pos, don't remove head
@@ -180,18 +198,19 @@ case class ProposalQueueBuilder(
    */
   def positionFilter(f: (Proposal, ProposalPosition) => Boolean): ProposalQueueBuilder =
     Proposal.expandJoints(calcRemoveSet(f, ProposalPosition(queueTime), toList, Nil)) match {
-      case Nil => this  // Nothing removed, return this
+      case Nil => this // Nothing removed, return this
       case lst => {
-        val ids      = extractIds(lst)
-        val filtered = proposals.filterNot(prop => ids.contains(prop match {
-          case joint: JointProposal => joint.toParts.head.id
-          case _ => prop.id
-        }))
+        val ids = extractIds(lst)
+        val filtered = proposals.filterNot(prop =>
+          ids.contains(prop match {
+            case joint: JointProposal => joint.toParts.head.id
+            case _                    => prop.id
+          })
+        )
 
         // Rebuild the queue with just the filtered proposals.
         new ProposalQueueBuilder(partners, config, PartnerTime.empty(partners)) ++ filtered.reverse
       }
     }
-
 
 }

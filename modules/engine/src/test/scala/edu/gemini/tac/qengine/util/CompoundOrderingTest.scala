@@ -23,8 +23,8 @@ class CompoundOrderingTest {
     val c = new CompoundOrdering[Obj]()
 
     // Anything goes.
-    val o1 = Obj(1, "one",   1.0)
-    val o2 = Obj(2, "two",   2.0)
+    val o1 = Obj(1, "one", 1.0)
+    val o2 = Obj(2, "two", 2.0)
     val o3 = Obj(3, "three", 3.0)
 
     // Just preserve the ordering.
@@ -35,10 +35,10 @@ class CompoundOrderingTest {
   @Test def testOne() {
     val c = new CompoundOrdering(StringOrdering)
 
-    val o1 = Obj(1, "one",   1.0)
-    val o2 = Obj(2, "two",   2.0)
+    val o1 = Obj(1, "one", 1.0)
+    val o2 = Obj(2, "two", 2.0)
     val o3 = Obj(3, "three", 3.0)
-    val o4 = Obj(4, "four",  4.0)
+    val o4 = Obj(4, "four", 4.0)
 
     val lst = List(o1, o2, o3, o4)
     val exp = List(o4, o1, o3, o2)

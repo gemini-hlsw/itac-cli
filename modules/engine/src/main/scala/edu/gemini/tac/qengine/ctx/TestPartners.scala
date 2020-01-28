@@ -14,6 +14,6 @@ object TestPartners {
   val UH = Partner("UH", "University of Hawaii", 8.9, Set(Site.north))
   val US = Partner("US", "United States", 57.7, AllSites)
 
-  val All = List(AR, AU, BR, CA, CL, GS, UH, US)
+  val All    = List(AR, AU, BR, CA, CL, GS, UH, US)
   val AllMap = All.map(p => p.id -> p).toMap
 }

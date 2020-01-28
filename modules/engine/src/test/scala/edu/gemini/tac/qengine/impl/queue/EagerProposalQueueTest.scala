@@ -37,16 +37,26 @@ class EagerProposalQueueTest {
     JointProposalPart(jointId, c)
   }
   private def otherPart(propTimeHours: Int, ref: String, mp: JointProposalPart): JointProposalPart =
-    JointProposalPart(mp.jointIdValue, mp.core.copy(ntac = Ntac(GS, ref, 0, Time.hours(propTimeHours))))
+    JointProposalPart(
+      mp.jointIdValue,
+      mp.core.copy(ntac = Ntac(GS, ref, 0, Time.hours(propTimeHours)))
+    )
 
-  private val qs = ProposalQueueBuilder(new QueueTime(Site.south, PartnerTime(partners, GS -> Time.hours(100)), QueueBandPercentages(30, 30, 40)), EagerMergeStrategy)
+  private val qs = ProposalQueueBuilder(
+    new QueueTime(
+      Site.south,
+      PartnerTime(partners, GS -> Time.hours(100)),
+      QueueBandPercentages(30, 30, 40)
+    ),
+    EagerMergeStrategy
+  )
   private val qtime = qs.queueTime
 
   @Test def testPromotePart() {
-    val prop1 = mkProp(    10, "gs1")
+    val prop1 = mkProp(10, "gs1")
     val prop2 = masterPart(19, "gs2", "j1")
-    val prop3 = mkProp(     2, "gs3")        // straddles band 1 / band 2 line
-    val prop4 = otherPart(  2, "gs4", prop2) // promoted to band1, prop3 demoted to band2
+    val prop3 = mkProp(2, "gs3") // straddles band 1 / band 2 line
+    val prop4 = otherPart(2, "gs4", prop2) // promoted to band1, prop3 demoted to band2
 
     val qs1 = qs :+ prop1 :+ prop2 :+ prop3
 
@@ -65,7 +75,7 @@ class EagerProposalQueueTest {
 
     val pos2_1 = ProposalPosition(qtime)
     val pos2_2 = ProposalPosition(1, Time.hours(10), QBand1, 1, Time.hours(10))
-    val pos2_3 = ProposalPosition(2, Time.hours(31), QBand2, 0, Time.hours( 0))
+    val pos2_3 = ProposalPosition(2, Time.hours(31), QBand2, 0, Time.hours(0))
 
     assertEquals(pos2_1, qs2.positionOf(prop1).get)
     assertEquals(pos2_2, qs2.positionOf(prop2).get)
@@ -78,16 +88,16 @@ class EagerProposalQueueTest {
   }
 
   @Test def testDemotePart() {
-    val prop1 = mkProp(    29, "gs1")
-    val prop2 = masterPart( 2, "gs2", "j1") // straddle band 1 / band 2
-    val prop3 = mkProp(     2, "gs3")       // starts out in band 2, moved up
-    val prop4 = otherPart( 26, "gs4", prop2) // demotes prop2 to band 2
+    val prop1 = mkProp(29, "gs1")
+    val prop2 = masterPart(2, "gs2", "j1") // straddle band 1 / band 2
+    val prop3 = mkProp(2, "gs3") // starts out in band 2, moved up
+    val prop4 = otherPart(26, "gs4", prop2) // demotes prop2 to band 2
 
     val qs1 = qs :+ prop1 :+ prop2 :+ prop3
 
     val pos1_1 = ProposalPosition(qtime)
     val pos1_2 = ProposalPosition(1, Time.hours(29), QBand1, 1, Time.hours(29))
-    val pos1_3 = ProposalPosition(2, Time.hours(31), QBand2, 0, Time.hours( 0))
+    val pos1_3 = ProposalPosition(2, Time.hours(31), QBand2, 0, Time.hours(0))
     assertEquals(pos1_1, qs1.positionOf(prop1).get)
     assertEquals(pos1_2, qs1.positionOf(prop2).get) // in band 1 for now
     assertEquals(pos1_3, qs1.positionOf(prop3).get) // in band 2 for now
@@ -99,7 +109,7 @@ class EagerProposalQueueTest {
     val qs2 = qs1 :+ prop4
 
     val pos2_1 = ProposalPosition(qtime)
-    val pos2_2 = ProposalPosition(2, Time.hours(31), QBand2, 0, Time.hours( 0))
+    val pos2_2 = ProposalPosition(2, Time.hours(31), QBand2, 0, Time.hours(0))
     val pos2_3 = ProposalPosition(1, Time.hours(29), QBand1, 1, Time.hours(29))
 
     assertEquals(pos2_1, qs2.positionOf(prop1).get)

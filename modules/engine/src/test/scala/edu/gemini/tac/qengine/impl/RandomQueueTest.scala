@@ -20,33 +20,42 @@ class RandomQueueTest {
   private def randomTime(max: Int): Time = Time.hours(max * rand.nextDouble)
 
   private def queueTime: QueueTime =
-    QueueTime(site, partners.map(p => (p, Time.hours(1000) * Percent(p.percentAt(site)))).toMap, partners)
+    QueueTime(
+      site,
+      partners.map(p => (p, Time.hours(1000) * Percent(p.percentAt(site)))).toMap,
+      partners
+    )
 
   // Ra Bins for GN-A
   private def raLimits: RaBinGroup[Time] =
-    RaBinGroup(Vector(17, 3, 0, 0, 9, 23, 37, 51, 65, 79, 93, 106, 120, 134, 148, 154, 153, 134, 115, 96, 77, 61, 45, 31)).map(Time.hours(_))
+    RaBinGroup(
+      Vector(17, 3, 0, 0, 9, 23, 37, 51, 65, 79, 93, 106, 120, 134, 148, 154, 153, 134, 115, 96, 77,
+        61, 45, 31)
+    ).map(Time.hours(_))
 
   private def decBins: DecBinGroup[Percent] =
     DecBinGroup.fromBins(
-      DecBin(DecRange(-25,  -5), Percent( 60)),
-      DecBin(DecRange( -5,  15), Percent( 75)),
-      DecBin(DecRange( 15,  35), Percent(100)),
-      DecBin(DecRange( 35,  55), Percent(100)),
-      DecBin(DecRange( 55,  75), Percent(100)),
-      DecBin(DecRange( 75,  90).inclusive, Percent( 65))
+      DecBin(DecRange(-25, -5), Percent(60)),
+      DecBin(DecRange(-5, 15), Percent(75)),
+      DecBin(DecRange(15, 35), Percent(100)),
+      DecBin(DecRange(35, 55), Percent(100)),
+      DecBin(DecRange(55, 75), Percent(100)),
+      DecBin(DecRange(75, 90).inclusive, Percent(65))
     )
 
-  private def gnABinConfig: SiteSemesterConfig = new SiteSemesterConfig(site, semester, raLimits, decBins, List.empty)
+  private def gnABinConfig: SiteSemesterConfig =
+    new SiteSemesterConfig(site, semester, raLimits, decBins, List.empty)
 
   private def randomConditions: ObsConditions =
     ObsConditions(
       CloudCover.values(rand.nextInt(CloudCover.values.size)),
       ImageQuality.values(rand.nextInt(ImageQuality.values.size)),
       SkyBackground.values(rand.nextInt(SkyBackground.values.size)),
-      WaterVapor.values(rand.nextInt(WaterVapor.values.size)))
+      WaterVapor.values(rand.nextInt(WaterVapor.values.size))
+    )
 
   private def randomRa(raHour: Int, plusMinusMin: Double): Angle =
-    new Angle(raHour * 60 - plusMinusMin/2 + plusMinusMin * rand.nextDouble, Angle.Min).toHr
+    new Angle(raHour * 60 - plusMinusMin / 2 + plusMinusMin * rand.nextDouble, Angle.Min).toHr
 
   private def randomDec: Angle =
     new Angle(-30 + (120 * rand.nextDouble), Angle.Deg)
@@ -54,22 +63,29 @@ class RandomQueueTest {
   private def randomTarget(raHour: Int, plusMinusMin: Double): Target =
     Target(randomRa(raHour, plusMinusMin), randomDec)
 
-
   private def randomObservation(raHour: Int, plusMinusMin: Double): Observation =
     Observation(randomTarget(raHour, plusMinusMin), randomConditions, randomTime(1))
 
   private def randomObsList: List[Observation] = {
-    val count  = rand.nextInt(10) + 1
-    val raHour = rand.nextInt(24)
+    val count        = rand.nextInt(10) + 1
+    val raHour       = rand.nextInt(24)
     val plusMinusMin = rand.nextDouble * 60
     (for (i <- 0 until count) yield randomObservation(raHour, plusMinusMin)).toList
   }
 
   private def randomProposal(p: Partner, i: Int): Proposal = {
     val ntac = Ntac(p, p.id + "-" + i, i, randomTime(10))
-    val band3 = if (rand.nextInt(2) % 2 == 0) randomObsList.filter(o => o.conditions.cc.percent >= 80) else List.empty
+    val band3 =
+      if (rand.nextInt(2) % 2 == 0) randomObsList.filter(o => o.conditions.cc.percent >= 80)
+      else List.empty
     val poorWeather = rand.nextInt(20) == 0
-    CoreProposal(ntac, site = site, band3Observations = band3, obsList = randomObsList, isPoorWeather = poorWeather)
+    CoreProposal(
+      ntac,
+      site = site,
+      band3Observations = band3,
+      obsList = randomObsList,
+      isPoorWeather = poorWeather
+    )
   }
 
   private def randomProposals: List[Proposal] =
@@ -78,14 +94,14 @@ class RandomQueueTest {
   private def hrs(time: Time): Double = time.toHours.value
 
   @Test def testRandomQueue() {
-    val binConf = gnABinConfig
-    val props   = randomProposals
+    val binConf         = gnABinConfig
+    val props           = randomProposals
     val partnerSequence = new ProportionalPartnerSequence(partners, binConf.site)
-    val conf    = QueueEngineConfig(partners, binConf, partnerSequence)
+    val conf            = QueueEngineConfig(partners, binConf, partnerSequence)
 
-    val startTime  = System.currentTimeMillis
-    val calc       = QueueEngine(props, queueTime, conf, partners)
-    val endTime    = System.currentTimeMillis
+    val startTime = System.currentTimeMillis
+    val calc      = QueueEngine(props, queueTime, conf, partners)
+    val endTime   = System.currentTimeMillis
 
     calc.queue.bandedQueue.foreach(tup => {
       println("--------" + tup._1)
@@ -98,7 +114,7 @@ class RandomQueueTest {
         case msg: RejectMessage => msg.reason + msg.detail
         case msg: AcceptMessage => msg.reason + msg.detail
       })).mkString("\n"))
-      */
+     */
 
 //      tup._1 + " ->\t" + tup._2.reason).mkString("\n")
 //    )
@@ -111,30 +127,49 @@ class RandomQueueTest {
     }
 
     println(m.mkString("\n"))
-*/
+     */
     println("------------------------ Partner Fairness -----------------------")
     QueueBand.values.init.foreach(band => {
       println("\n--- Band: " + band + " ---")
       val bf = calc.queue.partnerFairness(band, partners)
       partners.foreach(p => {
-        println("%s -> rem = %6.2f hrs, total = %7.2f hrs, pecent error = %5.1f%%".format(p, hrs(calc.queue.remainingTime(band, p)), hrs(calc.queue.queueTime(band, p)), bf.errorPercent(p)))
+        println(
+          "%s -> rem = %6.2f hrs, total = %7.2f hrs, pecent error = %5.1f%%".format(
+            p,
+            hrs(calc.queue.remainingTime(band, p)),
+            hrs(calc.queue.queueTime(band, p)),
+            bf.errorPercent(p)
+          )
+        )
       })
-      println("Total rem = %6.2f hrs, total = %7.2f hrs".format(hrs(calc.queue.remainingTime(band)), hrs(calc.queue.queueTime(band))))
+      println(
+        "Total rem = %6.2f hrs, total = %7.2f hrs"
+          .format(hrs(calc.queue.remainingTime(band)), hrs(calc.queue.queueTime(band)))
+      )
       println("Std. Dev. = %5.2f".format(bf.standardDeviation))
     })
 
     println("\n--- Total ---")
     val f = calc.queue.partnerFairness(Guaranteed, partners)
     partners.foreach(p => {
-      println("%s -> rem = %6.2f hrs, total = %7.2f hrs, pecent error = %5.1f%%".format(p, hrs(calc.queue.remainingTime(Guaranteed, p)), hrs(calc.queue.queueTime(Guaranteed, p)), f.errorPercent(p)))
+      println(
+        "%s -> rem = %6.2f hrs, total = %7.2f hrs, pecent error = %5.1f%%".format(
+          p,
+          hrs(calc.queue.remainingTime(Guaranteed, p)),
+          hrs(calc.queue.queueTime(Guaranteed, p)),
+          f.errorPercent(p)
+        )
+      )
     })
-    println("Total rem = %6.2f hrs, total = %7.2f hrs".format(hrs(calc.queue.remainingTime(Guaranteed)), hrs(calc.queue.queueTime(Guaranteed))))
+    println(
+      "Total rem = %6.2f hrs, total = %7.2f hrs"
+        .format(hrs(calc.queue.remainingTime(Guaranteed)), hrs(calc.queue.queueTime(Guaranteed)))
+    )
 
     println("Std. Dev. = %5.2f".format(f.standardDeviation))
     println("-----------------------------------------------------------------")
 
-
-    println("Execution Time = " + Time.millisecs(endTime-startTime).toSeconds)
+    println("Execution Time = " + Time.millisecs(endTime - startTime).toSeconds)
   }
 
 }

@@ -30,7 +30,7 @@ class PartnerTimeTest {
   }
 
   @Test def testConstant() {
-    val t = Time.hours(10)
+    val t  = Time.hours(10)
     val pt = PartnerTime.constant(t, partners)
     assertEquals(Time.hours(10), pt(US))
     partners.foreach(p => assertEquals(t, pt(p)))
@@ -46,11 +46,13 @@ class PartnerTimeTest {
     assertEquals(Time.hours(BR.percentAt(site)), pt(BR))
     partners.foreach { p =>
       val partnerPercentAtSite = p.percentAt(site)
-      assertEquals("Failed for partner " + p.fullName, Time.hours(100) * Percent(partnerPercentAtSite), pt(p))
+      assertEquals(
+        "Failed for partner " + p.fullName,
+        Time.hours(100) * Percent(partnerPercentAtSite),
+        pt(p)
+      )
     }
   }
-
-
   @Test def testEmpty(): Unit = {
     val pt = PartnerTime.empty(partners)
     partners.foreach(p => assertEquals(Time.ZeroHours, pt(p)))

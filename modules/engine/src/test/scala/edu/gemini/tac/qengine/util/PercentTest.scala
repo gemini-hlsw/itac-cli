@@ -9,7 +9,7 @@ final class PercentTest {
   }
 
   @Test def testLong() {
-    assertEquals(10l, Percent(5) * 200l, Double.MinPositiveValue)
+    assertEquals(10L, Percent(5) * 200L, Double.MinPositiveValue)
   }
 
   @Test def testDouble() {
@@ -28,7 +28,7 @@ final class PercentTest {
   @Test def testImplicitDouble() {
     assertEquals(10.0, 200.0 * Percent(5), 0.000001)
   }
-  */
+   */
 
   @Test def testSumPercents() {
     assertEquals(Percent(42), Percent(2) + Percent(40))
@@ -38,7 +38,9 @@ final class PercentTest {
     assertEquals(Percent(42), Percent(44) - Percent(2))
   }
 
-  private def testRelativePercentages[T](precision: Int, in: List[T], exp: Double*)(implicit num: Numeric[T]): Unit = {
+  private def testRelativePercentages[T](precision: Int, in: List[T], exp: Double*)(
+    implicit num: Numeric[T]
+  ): Unit = {
     assertEquals(exp.toList.map(Percent(_, precision)), Percent.relativePercentages(in, precision))
   }
 
@@ -52,7 +54,7 @@ final class PercentTest {
     testRelativePercentages(2, List(25.0, 75.0), 25.0, 75.0)
     testRelativePercentages(2, List(25.0, 50.0), 33.33, 66.67)
     testRelativePercentages(2, List(7), 100.0)
-    testRelativePercentages(2, List(0,1,1), 0, 50, 50)
+    testRelativePercentages(2, List(0, 1, 1), 0, 50, 50)
     testRelativePercentages(2, List(-2, 12), -20, 120)
   }
 }

@@ -24,9 +24,11 @@ case class ObservationId(progId: ProgramId, index: Int) extends Ordered[Observat
 }
 
 object ObservationId {
-  object ObservationIdOrdering extends CompoundOrdering(
-    Ordering.by[ObservationId, ProgramId](_.progId),
-    Ordering.by[ObservationId, Int](_.index))
+  object ObservationIdOrdering
+      extends CompoundOrdering(
+        Ordering.by[ObservationId, ProgramId](_.progId),
+        Ordering.by[ObservationId, Int](_.index)
+      )
 
   val Pattern = """^(.*)-(\d+)$""".format(ProgramId.Pattern)
   val RegEx   = Pattern.r
@@ -35,11 +37,10 @@ object ObservationId {
     s match {
       case RegEx(progIdStr, obsIndexStr) =>
         val obsIndex = obsIndexStr.toInt
-        ProgramId.parse(progIdStr).map {
-          progId => ObservationId(progId, obsIndex)
+        ProgramId.parse(progIdStr).map { progId =>
+          ObservationId(progId, obsIndex)
         }
       case _ =>
         None
     }
 }
-

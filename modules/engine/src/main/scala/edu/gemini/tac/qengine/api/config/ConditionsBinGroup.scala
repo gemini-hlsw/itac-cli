@@ -22,7 +22,10 @@ case class ConditionsBinGroup[T] private (val bins: Map[Cat, T], val searchPath:
     updated(that.map(bin => (bin.cat, bin.binValue)))
 
   def updated(that: TraversableOnce[(Cat, T)]): ConditionsBinGroup[T] = {
-    require(that.foldLeft(true)((res, tup) => res && bins.get(tup._1).isDefined), "Cannot handle unknown categories.")
+    require(
+      that.foldLeft(true)((res, tup) => res && bins.get(tup._1).isDefined),
+      "Cannot handle unknown categories."
+    )
     new ConditionsBinGroup[T](bins ++ that, searchPath)
   }
 
@@ -30,7 +33,7 @@ case class ConditionsBinGroup[T] private (val bins: Map[Cat, T], val searchPath:
     updated(category(oc), newValue)
 
   def updated(c: Cat, newValue: T): ConditionsBinGroup[T] = {
-    require(bins.get(c).isDefined, "Cannot handle unknown categories: "+ c.toString)
+    require(bins.get(c).isDefined, "Cannot handle unknown categories: " + c.toString)
     new ConditionsBinGroup[T](bins.updated(c, newValue), searchPath)
   }
 

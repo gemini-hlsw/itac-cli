@@ -8,7 +8,7 @@ object Angle {
 
     def convert(theta: Double, u: Unit): Double = {
       if (u == this) theta
-      else theta/circle * u.circle
+      else theta / circle * u.circle
     }
 
     def toMas(theta: Double): Double    = convert(theta, Mas)
@@ -23,22 +23,22 @@ object Angle {
     override def toString = abbr
   }
 
-  object Mas extends Unit(360*60*60*1000, "mas")
-  object Arcsec extends Unit(360*60*60, "arcsec")
-  object Arcmin extends Unit(360*60, "arcmin")
-  object Deg extends Unit(360, "deg")
-  object Sec extends Unit(24*60*60, "sec")
-  object Min extends Unit(24*60, "min")
-  object Hr extends Unit(24, "hr")
-  object Rad extends Unit(2 * math.Pi, "rad")
+  object Mas    extends Unit(360 * 60 * 60 * 1000, "mas")
+  object Arcsec extends Unit(360 * 60 * 60, "arcsec")
+  object Arcmin extends Unit(360 * 60, "arcmin")
+  object Deg    extends Unit(360, "deg")
+  object Sec    extends Unit(24 * 60 * 60, "sec")
+  object Min    extends Unit(24 * 60, "min")
+  object Hr     extends Unit(24, "hr")
+  object Rad    extends Unit(2 * math.Pi, "rad")
 
   val allUnits = List(Mas, Arcsec, Arcmin, Deg, Sec, Min, Hr, Rad)
 
   val angleDeg0     = new Angle(0, Deg)
   val angle2Pi      = new Angle(0, Rad)
-  val anglePiOver2  = new Angle(math.Pi/2, Rad)
+  val anglePiOver2  = new Angle(math.Pi / 2, Rad)
   val anglePi       = new Angle(math.Pi, Rad)
-  val angle3PiOver2 = new Angle(3*math.Pi/2, Rad)
+  val angle3PiOver2 = new Angle(3 * math.Pi / 2, Rad)
 }
 
 /**
@@ -69,11 +69,14 @@ object Angle {
  * @param unit units by which to interpret the angle; may not be
  * <code>null</code>
  */
-final class Angle(private val theta: Double, val unit: Unit) extends Ordered[Angle] with Serializable {
+final class Angle(private val theta: Double, val unit: Unit)
+    extends Ordered[Angle]
+    with Serializable {
   require(!theta.isInfinite && !theta.isNaN)
 
-  val mag = if (math.abs(theta) < unit.circle) theta
-            else math.IEEEremainder(theta, unit.circle)
+  val mag =
+    if (math.abs(theta) < unit.circle) theta
+    else math.IEEEremainder(theta, unit.circle)
 
   /**
    * Returns an equivalent angle but converted to the given
@@ -90,15 +93,14 @@ final class Angle(private val theta: Double, val unit: Unit) extends Ordered[Ang
     if (this.unit == u) this
     else new Angle(this.unit.convert(mag, u), u)
 
-  def toMas     = convertTo(Mas)
-  def toArcsec  = convertTo(Arcsec)
-  def toArcmin  = convertTo(Arcmin)
-  def toDeg     = convertTo(Deg)
-  def toSec     = convertTo(Sec)
-  def toMin     = convertTo(Min)
-  def toHr      = convertTo(Hr)
-  def toRad     = convertTo(Rad)
-
+  def toMas    = convertTo(Mas)
+  def toArcsec = convertTo(Arcsec)
+  def toArcmin = convertTo(Arcmin)
+  def toDeg    = convertTo(Deg)
+  def toSec    = convertTo(Sec)
+  def toMin    = convertTo(Min)
+  def toHr     = convertTo(Hr)
+  def toRad    = convertTo(Rad)
 
   /**
    * Returns an equivalent angle, but converted to a positive magnitude.
@@ -116,7 +118,7 @@ final class Angle(private val theta: Double, val unit: Unit) extends Ordered[Ang
    * positive angle
    */
   def toPositive: Angle = {
-    if (mag >=0) this else new Angle(unit.circle + mag, unit)
+    if (mag >= 0) this else new Angle(unit.circle + mag, unit)
   }
 
   /**
@@ -135,7 +137,7 @@ final class Angle(private val theta: Double, val unit: Unit) extends Ordered[Ang
    * negative angle
    */
   def toNegative: Angle = {
-      if (mag <= 0) this else new Angle(mag - unit.circle, unit)
+    if (mag <= 0) this else new Angle(mag - unit.circle, unit)
   }
 
   private def radians(): Double = unit.convert(mag, Rad)
@@ -226,7 +228,7 @@ final class Angle(private val theta: Double, val unit: Unit) extends Ordered[Ang
 
   override def equals(other: Any) = other match {
     case that: Angle => toDeg.toPositive.mag == that.toDeg.toPositive.mag
-    case _ => false
+    case _           => false
   }
   override def hashCode: Int = toDeg.toPositive.mag.hashCode
 

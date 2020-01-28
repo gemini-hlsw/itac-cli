@@ -23,6 +23,7 @@ case class RolloverReport(obsList: List[RolloverObservation]) {
 }
 
 object RolloverReport {
+
   /** An empty rollover report. */
   val empty: RolloverReport = RolloverReport(Nil)
 }

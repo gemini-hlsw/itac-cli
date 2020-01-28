@@ -5,8 +5,8 @@ import edu.gemini.tac.qengine.p1.{Mode, Too, QueueBand, Proposal}
 import edu.gemini.tac.qengine.p1.QueueBand._
 import xml.Elem
 
-case class BandRestriction(name: String, bands: Set[QueueBand])(val matches: Proposal => Boolean){
-  def toXML : Elem = <BandRestriction name={ name }>
+case class BandRestriction(name: String, bands: Set[QueueBand])(val matches: Proposal => Boolean) {
+  def toXML: Elem = <BandRestriction name={name}>
     <!-- { bands.map(_.toXML) }  -->
     </BandRestriction>
 }
@@ -39,12 +39,12 @@ object BandRestriction {
   // we need to search the obsList for any obs that has an IQ20 value
 
   def iq20: BandRestriction =
-    BandRestriction(Iq20Name, Set(QBand1, QBand2)) {
-      prop => prop.band3Observations.exists(_.conditions.iq == IQ20)
+    BandRestriction(Iq20Name, Set(QBand1, QBand2)) { prop =>
+      prop.band3Observations.exists(_.conditions.iq == IQ20)
     }
 
   // Required to remove any proposal that is not-band3 that is pushed into
   // band 3 by a joint component moving up in the queue.
   def notBand3: BandRestriction =
-      BandRestriction(NotBand3Name, Set(QBand1, QBand2)) { _.band3Observations.isEmpty }
+    BandRestriction(NotBand3Name, Set(QBand1, QBand2)) { _.band3Observations.isEmpty }
 }

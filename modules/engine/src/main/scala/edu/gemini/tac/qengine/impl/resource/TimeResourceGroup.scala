@@ -6,7 +6,6 @@ import edu.gemini.tac.qengine.impl.queue.ProposalQueueBuilder
 import xml.Elem
 import org.slf4j.LoggerFactory
 
-
 class TimeResourceGroup(val lst: List[TimeResource]) extends Resource {
   type T = TimeResourceGroup
   val LOG = LoggerFactory.getLogger(getClass)
@@ -21,7 +20,7 @@ class TimeResourceGroup(val lst: List[TimeResource]) extends Resource {
         Left(err)
     }
 
-def toXML : Elem = <TimeResourceGroup>
-    { lst.map(_.toXML) }
+  def toXML: Elem = <TimeResourceGroup>
+    {lst.map(_.toXML)}
     </TimeResourceGroup>
 }

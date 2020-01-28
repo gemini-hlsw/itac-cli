@@ -8,7 +8,7 @@ import edu.gemini.tac.qengine.util.Percent
 class DecBinTest {
   val TenPercent = Percent(10)
 
-  val bin = DecBin(0, 10, TenPercent)
+  val bin  = DecBin(0, 10, TenPercent)
   val ibin = DecBin.inclusive(0, 10, TenPercent)
 
   @Test def testInclusive() {
@@ -21,11 +21,15 @@ class DecBinTest {
     assertEquals(bin, DecBin(0, 10, TenPercent))
     assertFalse(bin.equals(ibin))
     assertFalse(bin.equals(DecBin(1, 10, TenPercent)))
-    assertFalse(bin.equals(DecBin(0,  9, TenPercent)))
+    assertFalse(bin.equals(DecBin(0, 9, TenPercent)))
     assertFalse(bin.equals(DecBin(0, 10, Percent(11))))
   }
 
   @Test def testMap() {
-    assertEquals(10, DecBin(10, 20, TenPercent).map(_.value).binValue.doubleValue(), Double.MinPositiveValue)
+    assertEquals(
+      10,
+      DecBin(10, 20, TenPercent).map(_.value).binValue.doubleValue(),
+      Double.MinPositiveValue
+    )
   }
 }

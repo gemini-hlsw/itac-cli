@@ -17,9 +17,9 @@ class ProposalLogTest {
     CoreProposal(Ntac(AR, "x", 0, Time.Zero), Site.south)
 
   private def propId(p: Partner, s: String): Proposal.Id = new Proposal.Id(p, s)
-  private def br(i: Int): Proposal.Id = propId(BR, i.toString)
-  private def ca(i: Int): Proposal.Id = propId(CA, i.toString)
-  private def us(i: Int): Proposal.Id = propId(US, i.toString)
+  private def br(i: Int): Proposal.Id                    = propId(BR, i.toString)
+  private def ca(i: Int): Proposal.Id                    = propId(CA, i.toString)
+  private def us(i: Int): Proposal.Id                    = propId(US, i.toString)
 
   @Test def testEmptyProposalLog() {
     val log = ProposalLog.Empty
@@ -99,7 +99,7 @@ class ProposalLogTest {
     assertEquals(msg2, log(br(0), B3))
 
     val usEntry = Entry(Key(us(0), B1_2), msg1)
-    val brEntry = Entry(Key(br(0), B3  ), msg2)
+    val brEntry = Entry(Key(br(0), B3), msg2)
     assertEquals(List(usEntry), log.toList(us(0)))
     assertEquals(List(brEntry), log.toList(br(0)))
     assertEquals(List(usEntry, brEntry), log.toList)
@@ -139,7 +139,8 @@ class ProposalLogTest {
     val cat  = QueueBand.Category.B1_2
     val msg1 = RejectNoObs(dummyProp)
     val msg2 = RejectNotBand3(dummyProp)
-    val msg3 = RejectPartnerOverAllocation(dummyProp, BoundedTime(Time.Zero), BoundedTime(Time.Zero))
+    val msg3 =
+      RejectPartnerOverAllocation(dummyProp, BoundedTime(Time.Zero), BoundedTime(Time.Zero))
     val msg4 = RejectCategoryOverAllocation(dummyProp, cat)
 
     val log = ProposalLog.Empty
@@ -155,20 +156,25 @@ class ProposalLogTest {
     val log4 = log3.updated(id4, cat, msg4)
 
     // toList gives you insertion order
-    val idList = log4.toList.map { entry => entry.key.id }
+    val idList = log4.toList.map { entry =>
+      entry.key.id
+    }
     assertEquals(List(id1, id2, id3, id4), idList)
 
     // Normal toList is key ordered
-    val idList2 = log4.toList.sorted(ProposalLog.KeyOrdering).map { entry => entry.key.id }
+    val idList2 = log4.toList.sorted(ProposalLog.KeyOrdering).map { entry =>
+      entry.key.id
+    }
     assertEquals(List(id3, id1, id4, id2), idList2)
   }
 
   @Test def testToMap() {
     val cat12 = QueueBand.Category.B1_2
     val cat3  = QueueBand.Category.B3
-    val msg1 = RejectNoObs(dummyProp)
-    val msg2 = RejectNotBand3(dummyProp)
-    val msg3 = RejectPartnerOverAllocation(dummyProp, BoundedTime(Time.Zero), BoundedTime(Time.Zero))
+    val msg1  = RejectNoObs(dummyProp)
+    val msg2  = RejectNotBand3(dummyProp)
+    val msg3 =
+      RejectPartnerOverAllocation(dummyProp, BoundedTime(Time.Zero), BoundedTime(Time.Zero))
     val msg4 = RejectCategoryOverAllocation(dummyProp, cat12)
 
     val log = ProposalLog.Empty
@@ -177,7 +183,7 @@ class ProposalLogTest {
     val br0 = br(0)
     val us0 = us(0)
 
-    val log1 = log.updated( br0, cat12, msg1)
+    val log1 = log.updated(br0, cat12, msg1)
     val log2 = log1.updated(us0, cat12, msg2)
     val log3 = log2.updated(br0, cat3, msg3)
     val log4 = log3.updated(br0, cat12, msg4)
@@ -208,20 +214,20 @@ class ProposalLogTest {
     }
   }
 
-  @Test def producesXml(){
+  @Test def producesXml() {
     val cat = QueueBand.Category.B1_2
-        val ar0 = CoreProposal(Ntac(AR, "ar0", 0, Time.Zero), Site.south)
-        val ar1 = CoreProposal(Ntac(AR, "ar1", 0, Time.Zero), Site.south)
-        val br0 = CoreProposal(Ntac(BR, "br0", 0, Time.Zero), Site.south)
+    val ar0 = CoreProposal(Ntac(AR, "ar0", 0, Time.Zero), Site.south)
+    val ar1 = CoreProposal(Ntac(AR, "ar1", 0, Time.Zero), Site.south)
+    val br0 = CoreProposal(Ntac(BR, "br0", 0, Time.Zero), Site.south)
 
-        val propList = List(ar0, ar1, br0)
+    val propList = List(ar0, ar1, br0)
 
-        val log = ProposalLog.Empty
-        assertEquals(List.empty, log.updated(List(), cat, RejectCategoryOverAllocation(_, cat)).toList)
+    val log = ProposalLog.Empty
+    assertEquals(List.empty, log.updated(List(), cat, RejectCategoryOverAllocation(_, cat)).toList)
 
-        val log2 = log.updated(propList, cat, RejectCategoryOverAllocation(_, cat))
-        val xml = log2.toXML
-        assertNotNull(xml)
+    val log2 = log.updated(propList, cat, RejectCategoryOverAllocation(_, cat))
+    val xml  = log2.toXML
+    assertNotNull(xml)
 
   }
 }

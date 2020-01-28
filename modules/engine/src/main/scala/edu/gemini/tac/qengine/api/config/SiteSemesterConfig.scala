@@ -15,12 +15,13 @@ import edu.gemini.tac.qengine.ctx.{Context, Semester, Site}
  * the engine stays under budget.
  */
 final class SiteSemesterConfig(
-        val site: Site,
-        val semester: Semester,
-        val raLimits: RaBinGroup[Time],
-        val decLimits: DecBinGroup[Percent],
-        val shutdowns : List[Shutdown],
-        val conditions: ConditionsBinGroup[Percent] = Default.Conditions) {
+  val site: Site,
+  val semester: Semester,
+  val raLimits: RaBinGroup[Time],
+  val decLimits: DecBinGroup[Percent],
+  val shutdowns: List[Shutdown],
+  val conditions: ConditionsBinGroup[Percent] = Default.Conditions
+) {
 
   // At least one DecBin has to be allocated 100%.  If all are less than 100%,
   // the logic for creating ToO blocks is flawed.  It only checks the

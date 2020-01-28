@@ -18,7 +18,7 @@ class QueueTimeTest {
   }
 
   @Test def testTotalQueueTime() {
-    val m = Map[Partner, Time](US -> Time.hours(100), BR -> Time.hours(20))
+    val m     = Map[Partner, Time](US -> Time.hours(100), BR -> Time.hours(20))
     val qtime = QueueTime(site, m, partners)
 
     timeEquals(120, qtime.full)
@@ -36,7 +36,7 @@ class QueueTimeTest {
   }
 
   @Test def testPartnerQuanta() {
-    val m = Map[Partner, Time](US -> Time.hours(100), BR -> Time.hours(20))
+    val m     = Map[Partner, Time](US -> Time.hours(100), BR -> Time.hours(20))
     val qtime = QueueTime(site, m, partners)
 
     // Creates zero time for non-defined time quanta.
@@ -60,7 +60,7 @@ class QueueTimeTest {
   }
 
   @Test def testBandTimes() {
-    val m = Map[Partner, Time](US -> Time.hours(100))
+    val m     = Map[Partner, Time](US -> Time.hours(100))
     val qtime = QueueTime(site, m, partners)
 
     // Test nominal time ranges.
@@ -78,7 +78,7 @@ class QueueTimeTest {
   }
 
   @Test def testBandAtTime() {
-    val m = Map[Partner, Time](US -> Time.hours(100))
+    val m     = Map[Partner, Time](US -> Time.hours(100))
     val qtime = QueueTime(site, m, partners)
 
     val expected = List(

@@ -14,26 +14,30 @@ object DecBinGroup {
 
   def ranges(binSizeDeg: Int): IndexedSeq[DecRange] = {
     require((TotalDeg % binSizeDeg) == 0)
-    val r = (-90 until 90 by binSizeDeg).map(deg => DecRange(deg, deg+binSizeDeg))
+    val r = (-90 until 90 by binSizeDeg).map(deg => DecRange(deg, deg + binSizeDeg))
     r.init :+ r.last.inclusive
   }
 
   def apply[T](vals: Seq[T]): DecBinGroup[T] =
-    new DecBinGroup(for (v <- ranges(TotalDeg/vals.size).zip(vals)) yield DecBin(v._1, v._2))
+    new DecBinGroup(for (v <- ranges(TotalDeg / vals.size).zip(vals)) yield DecBin(v._1, v._2))
 
   def gen[T](binSizeDeg: Int)(f: DecRange => Option[T]): DecBinGroup[T] = {
     require((TotalDeg % binSizeDeg) == 0)
-    new DecBinGroup(ranges(binSizeDeg).collect(range => f(range) match {
-      case Some(t) => DecBin(range, t)
-    }))
+    new DecBinGroup(
+      ranges(binSizeDeg).collect(range =>
+        f(range) match {
+          case Some(t) => DecBin(range, t)
+        }
+      )
+    )
   }
 
-  def gen5DegBins[T]  = gen[T](5)_
-  def gen10DegBins[T] = gen[T](10)_
-  def gen15DegBins[T] = gen[T](15)_
-  def gen20DegBins[T] = gen[T](20)_
-  def gen30DegBins[T] = gen[T](30)_
-  def gen45DegBins[T] = gen[T](45)_
+  def gen5DegBins[T]  = gen[T](5) _
+  def gen10DegBins[T] = gen[T](10) _
+  def gen15DegBins[T] = gen[T](15) _
+  def gen20DegBins[T] = gen[T](20) _
+  def gen30DegBins[T] = gen[T](30) _
+  def gen45DegBins[T] = gen[T](45) _
 }
 
 /**
@@ -48,12 +52,12 @@ case class DecBinGroup[T] private (val bins: IndexedSeq[DecBin[T]]) {
 
   def updated(dec: Angle, f: T => Option[T]): Option[DecBinGroup[T]] = indexOf(dec) match {
     case i if i < 0 => None
-    case i => updated(i, bins(i), f)
+    case i          => updated(i, bins(i), f)
   }
 
   def updated(dec: Angle, t: T): Option[DecBinGroup[T]] = indexOf(dec) match {
     case i if i < 0 => None
-    case i => Some(new DecBinGroup(bins.updated(i, DecBin(bins(i).range, t))))
+    case i          => Some(new DecBinGroup(bins.updated(i, DecBin(bins(i).range, t))))
   }
 
   def indexOf(dec: Angle): Int = bins.indexWhere(_.range.contains(dec))
@@ -67,9 +71,9 @@ case class DecBinGroup[T] private (val bins: IndexedSeq[DecBin[T]]) {
     new DecBinGroup[U](bins.map(bin => DecBin[U](bin.range, f(bin.binValue))))
   }
 
-  def toXML : Elem = <DecBinGroup>
+  def toXML: Elem = <DecBinGroup>
       <bins>
-        { bins.map(_.toXML) }
+        {bins.map(_.toXML)}
       </bins>
     </DecBinGroup>
 

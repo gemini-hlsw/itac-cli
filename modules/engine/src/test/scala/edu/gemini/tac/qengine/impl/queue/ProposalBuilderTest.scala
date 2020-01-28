@@ -34,24 +34,32 @@ class ProposalBuilderTest {
 
   private def mkB3Prop(propTimeHours: Int, id: String): CoreProposal = {
     val ntac = Ntac(GS, id, 0, Time.hours(propTimeHours))
-    val b3 = Band3(obsConds)
+    val b3   = Band3(obsConds)
 
     CoreProposal(ntac, site = Site.south, band3Observations = List(mkObservation))
   }
 
   private def mkObservation: Observation = {
-    val ra = Angle.angleDeg0
+    val ra  = Angle.angleDeg0
     val dec = Angle.angleDeg0
-    val t = new Target(ra, dec)
-    val c = ObsConditions.AnyConditions
+    val t   = new Target(ra, dec)
+    val c   = ObsConditions.AnyConditions
     new Observation(t, c, Time.hours(1))
   }
 
-  private def mkBandedQueue(band1: List[Proposal], band2: List[Proposal], band3: List[Proposal], band4: List[Proposal]): Map[QueueBand, List[Proposal]] = {
+  private def mkBandedQueue(
+    band1: List[Proposal],
+    band2: List[Proposal],
+    band3: List[Proposal],
+    band4: List[Proposal]
+  ): Map[QueueBand, List[Proposal]] = {
     Map(QBand1 -> band1, QBand2 -> band2, QBand3 -> band3, QBand4 -> band4)
   }
 
-  private val qs = ProposalQueueBuilder(QueueTime(Site.south, Map(GS -> Time.hours(100)), partners), ProposalQueueBuilder.DefaultStrategy)
+  private val qs = ProposalQueueBuilder(
+    QueueTime(Site.south, Map(GS -> Time.hours(100)), partners),
+    ProposalQueueBuilder.DefaultStrategy
+  )
 
   // Expects a list of three times, one per queue band, which are matched
   // one after the other with the result of calling the function f
@@ -112,20 +120,16 @@ class ProposalBuilderTest {
     verifyTimes(30, 30, 20, 20, qs.queueTime.apply)
 
     // Test actual band times for an empty queue.
-    QueueBand.values.foreach {
-      band =>
-        assertEquals(Time.Zero, qs.usedTime(band))
-        band.categories foreach {
-          cat =>
-            assertEquals(Time.Zero, qs.usedTime(cat))
-        }
+    QueueBand.values.foreach { band =>
+      assertEquals(Time.Zero, qs.usedTime(band))
+      band.categories foreach { cat =>
+        assertEquals(Time.Zero, qs.usedTime(cat))
+      }
     }
 
     // Test remaining queue time for an empty queue.
     verifyTimes(30, 30, 20, 20, qs.remainingTime)
   }
-
-
   @Test def testAddProposal() {
     val prop = mkProp(10, "gs1")
 
@@ -174,10 +178,13 @@ class ProposalBuilderTest {
 
   @Test def testAddJointProposal() {
     val site = Site.south
-    val qs = ProposalQueueBuilder(new QueueTime(site, PartnerTime.distribute(Time.hours(100), site, partners)), ProposalQueueBuilder.DefaultStrategy)
+    val qs = ProposalQueueBuilder(
+      new QueueTime(site, PartnerTime.distribute(Time.hours(100), site, partners)),
+      ProposalQueueBuilder.DefaultStrategy
+    )
     val propGS = mkProp(10, "gs1")
     val propUS = mkProp(US, 20, "us1")
-    val joint = new JointProposal("j1", propGS, List(propGS.ntac, propUS.ntac))
+    val joint  = new JointProposal("j1", propGS, List(propGS.ntac, propUS.ntac))
 
     val qs1 = qs :+ joint
 
@@ -251,7 +258,10 @@ class ProposalBuilderTest {
     val qs3 = qs2 :+ prop_b2_0 // first band 2
     assertEquals(QBand2, qs3.band)
 
-    assertEquals(mkBandedQueue(List(prop_b1_0, prop_b1_1), List(prop_b2_0), Nil, Nil), qs3.bandedQueue)
+    assertEquals(
+      mkBandedQueue(List(prop_b1_0, prop_b1_1), List(prop_b2_0), Nil, Nil),
+      qs3.bandedQueue
+    )
     assertEquals(List(prop_b1_0, prop_b1_1, prop_b2_0), qs3.toList)
 
     assertEquals(pos1, qs3.positionOf(prop_b1_0).get)
@@ -315,7 +325,7 @@ class ProposalBuilderTest {
   // Try adding a non-band3 proposal at band 3 time.
   @Test def testNotBand3Failure() {
     val prop_b1 = mkProp(60, "gs1")
-    val qs1 = qs :+ prop_b1
+    val qs1     = qs :+ prop_b1
 
     val prop_b3 = mkProp(20, "gs2") // does not allow itself to be scheduled in band3
     try {
@@ -329,10 +339,10 @@ class ProposalBuilderTest {
   // Try adding a proposal when all schedulable time has been allocated.
   @Test def testOverAllocate() {
     val prop_b1 = mkProp(60, "gs1")
-    val qs1 = qs :+ prop_b1
+    val qs1     = qs :+ prop_b1
 
     val prop_b3 = mkB3Prop(20, "gs2") // takes us to the limit (60 + 40)
-    val qs2 = qs1 :+ prop_b3
+    val qs2     = qs1 :+ prop_b3
 
     assertEquals(Time.hours(20), qs2.remainingTime)
     assertEquals(Time.Zero, qs2.remainingTime(Guaranteed)) // no more queue time
@@ -342,7 +352,7 @@ class ProposalBuilderTest {
 
   @Test def testOverAllocateFailure() {
     val prop_b1 = mkProp(60, "gs1")
-    val qs1 = qs :+ prop_b1
+    val qs1     = qs :+ prop_b1
 
     assertEquals(QBand3, qs1.band)
     val prop_b3 = mkB3Prop(41, "gs2") // would add too much guaranteed time
@@ -360,10 +370,10 @@ class ProposalBuilderTest {
   // and band 2 proposals).
   @Test def testBand3SoftLimit() {
     val prop_b1 = mkProp(60, "gs1")
-    val qs1 = qs :+ prop_b1
+    val qs1     = qs :+ prop_b1
 
     val prop_b3 = mkB3Prop(30, "gs2") // takes us past the limit (80)
-    val qs2 = qs1 :+ prop_b3
+    val qs2     = qs1 :+ prop_b3
 
     assertEquals(Time.hours(10), qs2.remainingTime)
     assertEquals(Time.hours(-10), qs2.remainingTime(Guaranteed)) // over allocated
@@ -373,11 +383,11 @@ class ProposalBuilderTest {
   // be allowed.
   @Test def testBand4SoftLimit() {
     val prop_b1 = mkProp(81, "gs1")
-    val qs1 = qs :+ prop_b1
+    val qs1     = qs :+ prop_b1
     assertEquals(QBand4, qs1.band)
 
     val prop_b4 = mkProp(20, "gs2") // takes us past the limit (100)
-    val qs2 = qs1 :+ prop_b4
+    val qs2     = qs1 :+ prop_b4
 
     assertEquals(Time.hours(-1), qs2.remainingTime)
     assertEquals(Time.hours(-1), qs2.remainingTime(Guaranteed)) // over allocated

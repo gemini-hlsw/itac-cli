@@ -24,8 +24,8 @@ trait MergeStrategy {
    * error is thrown.
    */
   private[queue] def parts(p: Proposal): List[JointProposalPart] = p match {
-      case joint: JointProposal     => joint.toParts
-      case part:  JointProposalPart => List(part)
-      case _ => sys.error("not expecting a non-joint proposal")
-    }
+    case joint: JointProposal    => joint.toParts
+    case part: JointProposalPart => List(part)
+    case _                       => sys.error("not expecting a non-joint proposal")
+  }
 }

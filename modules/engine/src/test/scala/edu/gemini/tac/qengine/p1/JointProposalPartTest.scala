@@ -68,9 +68,9 @@ class JointProposalPartTest {
   }
 
   private def assertIsDefaultSettings(p: Proposal) {
-    assertEquals(site,       p.site)
+    assertEquals(site, p.site)
     assertEquals(Mode.Queue, p.mode)
-    assertEquals(Too.none,   p.too)
+    assertEquals(Too.none, p.too)
     assertFalse(p.isPoorWeather)
   }
 
@@ -78,11 +78,16 @@ class JointProposalPartTest {
   // proposal for all other details.
   @Test def testDelegates() {
     val c = mkProp(BR, "br1", 20, 2, 2, 2, 2, 2).copy(
-      site  = Site.north,
-      mode  = Mode.Classical,
-      too   = Too.rapid,
-      band3Observations = List( Observation(target0, conds80, Time.hours(1)), Observation(target0, conds80, Time.hours(1)), Observation(target0, conds80, Time.hours(1)) ),
-      isPoorWeather = true)
+      site = Site.north,
+      mode = Mode.Classical,
+      too = Too.rapid,
+      band3Observations = List(
+        Observation(target0, conds80, Time.hours(1)),
+        Observation(target0, conds80, Time.hours(1)),
+        Observation(target0, conds80, Time.hours(1))
+      ),
+      isPoorWeather = true
+    )
     assertEquals(Too.rapid, c.too)
 
     val jp = JointProposalPart("j1", c)

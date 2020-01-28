@@ -21,17 +21,21 @@ object RaResource {
  *
  * Used as the parameterized type to RaResourceGroup
  */
-case class RaResource(val absBounds: BoundedTime, val decRes: DecResourceGroup, val condsRes: ConditionsResourceGroup) extends Resource {
+case class RaResource(
+  val absBounds: BoundedTime,
+  val decRes: DecResourceGroup,
+  val condsRes: ConditionsResourceGroup
+) extends Resource {
   type T = RaResource
 
   // There is an absolute time limit for the RA, but the time limit for a
   // dec (as indicated by a target) or for a particular set of observing
   // conditions, may be less than the absolute limit.
 
-  def limit: Time                                  = absBounds.limit
-  def limit(t: Target): Time                       = limit min decRes.limit(t)
-  def limit(c: ObsConditions): Time                = limit min condsRes.limit(c)
-  def limit(t: Target, c: ObsConditions): Time     = limit(t) min limit(c)
+  def limit: Time                              = absBounds.limit
+  def limit(t: Target): Time                   = limit min decRes.limit(t)
+  def limit(c: ObsConditions): Time            = limit min condsRes.limit(c)
+  def limit(t: Target, c: ObsConditions): Time = limit(t) min limit(c)
 
   // There is an absolute amount of time remaining for the RA, but the time
   // remaining for a particular dec (as indicated by a target) or for a
@@ -51,10 +55,22 @@ case class RaResource(val absBounds: BoundedTime, val decRes: DecResourceGroup, 
   def isFull(c: ObsConditions): Boolean            = isFull || condsRes.isFull(c)
   def isFull(t: Target, c: ObsConditions): Boolean = isFull(t) || isFull(c)
 
-  override def reserve(block: Block, queue: ProposalQueueBuilder): RejectMessage Either RaResource = {
+  override def reserve(
+    block: Block,
+    queue: ProposalQueueBuilder
+  ): RejectMessage Either RaResource = {
     absBounds.reserve(block.time) match {
       case None =>
-        Left(new RejectTarget(block.prop, block.obs, queue.band, RejectTarget.Ra, absBounds.used, absBounds.limit))
+        Left(
+          new RejectTarget(
+            block.prop,
+            block.obs,
+            queue.band,
+            RejectTarget.Ra,
+            absBounds.used,
+            absBounds.limit
+          )
+        )
       case Some(newAbsBounds) =>
         for {
           newDecRes   <- decRes.reserve(block, queue).right
@@ -70,9 +86,9 @@ case class RaResource(val absBounds: BoundedTime, val decRes: DecResourceGroup, 
     (new RaResource(newAbs, newDec, newCon), rem1 max rem2 max rem3)
   }
 
-  def toXML : Elem = <RaResource>
-    { absBounds.toXML }
-    { decRes.toXML }
-    { condsRes.toXML }
+  def toXML: Elem = <RaResource>
+    {absBounds.toXML}
+    {decRes.toXML}
+    {condsRes.toXML}
     </RaResource>
 }

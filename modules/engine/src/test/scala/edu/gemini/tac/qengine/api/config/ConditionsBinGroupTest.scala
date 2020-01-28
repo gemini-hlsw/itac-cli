@@ -20,9 +20,9 @@ class ConditionsBinGroupTest {
   val bin1 = ConditionsBin(cat1, Percent(20))
   val bin2 = ConditionsBin(cat2, Percent(30))
   val bin3 = ConditionsBin(cat3, Percent(40))
-  val oc0  = ObsConditions(CC50,  IQ20, SB20, WV20)
-  val oc1  = ObsConditions(CC70,  IQ20, SB20, WV20)
-  val oc2  = ObsConditions(CC80,  IQ20, SB20, WV20)
+  val oc0  = ObsConditions(CC50, IQ20, SB20, WV20)
+  val oc1  = ObsConditions(CC70, IQ20, SB20, WV20)
+  val oc2  = ObsConditions(CC80, IQ20, SB20, WV20)
   val oc3  = ObsConditions(CCAny, IQ20, SB20, WV20)
 
   val grp = ConditionsBinGroup(List(bin0, bin1, bin2, bin3))
@@ -117,5 +117,5 @@ class ConditionsBinGroupTest {
     assertEquals(Percent(60), grp2(cat2))
     assertEquals(Percent(40), grp2(cat3))
   }
-  */
+ */
 }

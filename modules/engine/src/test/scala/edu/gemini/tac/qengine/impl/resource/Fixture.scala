@@ -13,22 +13,23 @@ import edu.gemini.tac.qengine.api.queue.time.{PartnerTime, QueueTime}
 import edu.gemini.tac.qengine.ctx.{TestPartners, Semester, Site}
 
 object Fixture {
-  val site = Site.south
+  val site     = Site.south
   val semester = new Semester(2011, Semester.Half.A)
   val partners = TestPartners.All
 
   // (-90,  0]   0%
   // (  0, 45] 100%
   // ( 45, 90)  50%
-  val decBins   = DecBinGroup.fromBins(
-    DecBin( 0, 45, Percent(100)),
-    DecBin(45, 90, Percent( 50)).inclusive
+  val decBins = DecBinGroup.fromBins(
+    DecBin(0, 45, Percent(100)),
+    DecBin(45, 90, Percent(50)).inclusive
   )
 
   // <=CC70 50%
   // >=CC80 50%
   val condsBins = ConditionsBinGroup.percentBins(
-    (ConditionsCategory(Le(CC70)), 50), (ConditionsCategory(Ge(CC80)), 50)
+    (ConditionsCategory(Le(CC70)), 50),
+    (ConditionsCategory(Ge(CC80)), 50)
   )
 
   // 0 hrs, 1 hrs, 2 hrs, ... 23 hrs
@@ -37,9 +38,8 @@ object Fixture {
   val raResGroup = RaResourceGroup(binConfig)
 
   def timeResourceGroup(total: Time): TimeResourceGroup = {
-    val bins = RestrictionConfig().mapTimeRestrictions(
-      perc => BoundedTime(total * perc),
-      time => BoundedTime(total))
+    val bins = RestrictionConfig()
+      .mapTimeRestrictions(perc => BoundedTime(total * perc), time => BoundedTime(total))
     new TimeResourceGroup(bins.map(new TimeResource(_)))
   }
 
@@ -52,16 +52,23 @@ object Fixture {
   val goodCC = ObsConditions(CC50, IQAny, SBAny, WVAny)
 
   // Falls in the second conditions bin (>=CC80)
-  val badCC  = ObsConditions(CC80, IQAny, SBAny, WVAny)
+  val badCC = ObsConditions(CC80, IQAny, SBAny, WVAny)
 
   def genQuanta(hrs: Double): PartnerTime = PartnerTime.constant(Time.hours(hrs), partners)
 
   // Makes a proposal with the given ntac info, and observations according
   // to the descriptions (target, conditions, time)
   def mkProp(ntac: Ntac, obsDefs: (Target, ObsConditions, Time)*): CoreProposal =
-    CoreProposal(ntac, site = site, obsList = obsDefs.map(tup => Observation(tup._1, tup._2, tup._3)).toList)
+    CoreProposal(
+      ntac,
+      site = site,
+      obsList = obsDefs.map(tup => Observation(tup._1, tup._2, tup._3)).toList
+    )
 
-  val emptyQueue = ProposalQueueBuilder(QueueTime(Site.north, PartnerTime.empty(partners).map, partners), ProposalQueueBuilder.DefaultStrategy)
+  val emptyQueue = ProposalQueueBuilder(
+    QueueTime(Site.north, PartnerTime.empty(partners).map, partners),
+    ProposalQueueBuilder.DefaultStrategy
+  )
   def evenQueue(hrs: Double): ProposalQueueBuilder =
     evenQueue(hrs, Some(QueueTime.DefaultPartnerOverfillAllowance))
 

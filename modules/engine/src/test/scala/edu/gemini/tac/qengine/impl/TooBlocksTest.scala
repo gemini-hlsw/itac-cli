@@ -22,8 +22,15 @@ class TooBlocksTest {
   // RA bins to handle an even distribution of a ToO observation.
   @Test def testEvenDistribution() {
     // Map to 1 .. 24 hours instead of the Fixture's 0 .. 23
-    val raLimits   = Fixture.raLimits.map(_ + Time.hours(1))
-    val binConfig  = new SiteSemesterConfig(site, semester, raLimits, Fixture.decBins, List.empty, Fixture.condsBins)
+    val raLimits = Fixture.raLimits.map(_ + Time.hours(1))
+    val binConfig = new SiteSemesterConfig(
+      site,
+      semester,
+      raLimits,
+      Fixture.decBins,
+      List.empty,
+      Fixture.condsBins
+    )
     val raResGroup = RaResourceGroup(binConfig)
 
     val hrs12 = Time.hours(12.0)
@@ -67,9 +74,9 @@ class TooBlocksTest {
   // hold all the time in an even distribution.  The remaining time has to
   // be spread over the other blocks
   @Test def testSmallBlocks() {
-    val hrs = Time.hours(66.0)
-    val ntac  = Ntac(US, "US1", 1, hrs)
-    val prop  = Fixture.mkProp(ntac, (target, ObsConditions.AnyConditions, hrs))
+    val hrs  = Time.hours(66.0)
+    val ntac = Ntac(US, "US1", 1, hrs)
+    val prop = Fixture.mkProp(ntac, (target, ObsConditions.AnyConditions, hrs))
 
     // One big block with a 69 hour ToO observation.  (I know, that would never
     // happen in real life.)
@@ -86,7 +93,7 @@ class TooBlocksTest {
     //   23 -> 3 hr block
     assertEquals(24, blocks.size)
 
-    assertEquals(Time.Zero,     blocks.head.time)
+    assertEquals(Time.Zero, blocks.head.time)
     assertEquals(Time.hours(1), blocks.tail.head.time)
     assertEquals(Time.hours(2), blocks.tail.tail.head.time)
     assertEquals(Time.hours(3), blocks.tail.tail.tail.head.time)
@@ -96,9 +103,9 @@ class TooBlocksTest {
   // An extreme case in which every bin is maxed out in order to accommodate the
   // ToO.
   @Test def testMax() {
-    val hrs = Time.hours(276.0) // (0 + 1 + 2 + ... 23) = (23*24/2)
-    val ntac  = Ntac(US, "US1", 1, hrs)
-    val prop  = Fixture.mkProp(ntac, (target, ObsConditions.AnyConditions, hrs))
+    val hrs  = Time.hours(276.0) // (0 + 1 + 2 + ... 23) = (23*24/2)
+    val ntac = Ntac(US, "US1", 1, hrs)
+    val prop = Fixture.mkProp(ntac, (target, ObsConditions.AnyConditions, hrs))
 
     // One big block with a 276 hour ToO observation.  (I know, that would never
     // happen in real life.)
@@ -115,13 +122,13 @@ class TooBlocksTest {
   // Tests the unusual case in which we simply cannot split the observation up
   // because there isn't time remaining in the RA bins.
   @Test def testNone() {
-    val hrs = Time.hours(277.0) // (0 + 1 + 2 + ... 23) + 1 = (23*24/2) + 1
-    val ntac  = Ntac(US, "US1", 1, hrs)
-    val prop  = Fixture.mkProp(ntac, (target, ObsConditions.AnyConditions, hrs))
+    val hrs  = Time.hours(277.0) // (0 + 1 + 2 + ... 23) + 1 = (23*24/2) + 1
+    val ntac = Ntac(US, "US1", 1, hrs)
+    val prop = Fixture.mkProp(ntac, (target, ObsConditions.AnyConditions, hrs))
 
     // One big block with a 277 hour ToO observation.  (I know, that would never
     // happen in real life.)
-    val block  = Block(prop, prop.obsList.head, hrs)
+    val block = Block(prop, prop.obsList.head, hrs)
     assertEquals(None, Fixture.raResGroup.tooBlocks(block))
   }
 }

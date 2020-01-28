@@ -27,12 +27,12 @@ object CoordinateFields {
 
   object Sign {
     case object Neg extends Sign {
-      override def sgn: Int = -1
+      override def sgn: Int         = -1
       override def toString: String = "-"
     }
 
     case object Pos extends Sign {
-      override def sgn: Int = 1
+      override def sgn: Int         = 1
       override def toString: String = "+"
     }
 
@@ -40,7 +40,7 @@ object CoordinateFields {
       s match {
         case "-" => Some(Neg)
         case "+" => Some(Pos)
-        case _ => None
+        case _   => None
       }
   }
 
@@ -50,9 +50,9 @@ object CoordinateFields {
   val Sep        = """\s*[\s:]\s*"""
   val Trail      = """\s*"""
 
-  val Full     = (Lead + WholeVal + Sep + WholeVal + Sep + DecimalVal + Trail).r
-  val NoSec    = (Lead + WholeVal + Sep + DecimalVal + Trail).r
-  val NoMin    = (Lead + DecimalVal + Trail).r
+  val Full  = (Lead + WholeVal + Sep + WholeVal + Sep + DecimalVal + Trail).r
+  val NoSec = (Lead + WholeVal + Sep + DecimalVal + Trail).r
+  val NoMin = (Lead + DecimalVal + Trail).r
 
   private def parseSign(s: String): Sign = Option(s).flatMap(Sign.parse).getOrElse(Sign.Pos)
 
@@ -72,16 +72,16 @@ object CoordinateFields {
 
       // hours/deg min.mm
       case NoSec(signStr, hdStr, mStr, _) => {
-        val sign = parseSign(signStr)
+        val sign       = parseSign(signStr)
         val (min, sec) = split(mStr.toDouble)
         Some(CoordinateFields(sign, hdStr.toInt, min, sec))
       }
 
       // hours.hh
       case NoMin(signStr, hdStr, _) => {
-        val sign = parseSign(signStr)
+        val sign        = parseSign(signStr)
         val (hrs, minD) = split(hdStr.toDouble)
-        val (min, sec) = split(minD)
+        val (min, sec)  = split(minD)
         Some(CoordinateFields(sign, hrs, min, sec))
       }
 

@@ -18,13 +18,17 @@ object RejectPartnerOverAllocation {
     if (guaranteed.isFull)
       fullTemplate.format(p.id, perc, LogMessage.formatBoundedTime(all))
     else {
-      val s = all.overbook(t) map { b => LogMessage.formatBoundedTime(b) } getOrElse ""
+      val s = all.overbook(t) map { b =>
+        LogMessage.formatBoundedTime(b)
+      } getOrElse ""
       longTemplate.format(t.toHours.value, p.id, perc, s)
     }
   }
 }
 
-case class RejectPartnerOverAllocation(prop: Proposal, guaranteed: BoundedTime, all: BoundedTime) extends RejectMessage {
+case class RejectPartnerOverAllocation(prop: Proposal, guaranteed: BoundedTime, all: BoundedTime)
+    extends RejectMessage {
   def reason: String = RejectPartnerOverAllocation.name
-  def detail: String = RejectPartnerOverAllocation.detail(prop.ntac.partner, prop.time, guaranteed, all)
+  def detail: String =
+    RejectPartnerOverAllocation.detail(prop.ntac.partner, prop.time, guaranteed, all)
 }

@@ -8,7 +8,7 @@ class QEngineUtilTest {
   @Test def testToListFromNull() {
     QEngineUtil.toList(null) match {
       case Nil => // ok
-      case _ => fail
+      case _   => fail
     }
   }
 
@@ -19,7 +19,7 @@ class QEngineUtilTest {
 
     QEngineUtil.toList(jlist) match {
       case List(42, 99) => // ok
-      case _ => fail
+      case _            => fail
     }
   }
 
@@ -28,7 +28,7 @@ class QEngineUtilTest {
 
     QEngineUtil.promoteEither(elist) match {
       case Left("bad") => // ok
-      case _ => fail
+      case _           => fail
     }
   }
 
@@ -37,14 +37,14 @@ class QEngineUtilTest {
 
     QEngineUtil.promoteEither(elist) match {
       case Right(List(42, 2, 99)) => // ok
-      case _ => fail
+      case _                      => fail
     }
   }
 
   @Test def testPromoteEitherNil() {
     QEngineUtil.promoteEither(Nil) match {
       case Right(Nil) => //ok
-      case _ => fail
+      case _          => fail
     }
   }
 
@@ -52,29 +52,29 @@ class QEngineUtilTest {
     import QEngineUtil.{trimString => f}
 
     val nones = List[String](
-        null
-      , ""
-      , " "
-      , " \t "
+      null,
+      "",
+      " ",
+      " \t "
     )
 
-    nones.foreach {
-      n => f(n) match {
-        case None => // ok
+    nones.foreach { n =>
+      f(n) match {
+        case None    => // ok
         case Some(s) => fail(s)
       }
     }
 
     val his = List(
-        "hi"
-      , " hi"
-      , "\thi\t"
+      "hi",
+      " hi",
+      "\thi\t"
     )
 
-    his.foreach {
-      n => f(n) match {
+    his.foreach { n =>
+      f(n) match {
         case Some("hi") => // ok
-        case _ => fail
+        case _          => fail
       }
     }
   }

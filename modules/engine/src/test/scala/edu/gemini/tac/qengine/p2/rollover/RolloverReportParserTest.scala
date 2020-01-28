@@ -8,15 +8,15 @@ class RolloverReportParserTest {
 
   @Test def testEmptyStringMakesEmptyReport() {
     parser.parse("") match {
-      case Right(report) => assertEquals (Nil, report.obsList)
-      case _ => fail()
+      case Right(report) => assertEquals(Nil, report.obsList)
+      case _             => fail()
     }
   }
 
   private def testOne(line: String, expected: RolloverObservation) {
     parser.parse(line) match {
       case Right(RolloverReport(List(obs))) => assertEquals(expected, obs)
-      case _ => fail()
+      case _                                => fail()
     }
   }
 
@@ -35,21 +35,20 @@ class RolloverReportParserTest {
   private def testThree(lines: List[String]) {
     parser.parse(lines.mkString("\n")) match {
       case Right(RolloverReport(List(obs1, obs2, obs3))) =>
-        assertEquals(obsNormal,   obs1)
-        assertEquals(obsSpaces,   obs2)
+        assertEquals(obsNormal, obs1)
+        assertEquals(obsSpaces, obs2)
         assertEquals(obsAnyConds, obs3)
       case _ => fail()
     }
   }
-
-
   @Test def testMultipleLinesAreHandled() {
     val lines = List(lineNormal, lineSpaces, lineAnyConds)
     testThree(lines)
   }
 
   @Test def testCommentsAndBlanksAreStripped() {
-    val lines = List("#SOF", "", lineNormal, " # A comment ", lineSpaces, "", "", lineAnyConds, "# EOF")
+    val lines =
+      List("#SOF", "", lineNormal, " # A comment ", lineSpaces, "", "", lineAnyConds, "# EOF")
     testThree(lines)
   }
 
@@ -75,7 +74,7 @@ class RolloverReportParserTest {
   private def testRejection(line: String, fieldName: String, fieldValue: String) {
     parser.parse(line) match {
       case Left(RolloverParseError(msg)) =>
-        assertEquals(RolloverReportParser.BAD_FIELD(1,fieldName,fieldValue), msg)
+        assertEquals(RolloverReportParser.BAD_FIELD(1, fieldName, fieldValue), msg)
       case _ =>
         fail()
     }

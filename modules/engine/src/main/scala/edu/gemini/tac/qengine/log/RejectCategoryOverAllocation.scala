@@ -7,14 +7,15 @@ import edu.gemini.tac.qengine.p1.{QueueBand, Proposal}
  * available queue time has been filled for a phase of the algorithm.
  */
 object RejectCategoryOverAllocation {
-  val name  = "Band Time Limit"
+  val name = "Band Time Limit"
 
   private val detailTemplate = "All queue time in %s has been allocated."
   def detail(cat: QueueBand.Category): String =
     detailTemplate.format(cat)
 }
 
-case class RejectCategoryOverAllocation(prop: Proposal, cat: QueueBand.Category) extends RejectMessage {
+case class RejectCategoryOverAllocation(prop: Proposal, cat: QueueBand.Category)
+    extends RejectMessage {
   def reason: String = RejectCategoryOverAllocation.name
   def detail: String = RejectCategoryOverAllocation.detail(cat)
 }

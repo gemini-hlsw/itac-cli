@@ -21,18 +21,24 @@ class CompositeResourceTest {
 
   class BoundedTimeReservation1(val bounds: BoundedTime) extends Resource {
     type T = BoundedTimeReservation1
-    def reserve(block: Block, queue: ProposalQueueBuilder): RejectMessage Either BoundedTimeReservation1 =
+    def reserve(
+      block: Block,
+      queue: ProposalQueueBuilder
+    ): RejectMessage Either BoundedTimeReservation1 =
       bounds.reserve(block.time) match {
-        case None => Left(new Reject(block.prop))
+        case None     => Left(new Reject(block.prop))
         case Some(bt) => Right(new BoundedTimeReservation1(bt))
       }
   }
 
   class BoundedTimeReservation2(val bounds: BoundedTime) extends Resource {
     type T = BoundedTimeReservation2
-    def reserve(block: Block, queue: ProposalQueueBuilder): RejectMessage Either BoundedTimeReservation2 =
+    def reserve(
+      block: Block,
+      queue: ProposalQueueBuilder
+    ): RejectMessage Either BoundedTimeReservation2 =
       bounds.reserve(block.time) match {
-        case None => Left(new Reject(block.prop))
+        case None     => Left(new Reject(block.prop))
         case Some(bt) => Right(new BoundedTimeReservation2(bt))
       }
   }
@@ -40,7 +46,11 @@ class CompositeResourceTest {
   private val ntac   = Ntac(US, "x", 0, Time.hours(10))
   private val target = Target(0.0, 0.0) // not used
   private val conds  = ObsConditions.AnyConditions
-  private val prop   = CoreProposal(ntac, site = Site.south, obsList = List(Observation(target, conds, Time.hours(10))))
+  private val prop = CoreProposal(
+    ntac,
+    site = Site.south,
+    obsList = List(Observation(target, conds, Time.hours(10)))
+  )
 
   @Test def testReserve() {
     val btr1 = new BoundedTimeReservation1(BoundedTime(Time.hours(1)))
@@ -51,7 +61,7 @@ class CompositeResourceTest {
 
     comp.reserve(block, Fixture.emptyQueue) match {
       case Right(newComp) => {
-        assertEquals(Time.minutes(45),  newComp._1.bounds.remaining)
+        assertEquals(Time.minutes(45), newComp._1.bounds.remaining)
         assertEquals(Time.minutes(105), newComp._2.bounds.remaining)
       }
       case _ => fail()
@@ -67,7 +77,7 @@ class CompositeResourceTest {
 
     comp.reserve(block, Fixture.emptyQueue) match {
       case Left(msg: Reject) => // ok
-      case _ => fail()
+      case _                 => fail()
     }
   }
 
@@ -80,7 +90,7 @@ class CompositeResourceTest {
 
     comp.reserve(block, Fixture.emptyQueue) match {
       case Left(msg: Reject) => // ok
-      case _ => fail()
+      case _                 => fail()
     }
   }
 }

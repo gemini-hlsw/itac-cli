@@ -4,8 +4,10 @@ import edu.gemini.tac.qengine.ctx.{Site, Partner}
 import xml.Elem
 import org.slf4j.LoggerFactory
 
-class ProportionalPartnerSequence(seq: List[Partner], val site: Site, val initialPick: Partner) extends  edu.gemini.tac.qengine.api.config.PartnerSequence {
-  def this(seq : List[Partner], site : Site) = this(seq, site, seq.sortWith(_.percentAt(site) > _.percentAt(site)).head)
+class ProportionalPartnerSequence(seq: List[Partner], val site: Site, val initialPick: Partner)
+    extends edu.gemini.tac.qengine.api.config.PartnerSequence {
+  def this(seq: List[Partner], site: Site) =
+    this(seq, site, seq.sortWith(_.percentAt(site) > _.percentAt(site)).head)
 
   private val LOGGER = LoggerFactory.getLogger(classOf[ProportionalPartnerSequence])
 
@@ -22,14 +24,17 @@ class ProportionalPartnerSequence(seq: List[Partner], val site: Site, val initia
 
   //Confirm OK initial pick
   if (!siteSeq(site).contains(initialPick)) {
-    throw new IllegalArgumentException("Incompatible PartnerSequence for Site %s starting with Partner %s".format(site.displayValue(), initialPick.fullName))
+    throw new IllegalArgumentException(
+      "Incompatible PartnerSequence for Site %s starting with Partner %s"
+        .format(site.displayValue(), initialPick.fullName)
+    )
   }
 
   /**
   Returns the key whose achieved proportions are most below desired proportions
    */
   private def next[T](proportions: Map[T, Double], achievedToDate: Map[T, Double]): T = {
-    val proportionsSum = proportions.values.sum
+    val proportionsSum     = proportions.values.sum
     val desiredPercentages = proportions.mapValues(v => v / proportionsSum)
     //Initially no achieved percentages, so avoid / 0
     val toDateTotal = if (achievedToDate.values.sum == 0.0) {
@@ -46,8 +51,8 @@ class ProportionalPartnerSequence(seq: List[Partner], val site: Site, val initia
     val maxUnder = gaps.values.toList.sortWith(_ > _).head
     LOGGER.debug(maxUnder.toString())
     //Now find the key whose current gap corresponds to biggest under-served element
-    val gapsForMaxUnder = gaps.mapValues {
-      v => Math.abs(v - maxUnder) < Double.MinPositiveValue
+    val gapsForMaxUnder = gaps.mapValues { v =>
+      Math.abs(v - maxUnder) < Double.MinPositiveValue
     }
     val keysByHasMaxUnder =
       maxUnder < Double.MinPositiveValue match {
@@ -55,7 +60,7 @@ class ProportionalPartnerSequence(seq: List[Partner], val site: Site, val initia
         //Special case for cycle + some partner has 0.0 percentage (e.g., Keck)
         case true => {
           val maxPartnerPercentage = proportions.values.max
-          Map(true->proportions.find(_._2 == maxPartnerPercentage).get._1)
+          Map(true -> proportions.find(_._2 == maxPartnerPercentage).get._1)
         }
       }
 
@@ -66,8 +71,11 @@ class ProportionalPartnerSequence(seq: List[Partner], val site: Site, val initia
   /**
   Stream of most-fair next element
    */
-  private def proportionalStream[T](proportions: Map[T, Double], toDate: Map[T, Double]): Stream[T] = {
-    val nextS = next(proportions, toDate)
+  private def proportionalStream[T](
+    proportions: Map[T, Double],
+    toDate: Map[T, Double]
+  ): Stream[T] = {
+    val nextS      = next(proportions, toDate)
     val tailToDate = toDate + (nextS -> (toDate(nextS) + 1.0))
     Stream.cons(
       nextS,
@@ -77,12 +85,13 @@ class ProportionalPartnerSequence(seq: List[Partner], val site: Site, val initia
 
   def sequence: Stream[Partner] = {
     val partnersForSite = siteSeq(site)
-    val proportions = partnersForSite.map(p => p -> p.share.doubleValue).toMap
-    val none = proportions.mapValues(_ => 0.0)
+    val proportions     = partnersForSite.map(p => p -> p.share.doubleValue).toMap
+    val none            = proportions.mapValues(_ => 0.0)
     proportionalStream(proportions, none).dropWhile(p => p != initialPick)
   }
 
-  def configuration: Elem = <ProportionalPartnerSequence name="ProportionalPartnerSequence" initialPick={initialPick.id}>
+  def configuration: Elem =
+    <ProportionalPartnerSequence name="ProportionalPartnerSequence" initialPick={initialPick.id}>
     {seq.map(_.toXML)}
   </ProportionalPartnerSequence>
 

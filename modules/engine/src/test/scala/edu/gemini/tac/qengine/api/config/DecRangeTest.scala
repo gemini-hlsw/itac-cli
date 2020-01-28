@@ -6,7 +6,7 @@ import edu.gemini.tac.qengine.p1.Target
 
 class DecRangeTest {
 
-  val rng = DecRange(0, 10)
+  val rng  = DecRange(0, 10)
   val irng = DecRange.inclusive(0, 10)
 
   @Test def testDefaultIsInclusive() {
@@ -55,7 +55,7 @@ class DecRangeTest {
     assertEquals(rng, DecRange(0, 10))
     assertFalse(rng.equals(irng))
     assertFalse(rng.equals(DecRange(1, 10)))
-    assertFalse(rng.equals(DecRange(0,  9)))
+    assertFalse(rng.equals(DecRange(0, 9)))
   }
 
   @Test def testValidateNil() {

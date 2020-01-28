@@ -9,13 +9,17 @@ import edu.gemini.tac.qengine.p1.{ObsConditions, Target}
 import org.slf4j.LoggerFactory
 
 final case class SemesterResource(
-        val ra: RaResourceGroup,
-        val time: TimeResourceGroup,
-        val band: BandResource) extends Resource {
+  val ra: RaResourceGroup,
+  val time: TimeResourceGroup,
+  val band: BandResource
+) extends Resource {
   private val LOGGER = LoggerFactory.getLogger(this.getClass)
   type T = SemesterResource
 
-  private def reserveAll(block: Block, queue: ProposalQueueBuilder): RejectMessage Either SemesterResource =
+  private def reserveAll(
+    block: Block,
+    queue: ProposalQueueBuilder
+  ): RejectMessage Either SemesterResource =
     for {
       newRa   <- ra.reserve(block, queue).right
       newTime <- time.reserve(block, queue).right
@@ -63,25 +67,28 @@ final case class SemesterResource(
     } else if (queueTooFull(block, queue)) {
       LOGGER.debug("    ❌  Rejected due to queue too full")
       Left(RejectOverAllocation(block.prop, queue.remainingTime(Guaranteed), queue.remainingTime))
-    }
-    else {
+    } else {
       LOGGER.debug("    💚  There is sufficient time, so this block will be considered.")
-      if(block.isFinal){
+      if (block.isFinal) {
         // LOGGER.debug("     This is also the last block to consider for this program.")
       }
       reserveAll(block, queue)
     }
   }
 
-  def reserveAvailable(time: Time, target: Target, conds: ObsConditions): (SemesterResource, Time) = {
+  def reserveAvailable(
+    time: Time,
+    target: Target,
+    conds: ObsConditions
+  ): (SemesterResource, Time) = {
     val (newRa, rem) = ra.reserveAvailable(time, target, conds)
     (new SemesterResource(newRa, this.time, band), rem)
   }
 
   def toXML = <SemesterResource>
-    { ra.toXML }
-    { time.toXML }
-    { band.toXML }
+    {ra.toXML}
+    {time.toXML}
+    {band.toXML}
     </SemesterResource>
 
 }

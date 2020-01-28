@@ -20,8 +20,8 @@ class SemesterTest {
 
   private def verifyNight(expected: Night, actual: Night) {
     assertEquals(expected.getStartTime, actual.getStartTime)
-    assertEquals(expected.getEndTime,   actual.getEndTime)
-    assertEquals(expected.getSite,      actual.getSite)
+    assertEquals(expected.getEndTime, actual.getEndTime)
+    assertEquals(expected.getSite, actual.getSite)
   }
 
   @Test def testNightIterator() {

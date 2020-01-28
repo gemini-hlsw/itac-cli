@@ -11,15 +11,26 @@ import edu.gemini.tac.qengine.ctx.{Partner, Site}
 class ProposalPrepTest {
   import edu.gemini.tac.qengine.ctx.TestPartners._
 
-  val target: Target = Target(0.0, 0.0)
-  val conds: ObsConditions = ObsConditions.AnyConditions
+  val target: Target               = Target(0.0, 0.0)
+  val conds: ObsConditions         = ObsConditions.AnyConditions
   val noneBand3: List[Observation] = List.empty
   val someBand3: List[Observation] = List(Observation(target, conds, Time.hours(1)))
-  val noneObs: List[Observation] = Nil
-  val someObs: List[Observation] = List(Observation(target, conds, Time.hours(1)))
+  val noneObs: List[Observation]   = Nil
+  val someObs: List[Observation]   = List(Observation(target, conds, Time.hours(1)))
 
-  private def nonJoint(partner: Partner, id: String, time: Time = Time.hours(1), b3: List[Observation] = Nil, obsList: List[Observation] = Nil): CoreProposal =
-    CoreProposal(Ntac(partner, id, 0, time), site = Site.south, band3Observations = b3, obsList = obsList)
+  private def nonJoint(
+    partner: Partner,
+    id: String,
+    time: Time = Time.hours(1),
+    b3: List[Observation] = Nil,
+    obsList: List[Observation] = Nil
+  ): CoreProposal =
+    CoreProposal(
+      Ntac(partner, id, 0, time),
+      site = Site.south,
+      band3Observations = b3,
+      obsList = obsList
+    )
 
   @Test def testEmpty() {
     val pp = ProposalPrep(Nil)
@@ -67,11 +78,11 @@ class ProposalPrepTest {
 
     pp.log.get(br.id, B1_2) match {
       case Some(msg: RejectNoTime) => assertEquals(br, msg.prop)
-      case _ => fail()
+      case _                       => fail()
     }
     pp.log.get(ca.id, B1_2) match {
       case Some(msg: RejectNoObs) => assertEquals(ca, msg.prop)
-      case _ => fail()
+      case _                      => fail()
     }
   }
 
@@ -86,7 +97,7 @@ class ProposalPrepTest {
 
     pp.log.get(gs.id, B3) match {
       case Some(msg: RejectNotBand3) => assertEquals(gs, msg.prop)
-      case _ => fail()
+      case _                         => fail()
     }
   }
 }

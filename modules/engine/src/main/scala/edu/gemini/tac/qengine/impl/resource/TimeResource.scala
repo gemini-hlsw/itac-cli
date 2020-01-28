@@ -13,7 +13,11 @@ object TimeResource {
   def apply(bin: TimeRestriction[Time]): TimeResource =
     new TimeResource(bin.map(time => BoundedTime(time)))
 
-  def reserveAll(block: Block, queue: ProposalQueueBuilder, lst: List[TimeResource]): RejectMessage Either List[TimeResource] =
+  def reserveAll(
+    block: Block,
+    queue: ProposalQueueBuilder,
+    lst: List[TimeResource]
+  ): RejectMessage Either List[TimeResource] =
     Resource.reserveAll(block, queue, lst)
 }
 
@@ -25,21 +29,34 @@ object TimeResource {
 final class TimeResource(val bin: TimeRestriction[BoundedTime]) extends Resource {
   type T = TimeResource
 
-  def limit: Time = bin.value.limit
+  def limit: Time     = bin.value.limit
   def remaining: Time = bin.value.remaining
   def isFull: Boolean = bin.value.isFull
 
-  override def reserve(block: Block, queue: ProposalQueueBuilder): RejectMessage Either TimeResource =
+  override def reserve(
+    block: Block,
+    queue: ProposalQueueBuilder
+  ): RejectMessage Either TimeResource =
     if (!bin.matches(block.prop, block.obs, queue.band))
-      Right(this)  // didn't match so return the same reservation object
+      Right(this) // didn't match so return the same reservation object
     else
       bin.value.reserve(block.time) match {
-        case Some(bt) if bt.remaining == remaining => Right(this)  // no time requested
-        case Some(bt) => Right(new TimeResource(bin.updated(bt))) // update bounded time
-        case _ => Left(new RejectRestrictedBin(block.prop, block.obs, queue.band, bin.name, bin.value.used, bin.value.limit))
+        case Some(bt) if bt.remaining == remaining => Right(this)                              // no time requested
+        case Some(bt)                              => Right(new TimeResource(bin.updated(bt))) // update bounded time
+        case _ =>
+          Left(
+            new RejectRestrictedBin(
+              block.prop,
+              block.obs,
+              queue.band,
+              bin.name,
+              bin.value.used,
+              bin.value.limit
+            )
+          )
       }
 
   def toXML = <TimeResource>
-    { bin.toXML }
+    {bin.toXML}
     </TimeResource>
 }

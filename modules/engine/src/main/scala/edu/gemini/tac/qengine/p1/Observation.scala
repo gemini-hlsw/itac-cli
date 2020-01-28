@@ -2,7 +2,8 @@ package edu.gemini.tac.qengine.p1
 
 import edu.gemini.tac.qengine.util.Time
 
-case class Observation(target: Target, conditions: ObsConditions, time: Time, lgs: Boolean = false) extends CategorizedTime
+case class Observation(target: Target, conditions: ObsConditions, time: Time, lgs: Boolean = false)
+    extends CategorizedTime
 
 object Observation {
   def sumObsTime(lst: List[Observation]): Time = lst.foldLeft(Time.Zero)(_ + _.time)
@@ -22,6 +23,8 @@ object Observation {
    * the total for all observations in the proposal.
    */
   def relativeObsList(time: Time, lst: List[Observation]): List[Observation] =
-    lst map { obs => obs.copy(time = relativeObsTime(obs, time, lst)) }
+    lst map { obs =>
+      obs.copy(time = relativeObsTime(obs, time, lst))
+    }
 
 }

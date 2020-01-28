@@ -55,11 +55,15 @@ object ObservationIo {
 
     // Group by site and band category, but error out if no observations.
     qeObsList.flatMap { ol =>
-      val grp = obsCtx.zip(ol).groupBy(_._1).map {
-        case ((s, b), lst) =>
-          val obsList = lst.unzip._2
-          (s, b, NonEmptyList(obsList.head, obsList.tail: _*))
-      }.toList
+      val grp = obsCtx
+        .zip(ol)
+        .groupBy(_._1)
+        .map {
+          case ((s, b), lst) =>
+            val obsList = lst.unzip._2
+            (s, b, NonEmptyList(obsList.head, obsList.tail: _*))
+        }
+        .toList
 
       grp match {
         case Nil    => MISSING_OBSERVATIONS.failureNel[GroupedObservations]
@@ -82,7 +86,9 @@ object ObservationIo {
   }
 
   private def conditions(o: im.Observation): ValidationNel[String, ObsConditions] = {
-    o.condition.map(conditions).fold(MISSING_CONDITIONS.failureNel[ObsConditions]) { _.successNel[String] }
+    o.condition.map(conditions).fold(MISSING_CONDITIONS.failureNel[ObsConditions]) {
+      _.successNel[String]
+    }
   }
 
   def conditions(c: im.Condition): ObsConditions = {
@@ -121,8 +127,10 @@ object ObservationIo {
     o.progTime.map(_.nonNegativeQueueEngineTime("observation")) | MISSING_TIME.failureNel[Time]
 
   def lgs(o: im.Observation): ValidationNel[String, Boolean] =
-    o.blueprint.map {
-      case g: im.GeminiBlueprintBase => g.ao.toBoolean
-      case _ => false
-    }.fold(MISSING_BLUEPRINT.failureNel[Boolean]) { _.successNel[String] }
+    o.blueprint
+      .map {
+        case g: im.GeminiBlueprintBase => g.ao.toBoolean
+        case _                         => false
+      }
+      .fold(MISSING_BLUEPRINT.failureNel[Boolean]) { _.successNel[String] }
 }

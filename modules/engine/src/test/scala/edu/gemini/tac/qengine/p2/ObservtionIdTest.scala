@@ -29,7 +29,7 @@ class ObservtionIdTest {
     val p2 = ProgramId(Site.north, Semester.parse("2011B"), Mode.Queue, 2)
 
     val o1 = ObservationId(p1, 99)
-    val o2 = ObservationId(p2,  1)
+    val o2 = ObservationId(p2, 1)
     assertLessThan(o1, o2)
   }
 
@@ -43,17 +43,17 @@ class ObservtionIdTest {
 
   @Test def testSomeStringsThatDontParse() {
     val nones = List(
-        ""
-      , "GN"
-      , "GN-2011A"
-      , "GN-2011A-Q"
-      , "GX-2011A-Q-8"
-      , "GN-211A-Q-8"
-      , "GN-2011C-Q-8"
-      , "GN-2011A-X-8"
-      , "GN-2011A-Q-8"
-      , "GN-2011A-Q-8--1"
-      , "GN-2011A-Q-8-1-1"
+      "",
+      "GN",
+      "GN-2011A",
+      "GN-2011A-Q",
+      "GX-2011A-Q-8",
+      "GN-211A-Q-8",
+      "GN-2011C-Q-8",
+      "GN-2011A-X-8",
+      "GN-2011A-Q-8",
+      "GN-2011A-Q-8--1",
+      "GN-2011A-Q-8-1-1"
     )
 
     nones.foreach(n => assertEquals(None, ObservationId.parse(n)))
@@ -65,8 +65,8 @@ class ObservtionIdTest {
       index <- 1 to 10
     } yield ObservationId(progId, index)
 
-    ids.foreach {
-      id => assertEquals(Some(id), ObservationId.parse(id.toString))
+    ids.foreach { id =>
+      assertEquals(Some(id), ObservationId.parse(id.toString))
     }
   }
 
@@ -76,9 +76,9 @@ class ObservtionIdTest {
     val obsId    = ObservationId(progId, 99)
 
     assertEquals(Site.north, obsId.site)
-    assertEquals(semester,   obsId.semester)
+    assertEquals(semester, obsId.semester)
     assertEquals(Mode.Queue, obsId.mode)
-    assertEquals(42,         obsId.progIndex)
-    assertEquals(99,         obsId.index)
+    assertEquals(42, obsId.progIndex)
+    assertEquals(99, obsId.index)
   }
 }

@@ -108,7 +108,7 @@ class ProposalIoTest {
   @Test def testJointProposal(): Unit = {
     import NtacIoTest._
 
-    val sub2  = im.NgoSubmission(
+    val sub2 = im.NgoSubmission(
       request2,
       response2,
       im.NgoPartner.US,
@@ -137,7 +137,7 @@ class ProposalIoTest {
   }
 
   @Test def testNorthAndSouth(): Unit = {
-    import ObservationIoTest.{when=>_, _}
+    import ObservationIoTest.{when => _, _}
 
     val idGen = JointIdGen(0)
 

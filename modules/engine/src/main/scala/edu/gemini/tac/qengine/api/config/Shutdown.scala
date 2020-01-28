@@ -14,7 +14,7 @@ case class Shutdown(site: Site, start: Date, end: Date) extends Ordered[Shutdown
   def compare(that: Shutdown): Int = {
     def compareStartAndEndDates = {
       def compareDates(f: Shutdown => Date) = f(Shutdown.this).compareTo(f(that))
-      val res = compareDates(_.start)
+      val res                               = compareDates(_.start)
       if (res == 0) compareDates(_.end) else res
     }
 

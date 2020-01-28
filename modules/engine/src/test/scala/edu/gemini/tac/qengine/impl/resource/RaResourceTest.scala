@@ -20,7 +20,7 @@ class RaResourceTest {
   private val ntac = Ntac(GS, "x", 0, Time.Zero)
 
   private def mkProp(target: Target, conds: ObsConditions): Proposal =
-    Fixture.mkProp(ntac,  (target, conds, Time.Zero))
+    Fixture.mkProp(ntac, (target, conds, Time.Zero))
 
   private def verifyReserve(raRes: RaResource) {
     val target = Target(15.0, 0.0) // RA 1hr, Dec 0 deg
@@ -56,8 +56,8 @@ class RaResourceTest {
   }
 
   @Test def testReserveAvailable() {
-    val target = Target(15.0, 0.0) // RA 1hr, Dec 0 deg
-    val raGrp  = Fixture.raResGroup.grp(target)
+    val target        = Target(15.0, 0.0) // RA 1hr, Dec 0 deg
+    val raGrp         = Fixture.raResGroup.grp(target)
     val (newRes, rem) = raGrp.reserveAvailable(Time.minutes(15), target, goodCC)
 
     assertEquals(Time.Zero, rem)
@@ -65,7 +65,7 @@ class RaResourceTest {
   }
 
   @Test def testGroupReserveAvailable() {
-    val target = Target(15.0, 0.0) // RA 1hr, Dec 0 deg
+    val target       = Target(15.0, 0.0) // RA 1hr, Dec 0 deg
     val (grp2, rem2) = Fixture.raResGroup.reserveAvailable(Time.minutes(15), target, goodCC)
     assertEquals(Time.Zero, rem2)
     verifyReserve(grp2.grp(target))
@@ -76,7 +76,7 @@ class RaResourceTest {
     val prop   = mkProp(target, goodCC)
     val block  = Block(prop, prop.obsList.head, Time.minutes(15))
 
-    val grp    = Fixture.raResGroup.grp(target).reserve(block, emptyQueue).right.get
+    val grp = Fixture.raResGroup.grp(target).reserve(block, emptyQueue).right.get
 
     val target2 = Target(15.0, 45.0) // RA 1hr, Dec 45 deg
     val prop2   = mkProp(target2, badCC)
@@ -127,8 +127,8 @@ class RaResourceTest {
   // Test that the absolute limit comes into play even if there is time
   // remaining for the obs conditions and dec.
   @Test def testOverPrescribeAbsolute() {
-    val target = Target(15.0, 0.0) // RA 1hr, Dec 0 deg
-    val prop = mkProp(target, badCC) // 1 hour limit for obs like this
+    val target = Target(15.0, 0.0)     // RA 1hr, Dec 0 deg
+    val prop   = mkProp(target, badCC) // 1 hour limit for obs like this
 
     // Take almost all the time
     val block = Block(prop, prop.obsList.head, Time.minutes(59.9))
@@ -140,89 +140,89 @@ class RaResourceTest {
 
     // Create a target in the upper half of the dec range.  It's bin has
     // 30 minutes left, not considering the absolute limit for the RA.
-    val target2 = Target(15.0, 45.0) // RA 1hr, Dec 45 deg
-    val prop2 = mkProp(target2, badCC) // 1 hour limit for obs like this
+    val target2 = Target(15.0, 45.0)     // RA 1hr, Dec 45 deg
+    val prop2   = mkProp(target2, badCC) // 1 hour limit for obs like this
 
     // Try to schedule this block, which would work if it weren't for the
     // absolute limit.
     val block2 = Block(prop2, prop2.obsList.head, Time.minutes(0.11))
     raRes.reserve(block2, emptyQueue) match {
       case Left(msg: RejectTarget) => assertEquals(prop2, msg.prop)
-      case _ => fail()
+      case _                       => fail()
     }
   }
 
   @Test def testReserveAvailableLimitedByAbsoluteTimeForRA() {
     val target = Target(15.0, 0.0) // RA 1hr, Dec 0 deg
 
-    val raRes1 = Fixture.raResGroup.grp(target)
+    val raRes1         = Fixture.raResGroup.grp(target)
     val (raRes2, rem2) = raRes1.reserveAvailable(Time.minutes(59.9), target, badCC)
     assertEquals(Time.Zero, rem2)
 
     assertEquals(0.1, raRes2.remaining(target, badCC).toMinutes.value, 0.000001)
-    assertEquals(0.1, raRes2.remaining(badCC).toMinutes.value,         0.000001)
+    assertEquals(0.1, raRes2.remaining(badCC).toMinutes.value, 0.000001)
 
     // Create a target in the upper half of the dec range.  It's bin has
     // 30 minutes left, not considering the absolute limit for the RA.
-    val target2 = Target(15.0, 45.0) // RA 1hr, Dec 45 deg
+    val target2        = Target(15.0, 45.0) // RA 1hr, Dec 45 deg
     val (raRes3, rem3) = raRes2.reserveAvailable(Time.minutes(0.11), target2, badCC)
     assertEquals(0.01, rem3.toMinutes.value, 0.000001)
     assertTrue(raRes3.isFull)
   }
 
   @Test def testOverPrescribeDec() {
-    val target = Target(15.0, 45.0)  // RA 1hr, Dec 45 deg -> 30 min dec
-    val prop = mkProp(target, badCC) // 30 min dec limit, 1 hour conds limit
+    val target = Target(15.0, 45.0)    // RA 1hr, Dec 45 deg -> 30 min dec
+    val prop   = mkProp(target, badCC) // 30 min dec limit, 1 hour conds limit
 
     // Take almost all the time for the dec
     val block = Block(prop, prop.obsList.head, Time.minutes(29.9))
     val raRes = Fixture.raResGroup.grp(target).reserve(block, emptyQueue).right.get
 
-    assertEquals( 0.1, raRes.remaining(target, badCC).toMinutes.value, 0.000001)
+    assertEquals(0.1, raRes.remaining(target, badCC).toMinutes.value, 0.000001)
     assertEquals(30.1, raRes.remaining(badCC).toMinutes.value, 0.000001)
 
     // Take it over the edge.
     val block2 = Block(prop, prop.obsList.head, Time.minutes(0.11))
     raRes.reserve(block2, emptyQueue) match {
       case Left(msg) => assertEquals(prop, msg.prop)
-      case _ => fail()
+      case _         => fail()
     }
   }
 
   @Test def testReserveAvailableLimitedByDec() {
-    val target = Target(15.0, 45.0)  // RA 1hr, Dec 45 deg -> 30 min dec
+    val target = Target(15.0, 45.0) // RA 1hr, Dec 45 deg -> 30 min dec
     val raRes1 = Fixture.raResGroup.grp(target)
 
     // Take almost all the time for the dec
     val (raRes2, rem2) = raRes1.reserveAvailable(Time.minutes(29.9), target, badCC)
     assertEquals(Time.Zero, rem2)
 
-    assertEquals( 0.1, raRes2.remaining(target, badCC).toMinutes.value, 0.000001)
-    assertEquals(30.1, raRes2.remaining(badCC).toMinutes.value,         0.000001)
+    assertEquals(0.1, raRes2.remaining(target, badCC).toMinutes.value, 0.000001)
+    assertEquals(30.1, raRes2.remaining(badCC).toMinutes.value, 0.000001)
 
     // Take it over the edge.
     val (raRes3, rem3) = raRes2.reserveAvailable(Time.minutes(0.11), target, badCC)
-    assertEquals( 0.01, rem3.toMinutes.value, 0.000001)
+    assertEquals(0.01, rem3.toMinutes.value, 0.000001)
     assertTrue(raRes3.isFull(target))
     assertFalse(raRes3.isFull)
   }
 
   @Test def testOverPrescribeConds() {
-    val target = Target(15.0, 0.0) // RA 1hr, Dec 0 deg -> 60 min dec limit
-    val prop = mkProp(target, goodCC) // 60 min dec limit, 30 mins conds limit
+    val target = Target(15.0, 0.0)      // RA 1hr, Dec 0 deg -> 60 min dec limit
+    val prop   = mkProp(target, goodCC) // 60 min dec limit, 30 mins conds limit
 
     // Take almost all the time for the conditions
     val block = Block(prop, prop.obsList.head, Time.minutes(29.9))
     val raRes = Fixture.raResGroup.grp(target).reserve(block, emptyQueue).right.get
 
-    assertEquals(0.1,  raRes.remaining(target, goodCC).toMinutes.value, 0.000001)
+    assertEquals(0.1, raRes.remaining(target, goodCC).toMinutes.value, 0.000001)
     assertEquals(30.1, raRes.remaining(target).toMinutes.value, 0.000001)
 
     // Take it over the edge.
     val block2 = Block(prop, prop.obsList.head, Time.minutes(0.11))
     raRes.reserve(block2, emptyQueue) match {
       case Left(msg: RejectConditions) => assertEquals(prop, msg.prop)
-      case _ => fail()
+      case _                           => fail()
     }
   }
 
@@ -234,8 +234,8 @@ class RaResourceTest {
     val (raRes2, rem2) = raRes1.reserveAvailable(Time.minutes(29.9), target, goodCC)
     assertEquals(Time.Zero, rem2)
 
-    assertEquals( 0.1, raRes2.remaining(target, goodCC).toMinutes.value, 0.000001)
-    assertEquals(30.1, raRes2.remaining(target).toMinutes.value,         0.000001)
+    assertEquals(0.1, raRes2.remaining(target, goodCC).toMinutes.value, 0.000001)
+    assertEquals(30.1, raRes2.remaining(target).toMinutes.value, 0.000001)
 
     // Take it over the edge.
     val (raRes3, rem3) = raRes2.reserveAvailable(Time.minutes(0.11), target, goodCC)
@@ -252,7 +252,8 @@ class RaResourceTest {
     assertTrue(Fixture.raResGroup.grp(target).isFull(target, goodCC))
   }
 
-  private case class TestCatTime(target: Target, conditions: ObsConditions, time: Time) extends CategorizedTime
+  private case class TestCatTime(target: Target, conditions: ObsConditions, time: Time)
+      extends CategorizedTime
 
 //  private val cat1 = TestCatTime(Target( 0.0, 0.0), badCC, Time.hours(10))
 //  private val cat2 = TestCatTime(Target(15.0, 0.0), badCC, Time.hours(10))

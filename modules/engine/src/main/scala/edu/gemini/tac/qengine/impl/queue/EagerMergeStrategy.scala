@@ -14,17 +14,17 @@ case object EagerMergeStrategy extends MergeStrategy {
   def merge(proposals: List[Proposal]): List[Proposal] = proposals
 
   private case class Res(joint: JointProposal, index: Double, merged: List[Proposal]) {
-    def insert_?(count: Int): Boolean = index <= count && index > (count-1)
-    def prepend(prop: Proposal): Res = Res(joint, index, prop :: merged)
-    def insert(count: Int): Res = if (insert_?(count)) prepend(joint) else this
+    def insert_?(count: Int): Boolean = index <= count && index > (count - 1)
+    def prepend(prop: Proposal): Res  = Res(joint, index, prop :: merged)
+    def insert(count: Int): Res       = if (insert_?(count)) prepend(joint) else this
   }
 
   private def toJoint(p: Proposal): JointProposal = {
     require(p.jointId.isDefined)
     p match {
-      case joint: JointProposal     => joint
-      case part:  JointProposalPart => part.toJoint
-      case _ => sys.error("not expecting a non-joint proposal")
+      case joint: JointProposal    => joint
+      case part: JointProposalPart => part.toJoint
+      case _                       => sys.error("not expecting a non-joint proposal")
     }
   }
 
@@ -47,13 +47,13 @@ case object EagerMergeStrategy extends MergeStrategy {
         Res(toJoint(p), 0, Nil).insert(count)
 
       case oldProp :: tail if oldProp.jointId == p.jointId => {
-        val newJoint  = merge(p, oldProp)
-        val newIndex  = calcIndex(p, count, oldProp)
+        val newJoint = merge(p, oldProp)
+        val newIndex = calcIndex(p, count, oldProp)
         Res(newJoint, newIndex, tail).insert(count)
       }
 
       case head :: tail =>
-        add(p, tail, count+1).prepend(head).insert(count)
+        add(p, tail, count + 1).prepend(head).insert(count)
     }
 
   def add(prop: Proposal, proposals: List[Proposal]): List[Proposal] =

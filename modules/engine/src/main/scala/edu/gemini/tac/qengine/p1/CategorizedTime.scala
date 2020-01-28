@@ -10,7 +10,7 @@ trait CategorizedTime {
   def conditions: ObsConditions
   def time: Time
 
-  def toXml = <CategorizedTime time = { time.toString }>
+  def toXml = <CategorizedTime time = {time.toString}>
     {target.toXml}
     {conditions.toXml}
     </CategorizedTime>

@@ -5,7 +5,12 @@ import edu.gemini.tac.qengine.log.RejectMessage
 import edu.gemini.tac.qengine.impl.queue.ProposalQueueBuilder
 
 object CompositeResource {
-  def compositeReserve[A <: Resource{type T=A}, B <: Resource{type T=B}](block: Block, queue: ProposalQueueBuilder, a: A, b: B): RejectMessage Either (A, B) =
+  def compositeReserve[A <: Resource { type T = A }, B <: Resource { type T = B }](
+    block: Block,
+    queue: ProposalQueueBuilder,
+    a: A,
+    b: B
+  ): RejectMessage Either (A, B) =
     for {
       newA <- a.reserve(block, queue).right
       newB <- b.reserve(block, queue).right
@@ -19,14 +24,20 @@ object CompositeResource {
  * either rejects the block, then the composite rejects the block.  If both
  * accept the block, an updated composite is returned.
  */
-class CompositeResource[A <: Resource{type T=A}, B <: Resource{type T=B}](val _1: A, val _2: B) extends Resource {
+class CompositeResource[A <: Resource { type T = A }, B <: Resource { type T = B }](
+  val _1: A,
+  val _2: B
+) extends Resource {
   type T = CompositeResource[A, B]
 
   def this(tup: (A, B)) = this(tup._1, tup._2)
 
-  def reserve(block: Block, queue: ProposalQueueBuilder): RejectMessage Either CompositeResource[A, B] =
-    CompositeResource.compositeReserve(block, queue, _1, _2).right map {
-      tup => new CompositeResource(tup)
+  def reserve(
+    block: Block,
+    queue: ProposalQueueBuilder
+  ): RejectMessage Either CompositeResource[A, B] =
+    CompositeResource.compositeReserve(block, queue, _1, _2).right map { tup =>
+      new CompositeResource(tup)
     }
 
 }

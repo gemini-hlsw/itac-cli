@@ -31,11 +31,11 @@ class LazyMergeTest extends TwoPartMergeTest(LazyMergeStrategy) {
 
   // Multiple parts of multiple joints
   @Test def testMultiJointMerge() {
-    val pAU = masterPart("j-1", AU,  1.0)
-    val pBR = masterPart("j-2", BR,  1.0)
+    val pAU = masterPart("j-1", AU, 1.0)
+    val pBR = masterPart("j-2", BR, 1.0)
     val pCA = otherPart(pAU, CA, 10.0)
     val pGS = otherPart(pBR, GS, 10.0)
-    val pUH = otherPart(pAU, UH,  1.0)
+    val pUH = otherPart(pAU, UH, 1.0)
 
     val lst = pAU :: pBR :: pCA :: pGS :: pUH :: Nil
 
@@ -43,10 +43,10 @@ class LazyMergeTest extends TwoPartMergeTest(LazyMergeStrategy) {
       case List(jCA: JointProposal, jGS: JointProposal) => {
         assertEquals("j-1", jCA.jointId.get)
         assertEquals(Time.hours(12), jCA.ntac.awardedTime)
-        assertEquals(Set(AU,CA,UH), jCA.toParts.map(_.ntac.partner).toSet)
+        assertEquals(Set(AU, CA, UH), jCA.toParts.map(_.ntac.partner).toSet)
         assertEquals("j-2", jGS.jointId.get)
         assertEquals(Time.hours(11), jGS.ntac.awardedTime)
-        assertEquals(Set(BR,GS), jGS.toParts.map(_.ntac.partner).toSet)
+        assertEquals(Set(BR, GS), jGS.toParts.map(_.ntac.partner).toSet)
       }
       case _ => fail()
     }

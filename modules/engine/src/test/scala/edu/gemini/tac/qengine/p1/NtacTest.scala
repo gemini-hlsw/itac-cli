@@ -8,7 +8,7 @@ import edu.gemini.tac.qengine.ctx.{Site, Partner}
 
 class NtacTest {
 
-  def mockPartner(partnerCountryKey : String, pct : Double) : Partner =
+  def mockPartner(partnerCountryKey: String, pct: Double): Partner =
     Partner(partnerCountryKey, "", pct, Set(Site.south, Site.north))
 
   val US = mockPartner("US", 0.42)
@@ -36,7 +36,7 @@ class NtacTest {
 
   @Test def testReverseAwardedTimeOrdering() {
     val t0 = Ntac(US, "us1", 99.0, Time.hours(100.0))
-    val t1 = Ntac(AR, "ar1",  1.0, Time.hours(  1.0))
+    val t1 = Ntac(AR, "ar1", 1.0, Time.hours(1.0))
     assertTrue(t0 < t1)
   }
 

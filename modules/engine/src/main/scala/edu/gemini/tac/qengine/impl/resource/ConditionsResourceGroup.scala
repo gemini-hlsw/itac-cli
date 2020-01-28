@@ -1,6 +1,10 @@
 package edu.gemini.tac.qengine.impl.resource
 
-import edu.gemini.tac.qengine.api.config.{ConditionsBinGroup, ConditionsBin, ConditionsCategory => Cat}
+import edu.gemini.tac.qengine.api.config.{
+  ConditionsBinGroup,
+  ConditionsBin,
+  ConditionsCategory => Cat
+}
 import edu.gemini.tac.qengine.log._
 import annotation.tailrec
 import edu.gemini.tac.qengine.impl.block.Block
@@ -14,7 +18,11 @@ object ConditionsResourceGroup {
   // Absorbs the time into the BoundedTime values associated with the given
   // "in" list of observing conditions categories, returning a list of updated
   // bins and any remaining time
-  @tailrec private def reserveAvailable(t: Time, in: List[ConditionsBin[BoundedTime]], out: List[ConditionsBin[BoundedTime]]): (List[ConditionsBin[BoundedTime]], Time) =
+  @tailrec private def reserveAvailable(
+    t: Time,
+    in: List[ConditionsBin[BoundedTime]],
+    out: List[ConditionsBin[BoundedTime]]
+  ): (List[ConditionsBin[BoundedTime]], Time) =
     if (t.isZero || in.isEmpty)
       (out, t)
     else {
@@ -39,7 +47,8 @@ object ConditionsResourceGroup {
  * observing conditions categories.  Handles spilling the time across better
  * categories when necessary and possible.
  */
-final case class ConditionsResourceGroup private (val bins: ConditionsBinGroup[BoundedTime]) extends Resource {
+final case class ConditionsResourceGroup private (val bins: ConditionsBinGroup[BoundedTime])
+    extends Resource {
   type T = ConditionsResourceGroup
 
   private def sum(c: ObsConditions, f: (BoundedTime => Time)): Time = {
@@ -47,24 +56,27 @@ final case class ConditionsResourceGroup private (val bins: ConditionsBinGroup[B
     cats.foldLeft(Time.Minutes.zero)((t: Time, cat: Cat) => t + f(bins(cat)))
   }
 
-  def limit(c: ObsConditions): Time = sum(c, _.limit)
+  def limit(c: ObsConditions): Time     = sum(c, _.limit)
   def remaining(c: ObsConditions): Time = sum(c, _.remaining)
   def isFull(c: ObsConditions): Boolean = remaining(c).isZero
 
   private def conds(block: Block): ObsConditions =
     block.obs.conditions
 
-
   /**
    * Reserves the time for the given observation into the conditions bins
    * if possible.  Returns an updated ConditionsReservation containing the
    * observation's time, or else an error.
    */
-  override def reserve(block: Block, queue: ProposalQueueBuilder): RejectMessage Either ConditionsResourceGroup = {
+  override def reserve(
+    block: Block,
+    queue: ProposalQueueBuilder
+  ): RejectMessage Either ConditionsResourceGroup = {
     val c = conds(block)
     reserveAvailable(block.time, c) match {
       case (newGrp, t) if t.isZero => Right(newGrp)
-      case _                       => Left(rejectConditions(block.prop, block.obs, queue.band, sum(c, _.used), sum(c, _.limit)))
+      case _ =>
+        Left(rejectConditions(block.prop, block.obs, queue.band, sum(c, _.used), sum(c, _.limit)))
     }
   }
 
@@ -76,12 +88,13 @@ final case class ConditionsResourceGroup private (val bins: ConditionsBinGroup[B
    * along with any remaining time that could not be reserved.
    */
   def reserveAvailable(time: Time, conds: ObsConditions): (ConditionsResourceGroup, Time) = {
-    val (updatedBins, rem) = ConditionsResourceGroup.reserveAvailable(time, bins.searchBins(conds), Nil)
+    val (updatedBins, rem) =
+      ConditionsResourceGroup.reserveAvailable(time, bins.searchBins(conds), Nil)
     (new ConditionsResourceGroup(bins.updated(updatedBins)), rem)
   }
 
-  def toXML : Elem = <ConditionsResourceGroup>
-    { bins.toXML }
+  def toXML: Elem = <ConditionsResourceGroup>
+    {bins.toXML}
     </ConditionsResourceGroup>
 
 }

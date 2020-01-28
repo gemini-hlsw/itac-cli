@@ -29,22 +29,28 @@ class RolloverReportParser(partners: List[Partner]) {
   }
 
   private val partner = new FieldParser("partner", s => partners.find(_.id == s))
-  private val obsId   = new FieldParser("obs-id",  s => ObservationId.parse(s))
-  private val ra      = new FieldParser("RA",      s => CoordinateFields.parse(s).map { _.asHrs})
-  private val dec     = new FieldParser("dec",     s => CoordinateFields.parse(s).map { _.asDeg})
-  private val cc      = new FieldParser("CC",      s => CloudCover.values.find(_.toString == s))
-  private val iq      = new FieldParser("IQ",      s => ImageQuality.values.find(_.toString == s))
-  private val sb      = new FieldParser("SB",      s => SkyBackground.values.find(_.toString == s))
-  private val wv      = new FieldParser("WV",      s => WaterVapor.values.find(_.toString == s))
-  private val hrs     = new FieldParser("hours",
-    s => try {
-           val d = s.toDouble
-           if (d < 0) None else Some(Time.hours(d))
-         } catch {
-           case _: NumberFormatException => None
-         })
+  private val obsId   = new FieldParser("obs-id", s => ObservationId.parse(s))
+  private val ra      = new FieldParser("RA", s => CoordinateFields.parse(s).map { _.asHrs })
+  private val dec     = new FieldParser("dec", s => CoordinateFields.parse(s).map { _.asDeg })
+  private val cc      = new FieldParser("CC", s => CloudCover.values.find(_.toString == s))
+  private val iq      = new FieldParser("IQ", s => ImageQuality.values.find(_.toString == s))
+  private val sb      = new FieldParser("SB", s => SkyBackground.values.find(_.toString == s))
+  private val wv      = new FieldParser("WV", s => WaterVapor.values.find(_.toString == s))
+  private val hrs = new FieldParser(
+    "hours",
+    s =>
+      try {
+        val d = s.toDouble
+        if (d < 0) None else Some(Time.hours(d))
+      } catch {
+        case _: NumberFormatException => None
+      }
+  )
 
-  private def toRollover(n: Int, rolloverObsStr: String): RolloverParseError Either RolloverObservation =
+  private def toRollover(
+    n: Int,
+    rolloverObsStr: String
+  ): RolloverParseError Either RolloverObservation =
     rolloverObsStr.split(',').map(_.trim).toList match {
       case List(partnerStr, obsIdStr, raStr, decStr, ccStr, iqStr, sbStr, wvStr, hrsStr) =>
         for {
@@ -57,7 +63,13 @@ class RolloverReportParser(partners: List[Partner]) {
           sb      <- sb(n, sbStr).right
           wv      <- wv(n, wvStr).right
           hr      <- hrs(n, hrsStr).right
-        } yield RolloverObservation(partner, obsId, Target(ra, dec), ObsConditions(cc, iq, sb, wv), hr)
+        } yield RolloverObservation(
+          partner,
+          obsId,
+          Target(ra, dec),
+          ObsConditions(cc, iq, sb, wv),
+          hr
+        )
       case _ => Left(LINE_FORMAT(n, rolloverObsStr))
     }
 
@@ -65,12 +77,14 @@ class RolloverReportParser(partners: List[Partner]) {
   // out comments and empty lines.
   private def toNumberedLines(reportStr: String): List[(Int, String)] =
     reportStr.lines.toList.zipWithIndex map {
-      case (s, n) => (n+1, s.trim)
+      case (s, n) => (n + 1, s.trim)
     } filterNot {
       case (_, s) => s.isEmpty || s.startsWith("#")
     }
 
-  private def toParsedRollovers(reportStr: String): List[RolloverParseError Either RolloverObservation] =
+  private def toParsedRollovers(
+    reportStr: String
+  ): List[RolloverParseError Either RolloverObservation] =
     toNumberedLines(reportStr) map {
       case (n, line) => toRollover(n, line)
     }

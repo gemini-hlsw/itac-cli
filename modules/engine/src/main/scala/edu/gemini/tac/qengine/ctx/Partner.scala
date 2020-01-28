@@ -3,7 +3,6 @@ package edu.gemini.tac.qengine.ctx
 import xml.Elem
 import edu.gemini.tac.qengine.util.Percent
 
-
 //object Partner {
 //
 //  // Wraps a value containing a Set of both sites.  This is a bit odd, and I'm
@@ -25,6 +24,7 @@ import edu.gemini.tac.qengine.util.Percent
  * Phase 1 partner options.
  */
 case class Partner(id: String, fullName: String, share: Percent, sites: Set[Site]) {
+
   /**
    * Gets the partner's percentage share at the given site.
    */
@@ -32,14 +32,16 @@ case class Partner(id: String, fullName: String, share: Percent, sites: Set[Site
 
   override def toString: String = s"Partner($id,$share,${sites.map(_.abbreviation).mkString("/")})"
 
-  def toXML : Elem = <Partner id={id}>
+  def toXML: Elem =
+    <Partner id={id}>
       <fullName>{fullName}</fullName>
       <absPercent>{"%.2f".format(share.doubleValue)}</absPercent>
       <sites>
-        { sites.map{ s =>
-            <Site>{s.abbreviation()}</Site>
-          }
-        }
+        {
+      sites.map { s =>
+        <Site>{s.abbreviation()}</Site>
+      }
+    }
       </sites>
     </Partner>
 }
@@ -67,6 +69,10 @@ object Partner {
    * returned by the supplied partial function, using the supplied default
    * for any values not in pf's domain.
    */
-  def mkMap[T](values: List[Partner], pf: PartialFunction[Partner, T], default: T): Map[Partner, T] =
+  def mkMap[T](
+    values: List[Partner],
+    pf: PartialFunction[Partner, T],
+    default: T
+  ): Map[Partner, T] =
     mkMap(values, complete(pf, default))
 }

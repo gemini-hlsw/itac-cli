@@ -6,8 +6,6 @@ import resource.{RaResourceGroup, Fixture}
 
 class RaResourceInitTest {
   val baseline = RaResourceGroup(Fixture.binConfig)
-
-
   @Test def testInitBinsNoAdjustments() {
     val init = QueueEngine.initBins(Fixture.binConfig, Nil, Nil)
 

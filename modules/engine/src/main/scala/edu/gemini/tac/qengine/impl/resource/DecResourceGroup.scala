@@ -26,19 +26,32 @@ final case class DecResourceGroup(val bins: DecBinGroup[BoundedTime]) extends Re
   private def lookup(dec: Angle, f: BoundedTime => Time): Time =
     bins.get(dec).map(bin => f(bin.binValue)).getOrElse(Time.Zero)
 
-  def limit(dec: Angle): Time      = lookup(dec, _.limit)
-  def limit(t: Target): Time       = limit(t.dec)
+  def limit(dec: Angle): Time = lookup(dec, _.limit)
+  def limit(t: Target): Time  = limit(t.dec)
 
-  def remaining(dec: Angle): Time  = lookup(dec, _.remaining)
-  def remaining(t: Target): Time   = remaining(t.dec)
+  def remaining(dec: Angle): Time = lookup(dec, _.remaining)
+  def remaining(t: Target): Time  = remaining(t.dec)
 
-  def isFull(dec: Angle): Boolean  = remaining(dec).isZero
-  def isFull(t: Target): Boolean   = isFull(t.dec)
+  def isFull(dec: Angle): Boolean = remaining(dec).isZero
+  def isFull(t: Target): Boolean  = isFull(t.dec)
 
-  private def reserveNormal(block: Block, band: QueueBand): RejectMessage Either DecResourceGroup = {
+  private def reserveNormal(
+    block: Block,
+    band: QueueBand
+  ): RejectMessage Either DecResourceGroup = {
     val dec = block.obs.target.dec
     bins.updated(dec, _.reserve(block.time)) match {
-      case None => Left(RejectTarget(block.prop, block.obs, band, RejectTarget.Dec, lookup(dec, _.used), lookup(dec, _.limit)))
+      case None =>
+        Left(
+          RejectTarget(
+            block.prop,
+            block.obs,
+            band,
+            RejectTarget.Dec,
+            lookup(dec, _.used),
+            lookup(dec, _.limit)
+          )
+        )
       case Some(updated) => Right(new DecResourceGroup(updated))
     }
   }
@@ -51,9 +64,8 @@ final case class DecResourceGroup(val bins: DecBinGroup[BoundedTime]) extends Re
   private def reserveToo(block: Block, band: QueueBand): RejectMessage Either DecResourceGroup =
     DecResourceGroup.tooBlocks(block, bins) match {
       case Some(s) => {
-        val updatedBins = bins.bins.zip(s).map(
-          binAndBlock => addTooTime(binAndBlock._1, binAndBlock._2)
-        )
+        val updatedBins =
+          bins.bins.zip(s).map(binAndBlock => addTooTime(binAndBlock._1, binAndBlock._2))
         Right(new DecResourceGroup(DecBinGroup.fromBins(updatedBins: _*)))
       }
       case _ =>
@@ -62,10 +74,13 @@ final case class DecResourceGroup(val bins: DecBinGroup[BoundedTime]) extends Re
         Left(RejectTarget(block.prop, block.obs, band, RejectTarget.Dec, cur, max))
     }
 
-  override def reserve(block: Block, queue: ProposalQueueBuilder): RejectMessage Either DecResourceGroup =
+  override def reserve(
+    block: Block,
+    queue: ProposalQueueBuilder
+  ): RejectMessage Either DecResourceGroup =
     block.prop.too match {
       case Too.none => reserveNormal(block, queue.band)
-      case _ => reserveToo(block, queue.band)
+      case _        => reserveToo(block, queue.band)
     }
 
   /**
@@ -85,7 +100,7 @@ final case class DecResourceGroup(val bins: DecBinGroup[BoundedTime]) extends Re
     bins.get(dec) match {
       case Some(DecBin(_, bt)) =>
         val (newBoundedTime, remainingTime) = bt.reserveAvailable(time)
-        val newBins = bins.updated(dec, newBoundedTime).get
+        val newBins                         = bins.updated(dec, newBoundedTime).get
         (new DecResourceGroup(newBins), remainingTime)
       case _ => (this, time)
     }

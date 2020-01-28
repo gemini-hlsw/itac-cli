@@ -7,7 +7,8 @@ import edu.gemini.tac.qengine.ctx.{ContextOrderingImplicits, Semester, Site}
 /**
  * Gemini science program id.
  */
-case class ProgramId(site: Site, semester: Semester, mode: Mode, index: Int) extends Ordered[ProgramId] {
+case class ProgramId(site: Site, semester: Semester, mode: Mode, index: Int)
+    extends Ordered[ProgramId] {
   require(index > 0)
 
   import ProgramId._
@@ -21,11 +22,13 @@ case class ProgramId(site: Site, semester: Semester, mode: Mode, index: Int) ext
 object ProgramId {
   import ContextOrderingImplicits._
 
-  object ProgramIdOrdering extends CompoundOrdering(
-    Ordering.by[ProgramId, Site](_.site),
-    Ordering.by[ProgramId, Semester](_.semester),
-    Ordering.by[ProgramId, Mode](_.mode),
-    Ordering.by[ProgramId, Int](_.index))
+  object ProgramIdOrdering
+      extends CompoundOrdering(
+        Ordering.by[ProgramId, Site](_.site),
+        Ordering.by[ProgramId, Semester](_.semester),
+        Ordering.by[ProgramId, Mode](_.mode),
+        Ordering.by[ProgramId, Int](_.index)
+      )
 
   private def siteToString(s: Site): String = s.abbreviation.toUpperCase
 

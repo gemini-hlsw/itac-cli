@@ -1,6 +1,5 @@
 package edu.gemini.tac.qengine.api.config
 
-
 import edu.gemini.tac.qengine.p1.Target
 import edu.gemini.tac.qengine.util.Angle
 import xml.Elem
@@ -40,7 +39,7 @@ class DecRange(val startDeg: Int, val endDeg: Int) {
   override def equals(other: Any) = other match {
     case that: DecRange =>
       startDeg == that.startDeg && endDeg == that.endDeg &&
-      isInclusive == that.isInclusive
+        isInclusive == that.isInclusive
     case _ => false
   }
 
@@ -50,7 +49,7 @@ class DecRange(val startDeg: Int, val endDeg: Int) {
 
   override def toString: String = "(%d, %d]".format(startDeg, endDeg)
 
-  def toXML : Elem = <DecRange start = { startDeg.toString} end = { endDeg.toString } />
+  def toXML: Elem = <DecRange start = {startDeg.toString} end = {endDeg.toString} />
 }
 
 object DecRange {
@@ -64,30 +63,28 @@ object DecRange {
    */
   class Inclusive(startDeg: Int, endDeg: Int) extends DecRange(startDeg, endDeg) {
     override def isInclusive = true
-    override def inclusive = this
+    override def inclusive   = this
     override def contains(dec: Angle): Boolean = {
       super.contains(dec) || dec.toDeg.mag == endDeg
     }
     override def abutsRight(that: DecRange) = false
-    override def toString: String = "(%d, %d)".format(startDeg, endDeg)
+    override def toString: String           = "(%d, %d)".format(startDeg, endDeg)
   }
 
   def inclusive(start: Int, end: Int): DecRange = new Inclusive(start, end)
 
   private def validate(h: DecRange, t: Seq[DecRange]): Boolean = t match {
-      case Seq() => true
-      case Seq(n, tail @ _*) => h.abutsRight(n) && validate(n, tail)
-    }
+    case Seq()             => true
+    case Seq(n, tail @ _*) => h.abutsRight(n) && validate(n, tail)
+  }
 
   /**
    * Validates that a sequence of DecRange is sorted, non-overlapping, and
    * abutting.
    */
   def validate(ranges: Seq[DecRange]): Boolean = ranges match {
-      case Seq() => true
-      case Seq(h, tail @ _*) => validate(h, tail)
-    }
-
-
+    case Seq()             => true
+    case Seq(h, tail @ _*) => validate(h, tail)
+  }
 
 }

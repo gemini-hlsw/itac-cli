@@ -10,7 +10,7 @@ class DecBinGroupTest {
   private def f(decRange: DecRange): Option[Percent] = {
     decRange.startDeg match {
       case neg if neg < 0 => None
-      case pos => Some(Percent(decRange.startDeg))
+      case pos            => Some(Percent(decRange.startDeg))
     }
   }
 
@@ -43,7 +43,7 @@ class DecBinGroupTest {
   }
 
   @Test def testUpdatedFunSome() {
-    val grp = DecBinGroup.gen10DegBins(f)
+    val grp  = DecBinGroup.gen10DegBins(f)
     val grp2 = grp.updated(Angle.angleDeg0, p => Some(Percent(p.value + 1))).get
     assertEquals(Percent(1), grp2.get(Angle.angleDeg0).get.binValue)
   }
@@ -55,7 +55,7 @@ class DecBinGroupTest {
   }
 
   @Test def testUpdatedSome() {
-    val grp = DecBinGroup.gen10DegBins(f)
+    val grp  = DecBinGroup.gen10DegBins(f)
     val grp2 = grp.updated(Angle.angleDeg0, Percent(42)).get
     assertEquals(Percent(42), grp2.get(Angle.angleDeg0).get.binValue)
   }
@@ -68,35 +68,42 @@ class DecBinGroupTest {
   @Test def testIndexOf() {
     val grp = DecBinGroup.gen10DegBins(f)
     assertEquals(-1, grp.indexOf(new Angle(-10, Angle.Deg)))
-    assertEquals( 0, grp.indexOf(Angle.angleDeg0))
-    assertEquals( 8, grp.indexOf(new Angle( 80, Angle.Deg)))
-    assertEquals( 8, grp.indexOf(new Angle( 90, Angle.Deg)))
+    assertEquals(0, grp.indexOf(Angle.angleDeg0))
+    assertEquals(8, grp.indexOf(new Angle(80, Angle.Deg)))
+    assertEquals(8, grp.indexOf(new Angle(90, Angle.Deg)))
   }
 
   @Test def testApplyTarget() {
     val grp = DecBinGroup.gen10DegBins(f)
-    assertEquals(Percent( 0), grp.get(Target(new Angle(12, Angle.Hr), Angle.angleDeg0)).get.binValue)
-    assertEquals(Percent(70), grp.get(Target(new Angle(12, Angle.Hr), new Angle(70, Angle.Deg))).get.binValue)
+    assertEquals(Percent(0), grp.get(Target(new Angle(12, Angle.Hr), Angle.angleDeg0)).get.binValue)
+    assertEquals(
+      Percent(70),
+      grp.get(Target(new Angle(12, Angle.Hr), new Angle(70, Angle.Deg))).get.binValue
+    )
     assertEquals(None, grp.get(Target(new Angle(12, Angle.Hr), new Angle(-90, Angle.Deg))))
   }
 
   @Test def testMap() {
-    val grp = DecBinGroup.gen10DegBins(f)
+    val grp    = DecBinGroup.gen10DegBins(f)
     val grpInt = grp.map(_.value)
     assertEquals(None, grpInt.get(new Angle(-1, Angle.Deg)))
-    assertEquals(   0, grpInt.get(Angle.angleDeg0).get.binValue.doubleValue(), Double.MinPositiveValue)
-    assertEquals(  10, grpInt.get(new Angle(15, Angle.Deg)).get.binValue.doubleValue(), Double.MinPositiveValue)
+    assertEquals(0, grpInt.get(Angle.angleDeg0).get.binValue.doubleValue(), Double.MinPositiveValue)
+    assertEquals(
+      10,
+      grpInt.get(new Angle(15, Angle.Deg)).get.binValue.doubleValue(),
+      Double.MinPositiveValue
+    )
   }
 
   @Test def testGenFromBinValues() {
     val percs = List(Percent(0), Percent(25), Percent(100), Percent(50))
-    val grp = DecBinGroup(percs)
+    val grp   = DecBinGroup(percs)
 
     val expected = List(
-      DecBin(DecRange(-90, -45), Percent(  0)),
-      DecBin(DecRange(-45,   0), Percent( 25)),
-      DecBin(DecRange(  0,  45), Percent(100)),
-      DecBin(DecRange( 45,  90).inclusive, Percent(50))
+      DecBin(DecRange(-90, -45), Percent(0)),
+      DecBin(DecRange(-45, 0), Percent(25)),
+      DecBin(DecRange(0, 45), Percent(100)),
+      DecBin(DecRange(45, 90).inclusive, Percent(50))
     )
 
     assertEquals(expected, grp.bins)

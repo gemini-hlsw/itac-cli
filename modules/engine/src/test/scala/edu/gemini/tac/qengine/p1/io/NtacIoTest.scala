@@ -17,21 +17,29 @@ import Scalaz._
 object NtacIoTest {
   def hrs(h: Double): im.TimeAmount = im.TimeAmount(h, im.TimeUnit.HR)
 
-  val request2  = im.SubmissionRequest(hrs(2), hrs(2), None, None)
+  val request2 = im.SubmissionRequest(hrs(2), hrs(2), None, None)
 
-  val decision2 = some(im.SubmissionDecision(Right(im.SubmissionAccept(
-      "def@456.edu",
-      10.0,
-      hrs(2),
-      hrs(2),
-      poorWeather = false
-  ))))
+  val decision2 = some(
+    im.SubmissionDecision(
+      Right(
+        im.SubmissionAccept(
+          "def@456.edu",
+          10.0,
+          hrs(2),
+          hrs(2),
+          poorWeather = false
+        )
+      )
+    )
+  )
 
-  val response2 = some(im.SubmissionResponse(
-    im.SubmissionReceipt("zzz-123", System.currentTimeMillis(), None),
-    decision2,
-    None
-  ))
+  val response2 = some(
+    im.SubmissionResponse(
+      im.SubmissionReceipt("zzz-123", System.currentTimeMillis(), None),
+      decision2,
+      None
+    )
+  )
 }
 
 import NtacIoTest._
@@ -41,9 +49,15 @@ class NtacIoTest {
 
   val ntacIo = new NtacIo(TestPartners.AllMap)
 
-
   def fixtureNtac(p: ProposalFixture) = {
-    Ntac(AU, p.submissionId, Ntac.Rank(some(p.partnerRanking)), Time.hours(1.0), poorWeather = false, some(p.pi.lastName))
+    Ntac(
+      AU,
+      p.submissionId,
+      Ntac.Rank(some(p.partnerRanking)),
+      Time.hours(1.0),
+      poorWeather = false,
+      some(p.pi.lastName)
+    )
   }
 
   @Test def testNonJointQueue() {
@@ -55,7 +69,7 @@ class NtacIoTest {
   }
 
   @Test def testJointQueue() {
-    val sub2  = im.NgoSubmission(
+    val sub2 = im.NgoSubmission(
       request2,
       response2,
       im.NgoPartner.US,
@@ -68,9 +82,11 @@ class NtacIoTest {
     ntacIo.read(p.proposal) match {
       case Success(NonEmptyList(ntac1, ntac2)) =>
         assertEquals(fixtureNtac(p), ntac1)
-        val expected = IList(Ntac(US, "zzz-123", Ntac.Rank(some(10.0)), Time.hours(2.0), poorWeather = false))
+        val expected = IList(
+          Ntac(US, "zzz-123", Ntac.Rank(some(10.0)), Time.hours(2.0), poorWeather = false)
+        )
         assertEquals(expected, ntac2)
-      case _                                   => fail("Expected 2 NGOs.")
+      case _ => fail("Expected 2 NGOs.")
     }
   }
 
@@ -85,17 +101,18 @@ class NtacIoTest {
       override def queueSubs: Either[List[im.NgoSubmission], im.ExchangeSubmission] = Right(sub)
     }
     val SUBARU = Partner("SUBARU", "Subaru", 1.0, Set(Site.north))
-    val io = new NtacIo(TestPartners.AllMap + ("SUBARU" -> SUBARU))
+    val io     = new NtacIo(TestPartners.AllMap + ("SUBARU" -> SUBARU))
     io.read(p.proposal) match {
       case Success(NonEmptyList(ntac, _)) =>
-        val expected = Ntac(SUBARU, "zzz-123", Ntac.Rank(some(10.0)), Time.hours(2.0), poorWeather = false)
+        val expected =
+          Ntac(SUBARU, "zzz-123", Ntac.Rank(some(10.0)), Time.hours(2.0), poorWeather = false)
         assertEquals(expected, ntac)
-      case _                              => fail("Expected Subaru exchange")
+      case _ => fail("Expected Subaru exchange")
     }
   }
 
   @Test def testLargeProgram() {
-    val lpSub   = im.LargeProgramSubmission(request2, response2)
+    val lpSub = im.LargeProgramSubmission(request2, response2)
     val lpClass = im.LargeProgramClass(
       None,
       None,
@@ -111,9 +128,16 @@ class NtacIoTest {
     val io = new NtacIo(TestPartners.AllMap + ("LP" -> LP))
     io.read(p.proposal) match {
       case Success(NonEmptyList(ntac, _)) =>
-        val expected = Ntac(LP, "zzz-123", Ntac.Rank(some(10.0)), Time.hours(2.0), poorWeather = false, Some(p.pi.lastName))
+        val expected = Ntac(
+          LP,
+          "zzz-123",
+          Ntac.Rank(some(10.0)),
+          Time.hours(2.0),
+          poorWeather = false,
+          Some(p.pi.lastName)
+        )
         assertEquals(expected, ntac)
-      case _                              =>
+      case _ =>
         fail("Expected LP")
     }
   }
@@ -167,8 +191,9 @@ class NtacIoTest {
     val p  = new ProposalFixture
     val io = new NtacIo(TestPartners.AllMap - p.ngoPartner.name)
     io.read(p.proposal) match {
-      case Failure(NonEmptyList(msg, _)) => assertEquals(NtacIo.UNKNOWN_PARTNER_ID(p.ngoPartner.name), msg)
-      case _                             => fail("Expecting a failure")
+      case Failure(NonEmptyList(msg, _)) =>
+        assertEquals(NtacIo.UNKNOWN_PARTNER_ID(p.ngoPartner.name), msg)
+      case _ => fail("Expecting a failure")
     }
   }
 }

@@ -75,7 +75,7 @@ class QueueBandPercentagesTest {
   }
 
   @Test def testCategoryPercent() {
-    val qbp = QueueBandPercentages(5,15,25)
+    val qbp = QueueBandPercentages(5, 15, 25)
 
     val tests = List(
       (20, Category.B1_2),

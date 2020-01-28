@@ -7,21 +7,33 @@ import edu.gemini.tac.qengine.p1.QueueBand
  * Queue band percentages, the percent of total queue time to assign to each
  * band.  Defaults to 30/30/40.
  */
-final case class QueueBandPercentages(band1: Percent = Default.Band1Percent, band2: Percent = Default.Band2Percent, band3: Percent = Default.Band3Percent) {
+final case class QueueBandPercentages(
+  band1: Percent = Default.Band1Percent,
+  band2: Percent = Default.Band2Percent,
+  band3: Percent = Default.Band3Percent
+) {
+
   /**
    * Determines what percent of the total queue is designated for the
    * specified band.
    */
-  val bandPercent: Map[QueueBand, Percent] = (QueueBand.values zip List(band1, band2, band3, Percent.Hundred - (band1 + band2 + band3))).toMap
+  val bandPercent: Map[QueueBand, Percent] = (QueueBand.values zip List(
+    band1,
+    band2,
+    band3,
+    Percent.Hundred - (band1 + band2 + band3)
+  )).toMap
 
-  require(bandPercent.values forall { perc => (perc >= Percent.Zero) && (perc <= Percent.Hundred) })
+  require(bandPercent.values forall { perc =>
+    (perc >= Percent.Zero) && (perc <= Percent.Hundred)
+  })
 
   /**
    * The percentage of the queue associated with the given QueueBand Category.
    */
   def categoryPercent(cat: QueueBand.Category): Percent =
-    QueueBand.values.filter(_.categories.contains(cat)).foldLeft(Percent.Zero) {
-      (perc, band) => perc + bandPercent(band)
+    QueueBand.values.filter(_.categories.contains(cat)).foldLeft(Percent.Zero) { (perc, band) =>
+      perc + bandPercent(band)
     }
 
   override def toString: String =
@@ -35,5 +47,9 @@ object QueueBandPercentages {
   def apply() = new QueueBandPercentages()
 
   def apply(band1: Int, band2: Int, band3: Int) =
-    new QueueBandPercentages(Percent(band1.toDouble), Percent(band2.toDouble), Percent(band3.toDouble))
+    new QueueBandPercentages(
+      Percent(band1.toDouble),
+      Percent(band2.toDouble),
+      Percent(band3.toDouble)
+    )
 }

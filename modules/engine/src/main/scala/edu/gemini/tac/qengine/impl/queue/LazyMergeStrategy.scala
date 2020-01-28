@@ -11,8 +11,9 @@ import edu.gemini.tac.qengine.p1.{JointProposal, Proposal, JointProposalPart}
 object LazyMergeStrategy extends MergeStrategy {
 
   private class Span(
-          val nonJoint: List[(Proposal, Double)],
-          jointMap: Map[String, List[(Proposal, Double)]]) {
+    val nonJoint: List[(Proposal, Double)],
+    jointMap: Map[String, List[(Proposal, Double)]]
+  ) {
 
     def this() = this(Nil, Map.empty)
 
@@ -32,15 +33,17 @@ object LazyMergeStrategy extends MergeStrategy {
       lst.foldLeft(0.0)((time, tup) => time + awarded(tup._1))
 
     private def weightedHrs(lst: List[(Proposal, Double)]): Double =
-      lst.foldLeft(0.0) { (hrs, tup) => hrs + awarded(tup._1) * tup._2 }
+      lst.foldLeft(0.0) { (hrs, tup) =>
+        hrs + awarded(tup._1) * tup._2
+      }
 
     // Calculates the weighted index of the joint.
     private def jointIndex(lst: List[(Proposal, Double)]): Double =
       weightedHrs(lst) / totalHrs(lst)
 
     private def partList(props: List[Proposal]): List[JointProposalPart] =
-      props.foldLeft(List.empty[JointProposalPart]) {
-        (lst, prop) => lst ::: parts(prop)
+      props.foldLeft(List.empty[JointProposalPart]) { (lst, prop) =>
+        lst ::: parts(prop)
       }
 
     // Maps the list of proposal parts into a single Joint proposal with a
@@ -50,7 +53,9 @@ object LazyMergeStrategy extends MergeStrategy {
 
     // Converts the map id -> List[Part] into a map of id -> Joint
     private def mergeJoints: Map[String, (JointProposal, Double)] =
-      jointMap map { kv => (kv._1 -> mergeJoints(kv._2))}
+      jointMap map { kv =>
+        (kv._1 -> mergeJoints(kv._2))
+      }
 
     // Append the non joints to the merged joints.  By putting them in this
     // order we prefer the original places of the non joint proposals over the

@@ -26,25 +26,26 @@ class QueueFrameTest {
     Fixture.semesterRes(queue.queueTime(QueueBand.Category.Guaranteed))
 
   @Test def testEnqueueProposal() {
-    val qstate = Fixture.evenQueue(10.0) // 10 hrs per partner
-    val target20 = Target(15.0 * 20, 0.0) // 20 hrs, 0 deg
+    val qstate   = Fixture.evenQueue(10.0) // 10 hrs per partner
+    val target20 = Target(15.0 * 20, 0.0)  // 20 hrs, 0 deg
 
     // 30 minute proposal
-    val propUS1 = Fixture.mkProp(Ntac(US, "US1", 1, Time.hours(0.5)),
+    val propUS1 = Fixture.mkProp(
+      Ntac(US, "US1", 1, Time.hours(0.5)),
       (target20, Fixture.badCC, Time.hours(0.5))
     )
 
     // Block iterator with just one block for the proposal/obs
-    val propLists: Map[Partner, List[Proposal]] = Map(US -> List(propUS1))
-    val blit = BlockIterator(partners, Fixture.genQuanta(1.0), List(US), propLists, _.obsList)
+    val propLists: Map[Partner, List[Proposal]]     = Map(US -> List(propUS1))
+    val blit                                        = BlockIterator(partners, Fixture.genQuanta(1.0), List(US), propLists, _.obsList)
     val activeList: (Proposal) => List[Observation] = _.obsList
 
     // Create the frame
-    val res = semesterRes(qstate)
+    val res    = semesterRes(qstate)
     val frame1 = new QueueFrame(qstate, blit, res)
 
     // Produce the next frame
-    val next2 = frame1.next(activeList).right.get
+    val next2  = frame1.next(activeList).right.get
     val frame2 = next2.frame
 
     // Should enqueue the the proposal.
@@ -53,7 +54,7 @@ class QueueFrameTest {
 
     next2.accept match {
       case Some(msg: AcceptMessage) => assertEquals(propUS1, msg.prop)
-      case _ => fail()
+      case _                        => fail()
     }
 
     // Should update the RA bin.
@@ -65,58 +66,62 @@ class QueueFrameTest {
   }
 
   @Test def testPartnerTimeOverAllocation() {
-    val qstate = Fixture.evenQueue(1.0, None) // 1 hrs per partner
-    val target20 = Target(15.0 * 20, 0.0) // 20 hrs, 0 deg
+    val qstate   = Fixture.evenQueue(1.0, None) // 1 hrs per partner
+    val target20 = Target(15.0 * 20, 0.0)       // 20 hrs, 0 deg
 
     // 3 45 minute proposals
 
     // propUS1 is scheduled because it starts and ends before the partner limit
-    val propUS1 = Fixture.mkProp(Ntac(US, "US1", 1, Time.hours(0.75)),
+    val propUS1 = Fixture.mkProp(
+      Ntac(US, "US1", 1, Time.hours(0.75)),
       (target20, Fixture.badCC, Time.hours(0.75))
     )
 
     // propUS2 is scheduled because it starts before the partner limit (though
     // it takes more time than the limit permits).
-    val propUS2 = Fixture.mkProp(Ntac(US, "US2", 2, Time.hours(0.75)),
+    val propUS2 = Fixture.mkProp(
+      Ntac(US, "US2", 2, Time.hours(0.75)),
       (target20, Fixture.badCC, Time.hours(0.75))
     )
 
     // propUS3 is not scheduled because it starts after the partner limit is
     // reached
-    val propUS3 = Fixture.mkProp(Ntac(US, "US3", 3, Time.hours(0.75)),
+    val propUS3 = Fixture.mkProp(
+      Ntac(US, "US3", 3, Time.hours(0.75)),
       (target20, Fixture.badCC, Time.hours(0.75))
     )
 
     // Block iterator with block to cover the obs in each proposal
     val propLists: Map[Partner, List[Proposal]] = Map(US -> List(propUS1, propUS2, propUS3))
-    val blit = BlockIterator(partners, Fixture.genQuanta(1.0), List(US, US, US, US), propLists, _.obsList)
+    val blit =
+      BlockIterator(partners, Fixture.genQuanta(1.0), List(US, US, US, US), propLists, _.obsList)
 
     // Create the frame
-    val res = semesterRes(qstate)
+    val res    = semesterRes(qstate)
     val frame1 = new QueueFrame(qstate, blit, res)
 
     // Schedule the first two proposals.  The first proposal goes in the first
     // block.  The second proposal is split over two blocks because the time
     // quanta is 1 hour.  So, 3 blocks to schedule the two proposals
-    val next2 = frame1.next(_.obsList).right.get
+    val next2  = frame1.next(_.obsList).right.get
     val frame2 = next2.frame
     next2.accept match {
       case Some(msg: AcceptMessage) => assertEquals(propUS1, msg.prop)
-      case _ => fail()
+      case _                        => fail()
     }
 
-    val next3 = frame2.next(_.obsList).right.get
+    val next3  = frame2.next(_.obsList).right.get
     val frame3 = next3.frame
     next3.accept match {
       case None => // ok nothing accepted or rejected here
-      case _ => fail()
+      case _    => fail()
     }
 
-    val next4 = frame3.next(_.obsList).right.get
+    val next4  = frame3.next(_.obsList).right.get
     val frame4 = next4.frame
     next4.accept match {
       case Some(msg: AcceptMessage) => assertEquals(propUS2, msg.prop)
-      case _ => fail()
+      case _                        => fail()
     }
 
     // Should enqueue the the two proposals.
@@ -132,20 +137,21 @@ class QueueFrameTest {
     // partner has already used its allocation.
     frame4.next(_.obsList) match {
       case Left(msg: RejectPartnerOverAllocation) => assertEquals(propUS3, msg.prop)
-      case _ => fail()
+      case _                                      => fail()
     }
   }
 
   // Reject a longer proposal because it requires too much time, but accept
   // a shorter subsequent proposal.
   @Test def testOverAllocation() {
-    val qstate = Fixture.evenQueue(1.0, None) // 1 hrs per partner
-    val target20 = Target(15.0 * 20, 0.0) // 20 hrs, 0 deg
+    val qstate   = Fixture.evenQueue(1.0, None) // 1 hrs per partner
+    val target20 = Target(15.0 * 20, 0.0)       // 20 hrs, 0 deg
 
     // 3 45 minute proposals
 
     // propUS1 is scheduled because it starts and ends before the partner limit
-    val propUS1 = Fixture.mkProp(Ntac(US, "US1", 1, Time.hours(0.75)),
+    val propUS1 = Fixture.mkProp(
+      Ntac(US, "US1", 1, Time.hours(0.75)),
       (target20, Fixture.badCC, Time.hours(0.75))
     )
 
@@ -154,22 +160,24 @@ class QueueFrameTest {
     // 1 hour per partner in the queue, 0.75 hours used, + a bit to take it over
     // the limit
     val hrs = (1.0 * partners.length) - 0.75 + 0.0001
-    val propUS2 = Fixture.mkProp(Ntac(US, "US2", 2, Time.hours(hrs)),
+    val propUS2 = Fixture.mkProp(
+      Ntac(US, "US2", 2, Time.hours(hrs)),
       (target20, Fixture.badCC, Time.hours(hrs))
     )
 
     // propUS3 is scheduled even though it goes over the partner limit because
     // it starts before the partner limit is reached.
-    val propUS3 = Fixture.mkProp(Ntac(US, "US3", 3, Time.hours(0.75)),
+    val propUS3 = Fixture.mkProp(
+      Ntac(US, "US3", 3, Time.hours(0.75)),
       (target20, Fixture.badCC, Time.hours(0.75))
     )
 
     // Block iterator with block to cover the obs in each proposal
     val propLists: Map[Partner, List[Proposal]] = Map(US -> List(propUS1, propUS2, propUS3))
-    val blit = BlockIterator(partners, Fixture.genQuanta(1.0), List(US, US), propLists, _.obsList)
+    val blit                                    = BlockIterator(partners, Fixture.genQuanta(1.0), List(US, US), propLists, _.obsList)
 
     // Create the frame
-    val res = semesterRes(qstate)
+    val res    = semesterRes(qstate)
     val frame1 = new QueueFrame(qstate, blit, res)
 
     // Schedule the first proposal.
@@ -182,42 +190,47 @@ class QueueFrameTest {
     // partner has already used its allocation.
     frame2.next(_.obsList) match {
       case Left(msg: RejectOverAllocation) => assertEquals(propUS2, msg.prop)
-      case _ => fail()
+      case _                               => fail()
     }
 
     // Needs 15 minutes of the first quanta and 30 of the second to schedule
     // US3
-    val frame3 = frame2.skip(_.obsList).next(_.obsList).right.get.frame.next(_.obsList).right.get.frame
+    val frame3 =
+      frame2.skip(_.obsList).next(_.obsList).right.get.frame.next(_.obsList).right.get.frame
     assertEquals(propUS3, frame3.queue.toList.last)
   }
 
   @Test def testSkip() {
-    val qstate = Fixture.evenQueue(1.0, None) // 1 hrs per partner
-    val target20 = Target(15.0 * 20, 0.0) // 20 hrs, 0 deg
+    val qstate   = Fixture.evenQueue(1.0, None) // 1 hrs per partner
+    val target20 = Target(15.0 * 20, 0.0)       // 20 hrs, 0 deg
 
     // 3 45 minute proposals
 
     // propUS1 is scheduled because it starts and ends before the partner limit
-    val propUS1 = Fixture.mkProp(Ntac(US, "US1", 1, Time.hours(0.75)),
+    val propUS1 = Fixture.mkProp(
+      Ntac(US, "US1", 1, Time.hours(0.75)),
       (target20, Fixture.badCC, Time.hours(0.75))
     )
 
     // propUS2 is skipped
-    val propUS2 = Fixture.mkProp(Ntac(US, "US2", 2, Time.hours(0.75)),
+    val propUS2 = Fixture.mkProp(
+      Ntac(US, "US2", 2, Time.hours(0.75)),
       (target20, Fixture.badCC, Time.hours(0.75))
     )
 
     // propUS3 is scheduled because it starts before the partner limit (though
     // it takes more time than the limit permits).
-    val propUS3 = Fixture.mkProp(Ntac(US, "US3", 3, Time.hours(0.75)),
+    val propUS3 = Fixture.mkProp(
+      Ntac(US, "US3", 3, Time.hours(0.75)),
       (target20, Fixture.badCC, Time.hours(0.75))
     )
 
     val propLists: Map[Partner, List[Proposal]] = Map(US -> List(propUS1, propUS2, propUS3))
-    val blit = BlockIterator(partners, Fixture.genQuanta(1.0), List(US, US, US), propLists, _.obsList)
+    val blit =
+      BlockIterator(partners, Fixture.genQuanta(1.0), List(US, US, US), propLists, _.obsList)
 
     // Create the frame
-    val res = semesterRes(qstate)
+    val res    = semesterRes(qstate)
     val frame1 = new QueueFrame(qstate, blit, res)
 
     // We're at the beginning of the first proposal.
@@ -253,42 +266,43 @@ class QueueFrameTest {
   }
 
   @Test def testRejectTarget() {
-    val qstate = Fixture.evenQueue(2.0) // 2 hrs per partner
+    val qstate   = Fixture.evenQueue(2.0) // 2 hrs per partner
     val target20 = Target(15.0 * 1, 45.0) // 1 hrs, 45 deg
 
     // propUS1 is not scheduled because the RA bin for 1 hr contains only
     // 30 min in dec 45-90
-    val propUS1 = Fixture.mkProp(Ntac(US, "US1", 1, Time.hours(0.75)),
+    val propUS1 = Fixture.mkProp(
+      Ntac(US, "US1", 1, Time.hours(0.75)),
       (target20, Fixture.badCC, Time.hours(0.75))
     )
 
     val propLists: Map[Partner, List[Proposal]] = Map(US -> List(propUS1))
-    val blit = BlockIterator(partners, Fixture.genQuanta(1.0), List(US), propLists, _.obsList)
+    val blit                                    = BlockIterator(partners, Fixture.genQuanta(1.0), List(US), propLists, _.obsList)
 
     // Create the frame
-    val res = semesterRes(qstate)
+    val res    = semesterRes(qstate)
     val frame1 = new QueueFrame(qstate, blit, res)
 
     // Fail because the target cannot be accommodated.
     frame1.next(_.obsList) match {
       case Left(msg: RejectTarget) => assertEquals(propUS1, msg.prop)
-      case _ => fail()
+      case _                       => fail()
     }
   }
 
   @Test def testToo() {
-    val qstate = Fixture.evenQueue(23.0, None) // 23 hrs per partner
-    val target0 = Target(0.0, 0.0) // not considered for ToO
+    val qstate  = Fixture.evenQueue(23.0, None) // 23 hrs per partner
+    val target0 = Target(0.0, 0.0)              // not considered for ToO
 
     // TooBlocksTest already handles testing the split of time across blocks.
     // Here we just want to verify that it is applied.
-    val propUS1 = Fixture.mkProp(Ntac(US, "US1", 1, Time.hours(23.0)),
-      (target0, Fixture.badCC, Time.hours(23.0))
-    ).copy(too = Too.standard)
+    val propUS1 = Fixture
+      .mkProp(Ntac(US, "US1", 1, Time.hours(23.0)), (target0, Fixture.badCC, Time.hours(23.0)))
+      .copy(too = Too.standard)
 
     // Block iterator with just one block for the proposal/obs
     val propLists: Map[Partner, List[Proposal]] = Map(US -> List(propUS1))
-    val blit = BlockIterator(partners, Fixture.genQuanta(23.0), List(US), propLists, _.obsList)
+    val blit                                    = BlockIterator(partners, Fixture.genQuanta(23.0), List(US), propLists, _.obsList)
 
     // Create the frame
     val res = semesterRes(qstate)
@@ -303,61 +317,66 @@ class QueueFrameTest {
         val ra0 = next.frame.res.ra.grp.bins.head
         assertEquals(Time.Zero, ra0.remaining)
 
-        next.frame.res.ra.grp.bins.tail.foreach(ra => assertEquals(ra.limit - Time.hours(1), ra.remaining))
+        next.frame.res.ra.grp.bins.tail.foreach(ra =>
+          assertEquals(ra.limit - Time.hours(1), ra.remaining)
+        )
       }
       case _ => fail()
     }
   }
 
   @Test def testTooReject() {
-    val qstate = Fixture.evenQueue(277.0, None)
+    val qstate  = Fixture.evenQueue(277.0, None)
     val target0 = Target(0.0, 0.0) // not considered for ToO
 
     // TooBlocksTest already handles testing the split of time across blocks.
     // Here we just want to verify that it is applied.
-    val propUS1 = Fixture.mkProp(Ntac(US, "US1", 1, Time.hours(277.0)),
-      (target0, Fixture.badCC, Time.hours(277.0))
-    ).copy(too = Too.standard)
+    val propUS1 = Fixture
+      .mkProp(Ntac(US, "US1", 1, Time.hours(277.0)), (target0, Fixture.badCC, Time.hours(277.0)))
+      .copy(too = Too.standard)
 
     // Block iterator with just one block for the proposal/obs
     val propLists: Map[Partner, List[Proposal]] = Map(US -> List(propUS1))
-    val blit = BlockIterator(partners, Fixture.genQuanta(277.0), List(US), propLists, _.obsList)
+    val blit                                    = BlockIterator(partners, Fixture.genQuanta(277.0), List(US), propLists, _.obsList)
 
     // Create the frame
     val res = semesterRes(qstate)
     new QueueFrame(qstate, blit, res).next(_.obsList) match {
       case Left(msg: RejectToo) => assertEquals(propUS1, msg.prop)
-      case _ => fail()
+      case _                    => fail()
     }
   }
 
   @Test def testRestrictedRecord() {
-    val qstate = Fixture.evenQueue(10.0) // 10 hrs per partner
-    val target20 = Target(15.0 * 20, 0.0) // 20 hrs, 0 deg
+    val qstate   = Fixture.evenQueue(10.0) // 10 hrs per partner
+    val target20 = Target(15.0 * 20, 0.0)  // 20 hrs, 0 deg
 
     // LGS observation with good WV
-    val conds = ObsConditions(CloudCover.CCAny, ImageQuality.IQAny, SkyBackground.SBAny, WaterVapor.WV20)
+    val conds =
+      ObsConditions(CloudCover.CCAny, ImageQuality.IQAny, SkyBackground.SBAny, WaterVapor.WV20)
     val obs20 = Observation(target20, conds, Time.hours(10), true)
 
-    val propUS1 = Fixture.mkProp(Ntac(US, "US1", 1, Time.hours(0.5))).copy(
-      obsList = List(obs20)
-    )
+    val propUS1 = Fixture
+      .mkProp(Ntac(US, "US1", 1, Time.hours(0.5)))
+      .copy(
+        obsList = List(obs20)
+      )
 
     // Block iterator with just one block for the proposal/obs
     val propLists: Map[Partner, List[Proposal]] = Map(US -> List(propUS1))
-    val blit = BlockIterator(partners, Fixture.genQuanta(1.0), List(US), propLists, _.obsList)
+    val blit                                    = BlockIterator(partners, Fixture.genQuanta(1.0), List(US), propLists, _.obsList)
 
     // Create the frame
-    val res = Fixture.semesterRes(Time.hours(200))
+    val res    = Fixture.semesterRes(Time.hours(200))
     val frame1 = new QueueFrame(qstate, blit, res)
 
     frame1.next(_.obsList) match {
       case Right(next) => {
         val restrictedGrp = next.frame.res.time
-        val resWv = restrictedGrp.lst.head
-        val resLgs = restrictedGrp.lst.tail.head
+        val resWv         = restrictedGrp.lst.head
+        val resLgs        = restrictedGrp.lst.tail.head
 
-        assertEquals(Time.hours(99.5), resWv.remaining) // 200 * 50% - 0.5
+        assertEquals(Time.hours(99.5), resWv.remaining)   // 200 * 50% - 0.5
         assertEquals(Time.hours(199.5), resLgs.remaining) // 200 - 0.5
       }
       case _ => fail()
@@ -365,23 +384,26 @@ class QueueFrameTest {
   }
 
   @Test def testWvReject() {
-    val qstate = Fixture.evenQueue(10.0) // 10 hrs per partner
-    val target20 = Target(15.0 * 20, 0.0) // 20 hrs, 0 deg
+    val qstate   = Fixture.evenQueue(10.0) // 10 hrs per partner
+    val target20 = Target(15.0 * 20, 0.0)  // 20 hrs, 0 deg
 
-    val conds = ObsConditions(CloudCover.CCAny, ImageQuality.IQAny, SkyBackground.SBAny, WaterVapor.WV20)
+    val conds =
+      ObsConditions(CloudCover.CCAny, ImageQuality.IQAny, SkyBackground.SBAny, WaterVapor.WV20)
 
     // 30 minute proposal
     val obs20 = Observation(target20, conds, Time.hours(10))
-    val propUS1 = Fixture.mkProp(Ntac(US, "US1", 1, Time.hours(0.5))).copy(
-      obsList = List(obs20)
-    )
+    val propUS1 = Fixture
+      .mkProp(Ntac(US, "US1", 1, Time.hours(0.5)))
+      .copy(
+        obsList = List(obs20)
+      )
 
     // Block iterator with just one block for the proposal/obs
     val propLists: Map[Partner, List[Proposal]] = Map(US -> List(propUS1))
-    val blit = BlockIterator(partners, Fixture.genQuanta(1.0), List(US), propLists, _.obsList)
+    val blit                                    = BlockIterator(partners, Fixture.genQuanta(1.0), List(US), propLists, _.obsList)
 
     // Create the frame
-    val res = Fixture.semesterRes(Time.minutes(1)) // 50% of 1 minute for good WV
+    val res    = Fixture.semesterRes(Time.minutes(1)) // 50% of 1 minute for good WV
     val frame1 = new QueueFrame(qstate, blit, res)
 
     frame1.next(_.obsList) match {
@@ -392,21 +414,23 @@ class QueueFrameTest {
   }
 
   @Test def testLgsReject() {
-    val qstate = Fixture.evenQueue(10.0) // 10 hrs per partner
-    val target20 = Target(15.0 * 20, 0.0) // 20 hrs, 0 deg
+    val qstate   = Fixture.evenQueue(10.0) // 10 hrs per partner
+    val target20 = Target(15.0 * 20, 0.0)  // 20 hrs, 0 deg
 
     // 30 minute proposal
     val obslgs = Observation(target20, ObsConditions.AnyConditions, Time.hours(10), true) // LGS
-    val propUS1 = Fixture.mkProp(Ntac(US, "US1", 1, Time.hours(0.5))).copy(
-      obsList = List(obslgs)
-    )
+    val propUS1 = Fixture
+      .mkProp(Ntac(US, "US1", 1, Time.hours(0.5)))
+      .copy(
+        obsList = List(obslgs)
+      )
 
     // Block iterator with just one block for the proposal/obs
     val propLists: Map[Partner, List[Proposal]] = Map(US -> List(propUS1))
-    val blit = BlockIterator(partners, Fixture.genQuanta(1.0), List(US), propLists, _.obsList)
+    val blit                                    = BlockIterator(partners, Fixture.genQuanta(1.0), List(US), propLists, _.obsList)
 
     // Create the frame
-    val res = Fixture.semesterRes(Time.minutes(1)) // 1 minute for LGS
+    val res    = Fixture.semesterRes(Time.minutes(1)) // 1 minute for LGS
     val frame1 = new QueueFrame(qstate, blit, res)
 
     frame1.next(_.obsList) match {

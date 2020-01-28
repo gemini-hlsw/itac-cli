@@ -16,7 +16,8 @@ import scalaz._
 object ObservationIoTest {
   val when = System.currentTimeMillis()
 
-  val nifsAo  = im.NifsBlueprintAo(im.AltairLGS(pwfs1 = true), im.NifsOccultingDisk.OD_NONE, im.NifsDisperser.Z)
+  val nifsAo =
+    im.NifsBlueprintAo(im.AltairLGS(pwfs1 = true), im.NifsOccultingDisk.OD_NONE, im.NifsDisperser.Z)
   val twoHour = im.TimeAmount(2.0, im.TimeUnit.HR)
 }
 
@@ -29,14 +30,14 @@ class ObservationIoTest {
     val t = ObservationIo.target(p.siderealTarget, when)
 
     assertTrue(t.name.contains("BiffStar"))
-    assertEquals(152.8000000, t.ra.mag,  0.000001)
+    assertEquals(152.8000000, t.ra.mag, 0.000001)
     assertEquals(-20.5111111, t.dec.mag, 0.000001)
   }
 
   @Test def readTooTarget(): Unit = {
     val imt = im.TooTarget.empty
     val t   = ObservationIo.target(imt, when)
-    assertEquals(0, t.ra.mag,  0.000001)
+    assertEquals(0, t.ra.mag, 0.000001)
     assertEquals(0, t.dec.mag, 0.000001)
   }
 
@@ -49,10 +50,10 @@ class ObservationIoTest {
       m.WaterVapor.wv100
     )
     val c = ObservationIo.conditions(imc)
-    assertEquals(CloudCover.CC50,    c.cc)
-    assertEquals(ImageQuality.IQ70,  c.iq)
+    assertEquals(CloudCover.CC50, c.cc)
+    assertEquals(ImageQuality.IQ70, c.iq)
     assertEquals(SkyBackground.SB80, c.sb)
-    assertEquals(WaterVapor.WVAny,   c.wv)
+    assertEquals(WaterVapor.WVAny, c.wv)
   }
 
   @Test def readTime(): Unit = {
@@ -70,8 +71,9 @@ class ObservationIoTest {
     }
 
     ObservationIo.time(p.observation) match {
-      case Failure(NonEmptyList(msg, _)) => assertEquals(s"Negative observation amount: ${minusOne.hours} hours", msg)
-      case _                             => fail("Expected failure, negative time")
+      case Failure(NonEmptyList(msg, _)) =>
+        assertEquals(s"Negative observation amount: ${minusOne.hours} hours", msg)
+      case _ => fail("Expected failure, negative time")
     }
   }
 
@@ -168,8 +170,11 @@ class ObservationIoTest {
 
     ObservationIo.read(p.observation, when) match {
       case Failure(NonEmptyList(msg0, msg1)) =>
-        assertEquals(Set(ObservationIo.MISSING_CONDITIONS, ObservationIo.MISSING_TIME), Set(msg0, msg1.headOption.get))
-      case _                                 => fail("Expected missing time and conditions")
+        assertEquals(
+          Set(ObservationIo.MISSING_CONDITIONS, ObservationIo.MISSING_TIME),
+          Set(msg0, msg1.headOption.get)
+        )
+      case _ => fail("Expected missing time and conditions")
     }
   }
 
@@ -187,11 +192,13 @@ class ObservationIoTest {
   @Test def readOneObservation(): Unit = {
     ObservationIo.readAllAndGroup((new ProposalFixture).proposal, when) match {
       case Success(NonEmptyList((Site.south, B1_2, NonEmptyList(obs, _)), _)) => // ok
-      case _ => fail("Expected a single GS Band1/2 observation")
+      case _                                                                  => fail("Expected a single GS Band1/2 observation")
     }
   }
 
-  private def mapObsGroups(grps: GroupedObservations): Map[(Site, QueueBand.Category), NonEmptyList[Observation]] =
+  private def mapObsGroups(
+    grps: GroupedObservations
+  ): Map[(Site, QueueBand.Category), NonEmptyList[Observation]] =
     grps.list.toList.map { case (s, c, os) => (s, c) -> os }.toMap
 
   @Test def readMultiSiteObservations(): Unit = {
@@ -208,12 +215,12 @@ class ObservationIoTest {
 
     ObservationIo.readAllAndGroup(p.proposal, when) match {
       case Success(nel) =>
-        val m = mapObsGroups(nel)
+        val m   = mapObsGroups(nel)
         val os1 = m((Site.south, B1_2))
         val os2 = m((Site.north, B1_2))
         assertEquals(2, m.size)
         assertEquals(false, os1.head.lgs)
-        assertEquals(true,  os2.head.lgs)
+        assertEquals(true, os2.head.lgs)
         assertEquals(1, os1.size)
         assertEquals(1, os2.size)
       case _ => fail("Expected two groups")
@@ -234,7 +241,7 @@ class ObservationIoTest {
 
     ObservationIo.readAllAndGroup(p.proposal, when) match {
       case Success(nel) =>
-        val m = mapObsGroups(nel)
+        val m   = mapObsGroups(nel)
         val os1 = m((Site.south, B1_2))
         val os2 = m((Site.south, B3))
         assertEquals(2, m.size)
@@ -275,7 +282,7 @@ class ObservationIoTest {
 
     ObservationIo.readAllAndGroup(p.proposal, when) match {
       case Success(nel) =>
-        val m = mapObsGroups(nel)
+        val m   = mapObsGroups(nel)
         val os1 = m((Site.south, B1_2))
         val os2 = m((Site.south, B3))
         val os3 = m((Site.north, B1_2))

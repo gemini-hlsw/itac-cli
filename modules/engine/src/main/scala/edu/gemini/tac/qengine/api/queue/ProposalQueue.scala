@@ -18,7 +18,6 @@ trait ProposalQueue {
   /** Root queue time information. */
   def queueTime: QueueTime
 
-
   /** Gets the amount of queue time used. */
   def usedTime: Time
 
@@ -37,7 +36,7 @@ trait ProposalQueue {
    * Gets amount of time used by the proposals associated with the given
    * queue band for a particular partner.
    */
-  def usedTime(band: QueueBand, p: Partner): Time  =
+  def usedTime(band: QueueBand, p: Partner): Time =
     Proposal.sumTimes(Proposal.expandJoints(bandedQueue(band)).filter(_.ntac.partner == p))
 
   /**
@@ -48,7 +47,6 @@ trait ProposalQueue {
     val props = bandedQueue.filterKeys(_.categories.contains(cat)).values.flatten.toList
     Proposal.sumTimes(Proposal.expandJoints(props).filter(_.ntac.partner == p))
   }
-
 
   /** Gets the amount of  queue time that is remaining. */
   def remainingTime: Time = queueTime.full - usedTime
@@ -82,7 +80,6 @@ trait ProposalQueue {
    */
   def remainingTime(c: Category, p: Partner): Time =
     queueTime(c, p) - usedTime(c, p)
-
 
   /**
    * Creates a BoundedTime object containing the total available queue time

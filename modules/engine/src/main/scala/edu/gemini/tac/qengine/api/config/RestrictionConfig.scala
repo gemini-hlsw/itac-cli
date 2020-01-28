@@ -7,9 +7,10 @@ import edu.gemini.tac.qengine.util.{Time, Percent}
  * percentage of total queue time or an absolute time.
  */
 case class RestrictionConfig(
-     relativeTimeRestrictions: List[TimeRestriction[Percent]] = Default.RelativeTimeRestrictions,
-     absoluteTimeRestrictions: List[TimeRestriction[Time]]    = Default.AbsoluteTimeRestrictions,
-     bandRestrictions:         List[BandRestriction]          = Default.BandRestrictions) {
+  relativeTimeRestrictions: List[TimeRestriction[Percent]] = Default.RelativeTimeRestrictions,
+  absoluteTimeRestrictions: List[TimeRestriction[Time]] = Default.AbsoluteTimeRestrictions,
+  bandRestrictions: List[BandRestriction] = Default.BandRestrictions
+) {
 
   /**
    * Maps the Percent bins and the Time bins to a common type using two

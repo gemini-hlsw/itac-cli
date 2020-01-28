@@ -10,11 +10,18 @@ import edu.gemini.tac.qengine.util.Time
 object RejectRestrictedBin extends TimeBinMessageFormatter {
   val name = "Restricted Bin Limit"
 
-  private val reasonTemplate = "%s: %s"
+  private val reasonTemplate          = "%s: %s"
   def reason(binName: String): String = reasonTemplate.format(name, binName)
 }
 
-final case class RejectRestrictedBin(prop: Proposal, obs: Observation, band: QueueBand, name: String, cur: Time, max: Time) extends RejectMessage {
+final case class RejectRestrictedBin(
+  prop: Proposal,
+  obs: Observation,
+  band: QueueBand,
+  name: String,
+  cur: Time,
+  max: Time
+) extends RejectMessage {
   def reason: String = RejectRestrictedBin.reason(name)
   def detail: String = RejectRestrictedBin.detail(prop, obs, band, cur, max)
 }

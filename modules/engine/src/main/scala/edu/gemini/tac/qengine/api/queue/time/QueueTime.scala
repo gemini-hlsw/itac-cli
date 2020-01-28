@@ -1,6 +1,5 @@
 package edu.gemini.tac.qengine.api.queue.time
 
-
 import edu.gemini.tac.qengine.api.config.QueueBandPercentages
 import edu.gemini.tac.qengine.ctx.{Partner, Site}
 import edu.gemini.tac.qengine.p1.QueueBand
@@ -14,17 +13,21 @@ object QueueTime {
 
   val DefaultPartnerOverfillAllowance = Percent(5)
 
-  def apply(s: Site, m: Map[Partner, Time], partners: List[Partner]): QueueTime = new QueueTime(s, PartnerTime(partners, m))
+  def apply(s: Site, m: Map[Partner, Time], partners: List[Partner]): QueueTime =
+    new QueueTime(s, PartnerTime(partners, m))
 }
 
 /**
  * Record of queue times for each partner.  Provides access to the total queue
  * time and the size of the time quantum for each partner.
  */
-class QueueTime(site: Site,
-                val fullPartnerTime: PartnerTime,
-                val bandPercentages: QueueBandPercentages = QueueBandPercentages(),
-                val partnerOverfillAllowance: Option[Percent] = Some(QueueTime.DefaultPartnerOverfillAllowance)) {
+class QueueTime(
+  site: Site,
+  val fullPartnerTime: PartnerTime,
+  val bandPercentages: QueueBandPercentages = QueueBandPercentages(),
+  val partnerOverfillAllowance: Option[Percent] = Some(QueueTime.DefaultPartnerOverfillAllowance)
+) {
+
   /**
    * Total time for queue observing including guaranteed time and poor weather.
    */
@@ -46,8 +49,7 @@ class QueueTime(site: Site,
   def partnerTime(band: QueueBand): PartnerTime = fullPartnerTime * bandPercentages(band)
 
   /** Calculates the PartnerTime for the given queue category. */
-  def partnerTime(cat: Category): PartnerTime   = fullPartnerTime * bandPercentages(cat)
-
+  def partnerTime(cat: Category): PartnerTime = fullPartnerTime * bandPercentages(cat)
 
   /**
    * Time amount at which each particular queue band is defined to start and
@@ -58,9 +60,9 @@ class QueueTime(site: Site,
   def range(band: QueueBand): (Time, Time) =
     band match {
       case QBand1 => (Time.ZeroHours, band1End)
-      case QBand2 => (band1End,       band2End)
-      case QBand3 => (band2End,       band3End)
-      case QBand4 => (band3End,       band4End)
+      case QBand2 => (band1End, band2End)
+      case QBand3 => (band2End, band3End)
+      case QBand4 => (band3End, band4End)
     }
 
   /**
@@ -71,10 +73,10 @@ class QueueTime(site: Site,
    */
   def band(time: Time): QueueBand =
     time match {
-      case u if u < band1End  => QBand1
-      case u if u < band2End  => QBand2
-      case u if u < band3End  => QBand3
-      case _                  => QBand4
+      case u if u < band1End => QBand1
+      case u if u < band2End => QBand2
+      case u if u < band3End => QBand3
+      case _                 => QBand4
     }
 
   /**
@@ -112,7 +114,6 @@ class QueueTime(site: Site,
   def apply(cat: Category, p: Partner): Time =
     fullPartnerTime(p) * bandPercentages(cat)
 
-
   /*
   Calculates the quanta appropriate for a partner over the course of a 100-partner "cycle"
   This is not precisely equal to partner % * CycleTimeConstant because the {@link PartnerTimeCalc}
@@ -120,10 +121,12 @@ class QueueTime(site: Site,
    */
   private def quantum(p: Partner, t: Time): Time = {
     val fullQueueTimeForThisPartnerTimesOneHundred = full.toHours.value * p.percentAt(site)
-    val d1 = t.toHours.value * QueueTime.CycleTimeConstant
-    val r = if (fullQueueTimeForThisPartnerTimesOneHundred == 0) Time.ZeroHours else {
-      Time.hours(d1/fullQueueTimeForThisPartnerTimesOneHundred)
-    }
+    val d1                                         = t.toHours.value * QueueTime.CycleTimeConstant
+    val r =
+      if (fullQueueTimeForThisPartnerTimesOneHundred == 0) Time.ZeroHours
+      else {
+        Time.hours(d1 / fullQueueTimeForThisPartnerTimesOneHundred)
+      }
     // println(s">> quantum: ${p.id} -> $d1 / $fullQueueTimeForThisPartnerTimesOneHundred = $r")
     r
   }

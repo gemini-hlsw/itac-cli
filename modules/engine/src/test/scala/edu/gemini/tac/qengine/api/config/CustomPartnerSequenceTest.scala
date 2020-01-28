@@ -4,7 +4,6 @@ import edu.gemini.tac.qengine.ctx.{Partner, Site}
 import org.junit.Test
 import org.junit.Assert._
 
-
 class CustomPartnerSequenceTest {
   @Test
   def doesAdhereToSequenceProportions(): Unit = {
@@ -14,7 +13,7 @@ class CustomPartnerSequenceTest {
       Partner("B", "B", 32.0, Set(site)),
       Partner("C", "C", 26.0, Set(site))
     )
-    val cps = new CustomPartnerSequence(ps, site)
+    val cps     = new CustomPartnerSequence(ps, site)
     val results = cps.sequence.take(990).toList
     assertEquals(List("A", "B", "C", "A", "B", "C"), results.take(6).map(_.id))
     val proportions = results.groupBy(_.id).mapValues(_.size)
@@ -31,7 +30,8 @@ class CustomPartnerSequenceTest {
       Partner("B", "B", 10.0, Set(site)),
       Partner("C", "C", 10.0, Set(site))
     )
-    val cps = new CustomPartnerSequence(ps, site, "foo", Some(new ProportionalPartnerSequence(ps, site)))
+    val cps =
+      new CustomPartnerSequence(ps, site, "foo", Some(new ProportionalPartnerSequence(ps, site)))
     val results = cps.sequence.take(10000).toList
     assertEquals(List("A", "B", "C", "A", "C", "A"), results.take(6).map(_.id))
     val proportions = results.groupBy(_.id).mapValues(_.size)
@@ -42,7 +42,7 @@ class CustomPartnerSequenceTest {
 
   @Test
   def parseCsvSuccess(): Unit = {
-    val csv = "A, B,A, C,D,E, F"
+    val csv  = "A, B,A, C,D,E, F"
     val site = Site.north
     val ps = List(
       Partner("A", "A", 80.0, Set(site)),
@@ -58,7 +58,7 @@ class CustomPartnerSequenceTest {
 
   @Test
   def parseCsvFailure(): Unit = {
-    val csv = "A, B,G, C,D,G, F/H"
+    val csv  = "A, B,G, C,D,G, F/H"
     val site = Site.north
     val ps = List(
       Partner("A", "A", 80.0, Set(site)),

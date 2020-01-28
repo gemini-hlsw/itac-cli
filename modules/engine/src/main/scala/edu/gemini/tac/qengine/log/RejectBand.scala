@@ -18,7 +18,8 @@ object RejectBand {
     detailTemplate.format(band.number, perc.value)
 }
 
-final case class RejectBand(prop: Proposal, restrictionName: String, band: QueueBand, perc: Percent) extends RejectMessage {
+final case class RejectBand(prop: Proposal, restrictionName: String, band: QueueBand, perc: Percent)
+    extends RejectMessage {
   def reason: String = RejectBand.reason(restrictionName)
   def detail: String = RejectBand.detail(band, perc)
 }

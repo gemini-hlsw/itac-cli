@@ -8,7 +8,7 @@ abstract sealed class QueueBand(val number: Int) extends Ordered[QueueBand] {
   def isIn(category: QueueBand.Category): Boolean = categories.contains(category)
   def logCategory: QueueBand.Category
 
-  def toXML : Elem
+  def toXML: Elem
 }
 
 object QueueBand {
@@ -16,7 +16,7 @@ object QueueBand {
   abstract sealed class Category(val name: String, val order: Int) extends Ordered[Category] {
     // Ordering is a bit arbitrary
     def compare(that: Category): Int = order - that.order
-    override def toString: String = name
+    override def toString: String    = name
   }
 
   object Category {
@@ -41,28 +41,28 @@ object QueueBand {
     def categories  = Set(Category.B1_2, Category.Guaranteed)
     def logCategory = Category.B1_2
 
-    override def toXML : Elem = <QBand1/>
+    override def toXML: Elem = <QBand1/>
   }
 
   case object QBand2 extends QueueBand(2) {
     def categories  = Set(Category.B1_2, Category.Guaranteed)
     def logCategory = Category.B1_2
 
-    override def toXML : Elem = <QBand2/>
+    override def toXML: Elem = <QBand2/>
   }
 
   case object QBand3 extends QueueBand(3) {
     def categories  = Set(Category.B3, Category.Guaranteed)
     def logCategory = Category.B3
 
-    override def toXML : Elem = <QBand3/>
+    override def toXML: Elem = <QBand3/>
   }
 
   case object QBand4 extends QueueBand(4) {
     def categories  = Set(Category.PoorWeather)
     def logCategory = Category.PoorWeather
 
-    override def toXML : Elem = <QBand4/>
+    override def toXML: Elem = <QBand4/>
   }
 
   val values = List(QBand1, QBand2, QBand3, QBand4)

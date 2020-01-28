@@ -11,13 +11,16 @@ trait LogMessage {
   val prop: Proposal
 
   val timestamp = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date())
-  val id = UUID.randomUUID()
+  val id        = UUID.randomUUID()
 
-  def toXML = <LogMessage id={ id.toString } timestamp = { timestamp.toString } counter={ LogMessage.counter.toString } >
+  def toXML =
+    <LogMessage id={id.toString} timestamp = {timestamp.toString} counter={
+      LogMessage.counter.toString
+    } >
     {subToXML}
     </LogMessage>
 
-  def subToXML : Elem;
+  def subToXML: Elem;
 }
 
 object LogMessage {

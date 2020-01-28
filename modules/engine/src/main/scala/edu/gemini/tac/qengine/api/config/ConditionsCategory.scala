@@ -8,6 +8,7 @@ import ConditionsCategory._
  */
 object ConditionsCategory {
   sealed trait Spec[V <: Var[V]] {
+
     /**
      * Determines whether the given conditions variable matches (falls in) the
      * category.  For example, if the category is >=CC70 then CC70, CC80, and
@@ -25,7 +26,7 @@ object ConditionsCategory {
   sealed abstract class Unspecified[V <: Var[V]]() extends Spec[V] {
     override def matches(other: V): Boolean   = true
     override def canObserve(cond: V): Boolean = true
-    override def toString: String = "--"
+    override def toString: String             = "--"
   }
 
   object UnspecifiedCC extends Unspecified[CloudCover]
@@ -40,22 +41,23 @@ object ConditionsCategory {
     // <=SB50 will be able to observe anything.  SB20 and SB50 of course but
     // also the conditions are good enough for anything worse.
     override def canObserve(other: V): Boolean = true
-    override def toString: String = "<=" + ocVar
+    override def toString: String              = "<=" + ocVar
   }
 
   case class Eq[V <: Var[V]](ocVar: V) extends Spec[V] {
-    override def matches(other: V): Boolean = other == ocVar
+    override def matches(other: V): Boolean    = other == ocVar
     override def canObserve(other: V): Boolean = ocVar <= other
-    override def toString: String = ocVar.toString
+    override def toString: String              = ocVar.toString
   }
 
   case class Ge[V <: Var[V]](ocVar: V) extends Spec[V] {
-    override def matches(other: V): Boolean = other >= ocVar
+    override def matches(other: V): Boolean    = other >= ocVar
     override def canObserve(other: V): Boolean = ocVar <= other
-    override def toString: String = ">=" + ocVar
+    override def toString: String              = ">=" + ocVar
   }
 
   object SearchPath {
+
     /**
      * Creates a CategorySearchPath from the given list of conditions bins.
      * WARNING: assumes bins are sorted.
@@ -67,8 +69,8 @@ object ConditionsCategory {
 
   case class SearchPath(cats: List[ConditionsCategory]) {
     def apply(oc: ObsConditions): List[ConditionsCategory] =
-      cats.foldLeft(List.empty[ConditionsCategory]) {
-        (upgradePath, cat) => if (cat.canObserve(oc)) cat :: upgradePath else upgradePath
+      cats.foldLeft(List.empty[ConditionsCategory]) { (upgradePath, cat) =>
+        if (cat.canObserve(oc)) cat :: upgradePath else upgradePath
       }
 
     def category(oc: ObsConditions): ConditionsCategory =
@@ -81,19 +83,20 @@ object ConditionsCategory {
  * collection of conditions variables will fall into the range or not.
  */
 final case class ConditionsCategory(
-        ccSpec: Spec[CloudCover]    = UnspecifiedCC,
-        iqSpec: Spec[ImageQuality]  = UnspecifiedIQ,
-        sbSpec: Spec[SkyBackground] = UnspecifiedSB,
-        wvSpec: Spec[WaterVapor]    = UnspecifiedWV,
-        name: Option[String]        = None) {
+  ccSpec: Spec[CloudCover] = UnspecifiedCC,
+  iqSpec: Spec[ImageQuality] = UnspecifiedIQ,
+  sbSpec: Spec[SkyBackground] = UnspecifiedSB,
+  wvSpec: Spec[WaterVapor] = UnspecifiedWV,
+  name: Option[String] = None
+) {
 
   def matches(oc: ObsConditions): Boolean =
     ccSpec.matches(oc.cc) && iqSpec.matches(oc.iq) &&
-    sbSpec.matches(oc.sb) && wvSpec.matches(oc.wv)
+      sbSpec.matches(oc.sb) && wvSpec.matches(oc.wv)
 
   def canObserve(oc: ObsConditions): Boolean =
     ccSpec.canObserve(oc.cc) && iqSpec.canObserve(oc.iq) &&
-    sbSpec.canObserve(oc.sb) && wvSpec.canObserve(oc.wv)
+      sbSpec.canObserve(oc.sb) && wvSpec.canObserve(oc.wv)
 
   override def toString: String =
     "%s (%5s, %6s, %6s)".format(name.getOrElse(""), iqSpec, ccSpec, sbSpec)

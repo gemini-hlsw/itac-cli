@@ -32,31 +32,37 @@ case class RaResourceGroup(val grp: RaBinGroup[RaResource]) extends Resource {
   // time to distribute to each RaReservation.  If the split is successful,
   // then we can record time in each of the RaReservations.  Otherwise, the
   // Too observation cannot be scheduled.
-  private def reserveToo(block: Block, queue: ProposalQueueBuilder): RejectMessage Either RaResourceGroup =
+  private def reserveToo(
+    block: Block,
+    queue: ProposalQueueBuilder
+  ): RejectMessage Either RaResourceGroup =
     tooBlocks(block) match {
-        case None => {
-          val sum = grp.bins.foldLeft(Time.hours(0))(_ + _.remaining(block.obs.conditions))
-          Left(new RejectToo(block.prop, block.obs, queue.band, sum))
-        }
-        case Some(s) =>
-          Right(
-            new RaResourceGroup(
-              RaBinGroup(
-                grp.bins.zip(s) map {
-                  case (raResr, blk) => raResr.reserve(blk, queue).right.get
-                }
-              )
+      case None => {
+        val sum = grp.bins.foldLeft(Time.hours(0))(_ + _.remaining(block.obs.conditions))
+        Left(new RejectToo(block.prop, block.obs, queue.band, sum))
+      }
+      case Some(s) =>
+        Right(
+          new RaResourceGroup(
+            RaBinGroup(
+              grp.bins.zip(s) map {
+                case (raResr, blk) => raResr.reserve(blk, queue).right.get
+              }
             )
           )
+        )
     }
 
-  private def reserveNonToo(block: Block, queue: ProposalQueueBuilder): RejectMessage Either RaResourceGroup = {
+  private def reserveNonToo(
+    block: Block,
+    queue: ProposalQueueBuilder
+  ): RejectMessage Either RaResourceGroup = {
     val ra = block.obs.target.ra
     grp(ra).reserve(block, queue) match {
       case Right(bin) =>
         LOG.debug(s"    💚  I was able to reserve time for this RA ($ra).")
         Right(new RaResourceGroup(grp.updated(ra, bin)))
-      case Left(err)  =>
+      case Left(err) =>
         LOG.debug(s"    ❌  I was unable to reserve time for this RA ($ra).")
         Left(err)
     }
@@ -69,7 +75,11 @@ case class RaResourceGroup(val grp: RaBinGroup[RaResource]) extends Resource {
    * Reserves up-to the given amount of time, returning an updated
    * RaResourceGroup and any time left over that could not be reserved.
    */
-  def reserveAvailable(time: Time, target: Target, conds: ObsConditions): (RaResourceGroup, Time) = {
+  def reserveAvailable(
+    time: Time,
+    target: Target,
+    conds: ObsConditions
+  ): (RaResourceGroup, Time) = {
     val (bin, rem) = grp(target.ra).reserveAvailable(time, target, conds)
     (new RaResourceGroup(grp.updated(target.ra, bin)), rem)
   }
@@ -78,15 +88,15 @@ case class RaResourceGroup(val grp: RaBinGroup[RaResource]) extends Resource {
     reserveAvailable(reduction.time, reduction.target, reduction.conditions)
 
   def reserveAvailable[U <% CategorizedTime](reductions: List[U]): (RaResourceGroup, Time) = {
-    reductions.foldLeft((this,Time.Zero)) {
+    reductions.foldLeft((this, Time.Zero)) {
       case ((grp0, time), reduction) =>
         grp0.reserveAvailable(reduction) match {
-          case (newGrp, leftover) => (newGrp, leftover+time)
+          case (newGrp, leftover) => (newGrp, leftover + time)
         }
     }
   }
 
   def toXML = <RaResourceGroup>
-    { grp.toXML }
+    {grp.toXML}
     </RaResourceGroup>
 }

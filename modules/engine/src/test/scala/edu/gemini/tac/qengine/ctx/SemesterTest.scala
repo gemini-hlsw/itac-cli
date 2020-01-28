@@ -35,8 +35,8 @@ class SemesterTest {
 
     val start = sem.getStartDate(site)
     verifyDate(2010, B.getStartMonth, start)
-    val end   = sem.getEndDate(site)
-    verifyDate(2011, (B.getStartMonth + 6)%12, end)
+    val end = sem.getEndDate(site)
+    verifyDate(2011, (B.getStartMonth + 6) % 12, end)
   }
 
   @Test def testDateConstruction() {
@@ -70,14 +70,14 @@ class SemesterTest {
   @Test def testParseGood() {
     assertEquals(new Semester(2007, B), Semester.parse("2007B"))
     assertEquals(new Semester(2010, A), Semester.parse("2010-A"))
-    assertEquals(new Semester(   0, A), Semester.parse("0000A"))
+    assertEquals(new Semester(0, A), Semester.parse("0000A"))
   }
 
   @Test def testParseBad() {
     val bad = List("207B", "20007B", "2007", "-2007B", "2007C", "2007--A")
 
-    bad.foreach {
-      b => try {
+    bad.foreach { b =>
+      try {
         Semester.parse(b)
         fail()
       } catch {
@@ -92,30 +92,30 @@ class SemesterTest {
   @Test def testNextSemesterAfterAHasSameYear() {
     val s = s2010A.next
     assertEquals(2010, s.getYear)
-    assertEquals(B,    s.getHalf)
+    assertEquals(B, s.getHalf)
   }
 
   @Test def testNextSemesterAfterBIsNextYear() {
     val s = s2010B.next
     assertEquals(2011, s.getYear)
-    assertEquals(A,    s.getHalf)
+    assertEquals(A, s.getHalf)
   }
 
   @Test def testPreviousSemesterBeforeAHasPreviousYear() {
     val s = s2010A.previous
     assertEquals(2009, s.getYear)
-    assertEquals(B,    s.getHalf)
+    assertEquals(B, s.getHalf)
   }
 
   @Test def testPreviousSemesterBeforeBHasSameYear() {
     val s = s2010B.previous
     assertEquals(2010, s.getYear)
-    assertEquals(A,    s.getHalf)
+    assertEquals(A, s.getHalf)
   }
 
-  @Test def testMidpoint(){
+  @Test def testMidpoint() {
     val s = s2010A
-    val d = new Date(1272801600000L)    //2010-05-02T02:00:00.000-1000
+    val d = new Date(1272801600000L) //2010-05-02T02:00:00.000-1000
     assertEquals(d, s.getMidpoint(Site.north))
   }
 }

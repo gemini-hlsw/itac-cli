@@ -15,7 +15,6 @@ import scalaz.Validation.FlatMap._
  * Extract Ntac information from a proposal, ignoring any non-accepted
  * submissions.
  */
-
 object NtacIo {
   def UNEXPECTED_PROPOSAL_CLASS: String =
     "Expecting a queue, classical, or large program proposal"
@@ -30,24 +29,32 @@ object NtacIo {
 
   private val EmptyResponse = none[Response].successNel[String]
 
-  private def response(sub: im.Submission, partnerId: String): ValidationNel[String, Option[Response]] =
+  private def response(
+    sub: im.Submission,
+    partnerId: String
+  ): ValidationNel[String, Option[Response]] =
     sub.response.fold(EmptyResponse) {
       case im.SubmissionResponse(im.SubmissionReceipt(pid, _, _), decision, _) =>
         decision.fold(EmptyResponse) {
           case im.SubmissionDecision(Right(sa)) =>
-            sa.recommended.nonNegativeQueueEngineTime(s"$partnerId recommended time").map { awarded =>
-              Some(Response(pid, Rank(sa.ranking), awarded, sa.poorWeather))
+            sa.recommended.nonNegativeQueueEngineTime(s"$partnerId recommended time").map {
+              awarded =>
+                Some(Response(pid, Rank(sa.ranking), awarded, sa.poorWeather))
             }
           case _ => EmptyResponse
         }
     }
 
   private def mkNtac(lead: Option[String])(p: Partner)(response: Option[Response]): Option[Ntac] =
-    response.map { r => Ntac(p, r.ref, r.rank, r.awardedTime, r.poorWeather, lead) }
+    response.map { r =>
+      Ntac(p, r.ref, r.rank, r.awardedTime, r.poorWeather, lead)
+    }
 
   private val NoneAccepted = NONE_ACCEPTED.failureNel[NonEmptyList[Ntac]]
 
-  private def singletonNtac(v: ValidationNel[String, Option[Ntac]]): ValidationNel[String, NonEmptyList[Ntac]] =
+  private def singletonNtac(
+    v: ValidationNel[String, Option[Ntac]]
+  ): ValidationNel[String, NonEmptyList[Ntac]] =
     v.flatMap(_.fold(NoneAccepted)(_.wrapNel.successNel[String]))
 }
 
@@ -63,27 +70,46 @@ class NtacIo(partners: Map[String, Partner]) {
       case _                            => UNEXPECTED_PROPOSAL_CLASS.failureNel[NonEmptyList[Ntac]]
     }
 
-  private def ngoNtacs(p: im.Proposal, ngos: List[im.NgoSubmission]): ValidationNel[String, NonEmptyList[Ntac]] =
-    ngos.map(ngoNtac(p, _)).sequenceU.flatMap(_.flatten match {
-      case Nil    => NoneAccepted
-      case h :: t => NonEmptyList(h, t: _*).successNel[String]
-    })
+  private def ngoNtacs(
+    p: im.Proposal,
+    ngos: List[im.NgoSubmission]
+  ): ValidationNel[String, NonEmptyList[Ntac]] =
+    ngos
+      .map(ngoNtac(p, _))
+      .sequenceU
+      .flatMap(_.flatten match {
+        case Nil    => NoneAccepted
+        case h :: t => NonEmptyList(h, t: _*).successNel[String]
+      })
 
   private def ngoNtac(p: im.Proposal, ngo: im.NgoSubmission): ValidationNel[String, Option[Ntac]] =
     submissionNtac(p, ngo, ngo.partner.name)
 
-  private def exchangeNtacs(p: im.Proposal, exc: im.ExchangeSubmission): ValidationNel[String, NonEmptyList[Ntac]] =
+  private def exchangeNtacs(
+    p: im.Proposal,
+    exc: im.ExchangeSubmission
+  ): ValidationNel[String, NonEmptyList[Ntac]] =
     singletonNtac(submissionNtac(p, exc, exc.partner.name))
 
-  private def submissionNtac[A, B<:im.PartnerSubmission[A,B]](p: im.Proposal, sub: im.PartnerSubmission[A,B], partnerId: String): ValidationNel[String, Option[Ntac]] =
+  private def submissionNtac[A, B <: im.PartnerSubmission[A, B]](
+    p: im.Proposal,
+    sub: im.PartnerSubmission[A, B],
+    partnerId: String
+  ): ValidationNel[String, Option[Ntac]] =
     ntac(sub, partnerId, sub.partnerLead(p).map(_.lastName))
 
-  private def lpNtacs(p: im.Proposal, sub: im.LargeProgramSubmission): ValidationNel[String, NonEmptyList[Ntac]] =
+  private def lpNtacs(
+    p: im.Proposal,
+    sub: im.LargeProgramSubmission
+  ): ValidationNel[String, NonEmptyList[Ntac]] =
     singletonNtac(ntac(sub, LargeProgramId, Some(p.investigators.pi.lastName)))
 
-  private def ntac(sub: im.Submission, partnerId: String, lead: Option[String]): ValidationNel[String, Option[Ntac]] = {
+  private def ntac(
+    sub: im.Submission,
+    partnerId: String,
+    lead: Option[String]
+  ): ValidationNel[String, Option[Ntac]] = {
     val partner = partners.get(partnerId).toSuccess(UNKNOWN_PARTNER_ID(partnerId).wrapNel)
     response(sub, partnerId) <*> partner.map(mkNtac(lead))
   }
 }
-

@@ -16,17 +16,17 @@ class ConditionsCategoryTest {
   private val oc = ObsConditions(CC70, IQ20, SB20, WV20)
 
   @Test def testEq() {
-    val matches = CloudCover.values.map(x => Cat(ccSpec=Eq(x)).matches(oc))
+    val matches = CloudCover.values.map(x => Cat(ccSpec = Eq(x)).matches(oc))
     assertEquals(List(false, true, false, false), matches)
   }
 
   @Test def testLe() {
-    val matches = CloudCover.values.map(x => Cat(ccSpec=Le(x)).matches(oc))
+    val matches = CloudCover.values.map(x => Cat(ccSpec = Le(x)).matches(oc))
     assertEquals(List(false, true, true, true), matches)
   }
 
   @Test def testGe() {
-    val matches = CloudCover.values.map(x => Cat(ccSpec=Ge(x)).matches(oc))
+    val matches = CloudCover.values.map(x => Cat(ccSpec = Ge(x)).matches(oc))
     assertEquals(List(true, true, false, false), matches)
   }
 
@@ -62,12 +62,16 @@ class ConditionsCategoryTest {
 
   @Test def testCanObserveLe() {
     val cat = Le[SkyBackground](SB50)
-    SkyBackground.values foreach { sb => assertTrue(cat.canObserve(sb)) }
+    SkyBackground.values foreach { sb =>
+      assertTrue(cat.canObserve(sb))
+    }
   }
 
   @Test def testCanObserveGe() {
     val cat = Ge[CloudCover](CC70)
-    List(CC70, CC80, CCAny) foreach { cc => assertTrue(cat.canObserve(cc)) }
+    List(CC70, CC80, CCAny) foreach { cc =>
+      assertTrue(cat.canObserve(cc))
+    }
     assertFalse(cat.canObserve(CC50))
   }
 

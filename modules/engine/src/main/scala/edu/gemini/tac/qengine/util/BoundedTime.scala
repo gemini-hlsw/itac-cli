@@ -28,7 +28,6 @@ final case class BoundedTime(limit: Time, used: Time = Time.Zero) {
    */
   def isOverbooked = used > limit
 
-
   /**
    * Returns the amount of time remaining (or amount of time overbooked if
    * negative).
@@ -40,7 +39,7 @@ final case class BoundedTime(limit: Time, used: Time = Time.Zero) {
    * be greater than 100 if overbooked.
    */
   def fillPercent: Double =
-    100 * (if (limit.ms == 0) 1.0 else used.to(limit.unit).value/limit.value)
+    100 * (if (limit.ms == 0) 1.0 else used.to(limit.unit).value / limit.value)
 
 //    val res = 100.0 * used.to(limit.unit).value/limit.value
 //    if (java.lang.Double.isNaN(res)) 100.0 else res
@@ -55,7 +54,7 @@ final case class BoundedTime(limit: Time, used: Time = Time.Zero) {
    * If not already full, returns a new BoundedTime with the used time equal
    * to the limit.  If full or overbooked, returns this.
    */
-  def fill  = if (isFull) this else fillExact
+  def fill = if (isFull) this else fillExact
 
   /**
    * Returns a new BoundedTime in which the used time amount has been set to
@@ -70,8 +69,8 @@ final case class BoundedTime(limit: Time, used: Time = Time.Zero) {
       val tmp = used + time
       if ((tmp > limit) && !overbook)
         None
-      else
-        if (tmp < Time.Zero) None else Some(BoundedTime(limit, tmp))
+      else if (tmp < Time.Zero) None
+      else Some(BoundedTime(limit, tmp))
     }
   }
 
@@ -112,12 +111,13 @@ final case class BoundedTime(limit: Time, used: Time = Time.Zero) {
    */
   def reserveAvailable(time: Time): (BoundedTime, Time) = {
     val tmp = used + time
-    val (newUsed, rem) = if (tmp > limit)
-      (limit, tmp - limit)
-    else if (tmp < Time.Zero)
-      (Time.Zero, tmp)
-    else
-      (tmp, Time.Zero)
+    val (newUsed, rem) =
+      if (tmp > limit)
+        (limit, tmp - limit)
+      else if (tmp < Time.Zero)
+        (Time.Zero, tmp)
+      else
+        (tmp, Time.Zero)
 
     if (newUsed == used) (this, rem) else (BoundedTime(limit, newUsed), rem)
   }
@@ -131,7 +131,7 @@ final case class BoundedTime(limit: Time, used: Time = Time.Zero) {
 
   def toXML =
     <BoundedTime>
-      <Limit>{ limit.toXML }</Limit>
-      <Used>{ used.toXML }</Used>
+      <Limit>{limit.toXML}</Limit>
+      <Used>{used.toXML}</Used>
     </BoundedTime>
 }

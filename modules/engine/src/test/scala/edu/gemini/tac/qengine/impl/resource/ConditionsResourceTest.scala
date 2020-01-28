@@ -10,7 +10,11 @@ import ImageQuality.IQ20
 import SkyBackground.SB20
 import WaterVapor.WV20
 import edu.gemini.tac.qengine.p1._
-import edu.gemini.tac.qengine.api.config.{ConditionsBinGroup, ConditionsBin, ConditionsCategory => Cat}
+import edu.gemini.tac.qengine.api.config.{
+  ConditionsBinGroup,
+  ConditionsBin,
+  ConditionsCategory => Cat
+}
 import Cat._
 import edu.gemini.tac.qengine.util.{Percent, Time}
 import edu.gemini.tac.qengine.impl.block.Block
@@ -23,17 +27,17 @@ class ConditionsResourceTest {
   val partners = All
 
   private val bins = ConditionsBin.list(
-      (Cat(Eq(CC50)),  Percent(25)),
-      (Cat(Eq(CC70)),  Percent(25)),
-      (Cat(Eq(CC80)),  Percent(25)),
-      (Cat(Eq(CCAny)), Percent(25))
-    )
+    (Cat(Eq(CC50)), Percent(25)),
+    (Cat(Eq(CC70)), Percent(25)),
+    (Cat(Eq(CC80)), Percent(25)),
+    (Cat(Eq(CCAny)), Percent(25))
+  )
 
   private val binGrp = ConditionsBinGroup(bins)
   private val resGrp = ConditionsResourceGroup(Time.minutes(100), binGrp)
 
   private val ntac   = Ntac(GS, "x", 0, Time.minutes(100)) // not used
-  private val target = Target(0,0)                               // not used
+  private val target = Target(0, 0)                        // not used
 
   private def mkProp(obsConds: ObsConditions): CoreProposal = {
     val obsList = List(Observation(target, obsConds, Time.minutes(10)))
@@ -59,17 +63,17 @@ class ConditionsResourceTest {
     assertEquals(Time.Zero, rem)
     verifyTimes(newResGrp, mins: _*)
 
-    val prop  = mkProp(cnds)
-    val otb   = Block(prop, prop.obsList.head, time)
+    val prop = mkProp(cnds)
+    val otb  = Block(prop, prop.obsList.head, time)
     resGrp.reserve(otb, Fixture.emptyQueue) match {
       case Right(res) => verifyTimes(res, mins: _*)
-      case _ => fail()
+      case _          => fail()
     }
   }
 
   @Test def testSimpleReservationThatRequiresNoTimeFromABetterBin() {
-    val time  = Time.minutes(10)
-    val cnds  = mkConds(CC70)
+    val time = Time.minutes(10)
+    val cnds = mkConds(CC70)
 
     // Given 25 minutes for CC70, we should be able to fully reserve the time
     // in the corresponding bin.
@@ -81,8 +85,8 @@ class ConditionsResourceTest {
   }
 
   @Test def testStealTimeFromABetterBin() {
-    val time  = Time.minutes(51)
-    val cnds  = mkConds(CC80)
+    val time = Time.minutes(51)
+    val cnds = mkConds(CC80)
 
     // Given 51 minutes for CC80, we use all 25 minutes of CC80, all 25 of CC70,
     // and 1 minute of CC50.
@@ -94,8 +98,8 @@ class ConditionsResourceTest {
   }
 
   @Test def testStealExactlyAllRemainingTimeFromBetterBins() {
-    val time  = Time.minutes(75)
-    val cnds  = mkConds(CC80)
+    val time = Time.minutes(75)
+    val cnds = mkConds(CC80)
 
     // CC50:  25 - 25 =  0 ( 0 <-  0)
     // CC70:  25 - 25 =  0 ( 0 <-  0 +  0)
@@ -116,20 +120,28 @@ class ConditionsResourceTest {
     val otb2 = Block(prop, prop.obsList.head, Time.minutes(76))
     resGrp.reserve(otb2, Fixture.emptyQueue) match {
       case Left(rc: RejectConditions) => // pass
-      case _ => fail()
+      case _                          => fail()
     }
   }
 
   @Test def testBand3ConditionsUsedinBand3() {
     // Create a proposal to fill the first two queue bands and put us into
     // band 3.
-    val q0 = ProposalQueueBuilder(QueueTime(Site.south, Map(GS -> Time.minutes(166)), partners), ProposalQueueBuilder.DefaultStrategy)
+    val q0 = ProposalQueueBuilder(
+      QueueTime(Site.south, Map(GS -> Time.minutes(166)), partners),
+      ProposalQueueBuilder.DefaultStrategy
+    )
     val q1 = q0 :+ mkProp(mkConds(CC50))
     assertEquals(QueueBand.QBand3, q1.band)
-    val template : Observation = mkProp(mkConds(CC50)).obsList.head
-    val templateConditions = template.conditions
-    val cs = ObsConditions(CloudCover.CC80, templateConditions.iq, templateConditions.sb, templateConditions.wv)
-    val obs = template.copy(conditions=cs)
+    val template: Observation = mkProp(mkConds(CC50)).obsList.head
+    val templateConditions    = template.conditions
+    val cs = ObsConditions(
+      CloudCover.CC80,
+      templateConditions.iq,
+      templateConditions.sb,
+      templateConditions.wv
+    )
+    val obs = template.copy(conditions = cs)
     assertEquals(Time.minutes(10), obs.time)
     val b3os = List(obs)
 
@@ -137,7 +149,7 @@ class ConditionsResourceTest {
     val block = Block(prop, prop.band3Observations.head, Time.minutes(10))
 
     verifyTimes(resGrp, 25, 50, 75, 100) //Each condition has +25 minutes
-    val res   = resGrp.reserve(block, q1)
+    val res = resGrp.reserve(block, q1)
     verifyTimes(res.right.get, 25, 50, 65, 90) // uses CC80 time, not CC50 (-10 @ 80, but then +25 to 90)
   }
 }

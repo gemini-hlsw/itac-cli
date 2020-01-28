@@ -9,16 +9,21 @@ import annotation.tailrec
 object PoorWeatherCalc {
 
   @tailrec
-  private def partition(rem: List[Proposal], parts: List[JointProposalPart], nonJoints: List[Proposal]): (List[JointProposalPart], List[Proposal]) =
+  private def partition(
+    rem: List[Proposal],
+    parts: List[JointProposalPart],
+    nonJoints: List[Proposal]
+  ): (List[JointProposalPart], List[Proposal]) =
     rem match {
-      case Nil => (parts.reverse, nonJoints)  // reverse to preserve the original order in JointProposals (for testing mainly)
+      case Nil =>
+        (parts.reverse, nonJoints) // reverse to preserve the original order in JointProposals (for testing mainly)
       case (head: JointProposalPart) :: tail => partition(tail, head :: parts, nonJoints)
-      case head :: tail => partition(tail, parts, head :: nonJoints)
+      case head :: tail                      => partition(tail, parts, head :: nonJoints)
     }
 
   private def joinParts(props: List[Proposal]): List[Proposal] = {
     val (parts, nonJoints) = partition(props, Nil, Nil)
-    val joints = JointProposal.mergeMatching(parts)
+    val joints             = JointProposal.mergeMatching(parts)
     joints ::: nonJoints
   }
 

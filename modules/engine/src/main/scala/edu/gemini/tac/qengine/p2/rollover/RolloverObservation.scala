@@ -15,7 +15,8 @@ case class RolloverObservation(
   obsId: ObservationId,
   target: Target,
   conditions: ObsConditions,
-  time: Time) extends CategorizedTime {
+  time: Time
+) extends CategorizedTime {
 
   def site: Site = obsId.site
 }

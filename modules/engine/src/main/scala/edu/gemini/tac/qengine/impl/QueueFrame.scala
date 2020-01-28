@@ -15,8 +15,12 @@ import org.slf4j.LoggerFactory
  * from the point at which the rejected proposal was introduced are removed and
  * the proposal is skipped.
  */
-final case class QueueFrame(val queue: ProposalQueueBuilder, val iter: BlockIterator, val res: SemesterResource) {
-  private val LOGGER = LoggerFactory.getLogger(this.getClass)
+final case class QueueFrame(
+  val queue: ProposalQueueBuilder,
+  val iter: BlockIterator,
+  val res: SemesterResource
+) {
+  private val LOGGER            = LoggerFactory.getLogger(this.getClass)
   private val applicationLogger = LoggerFactory.getLogger(getClass())
 
   val lName = LOGGER.getName
@@ -25,7 +29,8 @@ final case class QueueFrame(val queue: ProposalQueueBuilder, val iter: BlockIter
 
   def isStartOf(prop: Proposal): Boolean = iter.isStartOf(prop)
 
-  def skip(activeList : Proposal => List[Observation]): QueueFrame = new QueueFrame(queue, iter.skip(activeList), res)
+  def skip(activeList: Proposal => List[Observation]): QueueFrame =
+    new QueueFrame(queue, iter.skip(activeList), res)
 
   def hasNext: Boolean = iter.hasNext
 
@@ -39,17 +44,20 @@ final case class QueueFrame(val queue: ProposalQueueBuilder, val iter: BlockIter
       (newQueue, Some(AcceptMessage(prop, newQueue.bounds(partner), newQueue.bounds)))
     } else {
       // More blocks for this proposal so we can't accept it yet.
-      applicationLogger.debug("  ⚠️  So far so good, but there are more blocks so we can't accept yet.")
+      applicationLogger.debug(
+        "  ⚠️  So far so good, but there are more blocks so we can't accept yet."
+      )
       (queue, None)
     }
 
-  private def logBlock(block : Block) = {
-    val msg = s"  👉  Proposing a block of ${block.time.toHours} for a ${block.obs.time.toHours} obs in ${Console.BOLD}${block.prop.id.reference}${Console.RESET}, which was awarded ${block.prop.ntac.awardedTime.toHours} by ${block.prop.ntac.partner.id}."
+  private def logBlock(block: Block) = {
+    val msg =
+      s"  👉  Proposing a block of ${block.time.toHours} for a ${block.obs.time.toHours} obs in ${Console.BOLD}${block.prop.id.reference}${Console.RESET}, which was awarded ${block.prop.ntac.awardedTime.toHours} by ${block.prop.ntac.partner.id}."
     LOGGER.debug(msg)
     //applicationLogger.info("next():" + block.toString);
   }
 
-  def next(activeList : Proposal=>List[Observation]): RejectMessage Either Next = {
+  def next(activeList: Proposal => List[Observation]): RejectMessage Either Next = {
     LOGGER.debug("  👉  Next frame.")
     val (block, newIter) = iter.next(activeList)
     logBlock(block)
@@ -67,9 +75,9 @@ final case class QueueFrame(val queue: ProposalQueueBuilder, val iter: BlockIter
   // Should stop when there are no more time blocks to iterate over or when
   // we have successfully scheduled enough proposals to move to a new
   // category.
-  def emptyOrOtherCategory(cat : Category) : Boolean = {
-    val noMoreQueueFrames = ! this.hasNext
-    val finishedBand = ! this.queue.band.isIn(cat)
+  def emptyOrOtherCategory(cat: Category): Boolean = {
+    val noMoreQueueFrames = !this.hasNext
+    val finishedBand      = !this.queue.band.isIn(cat)
 
     if (noMoreQueueFrames) LOGGER.debug("👉  Last block in the iterator.")
     if (finishedBand) LOGGER.debug(s"👉  Finished with ${queue.band}.")

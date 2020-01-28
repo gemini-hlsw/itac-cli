@@ -13,39 +13,48 @@ class BlockIteratorTest {
   val partners = All
 
   val target = Target(0.0, 0.0) // required but not used for this test
-  val conds = ObsConditions.AnyConditions // required by not used
-  val e = 0.000001
+  val conds  = ObsConditions.AnyConditions // required by not used
+  val e      = 0.000001
 
   def mkObs(hrs: Double): Observation = Observation(target, conds, Time.hours(hrs))
 
   def mkProp(p: Partner, hrs: Double, obsHrs: List[Double], b3ObsHrs: List[Double]): Proposal = {
-    val ntac = Ntac(p, "na", 0, Time.hours(hrs))
-    val lst = obsHrs.map(curHrs => Observation(target, conds, Time.hours(curHrs))).toList
+    val ntac  = Ntac(p, "na", 0, Time.hours(hrs))
+    val lst   = obsHrs.map(curHrs => Observation(target, conds, Time.hours(curHrs))).toList
     val b3obs = b3ObsHrs.map(curHrs => Observation(target, conds, Time.hours(curHrs))).toList
     CoreProposal(ntac, site = Site.south, obsList = lst, band3Observations = b3obs)
   }
 
   def genQuanta(hrs: Double): PartnerTime = PartnerTime.constant(Time.hours(hrs), partners)
 
-  def genPropLists(count: Int, p: Partner, propTime: Double, obsTimes: List[Double], b3ObsTimes: List[Double] = List.empty): Map[Partner, List[Proposal]] = {
+  def genPropLists(
+    count: Int,
+    p: Partner,
+    propTime: Double,
+    obsTimes: List[Double],
+    b3ObsTimes: List[Double] = List.empty
+  ): Map[Partner, List[Proposal]] = {
     val lst = (1 to count).map(i => mkProp(p, propTime, obsTimes, b3ObsTimes)).toList
     partners.map(p => (p, lst)).toMap
   }
 
   @Test def testEmptyQuanta() {
-    List[(Proposal) => List[Observation]](_.obsList, _.band3Observations).map {
-      fn =>
-        val it = BlockIterator(partners, PartnerTime.empty(partners), List(US), genPropLists(1, US, 10, List(10), List(10)), fn)
-        assertFalse(it.hasNext)
+    List[(Proposal) => List[Observation]](_.obsList, _.band3Observations).map { fn =>
+      val it = BlockIterator(
+        partners,
+        PartnerTime.empty(partners),
+        List(US),
+        genPropLists(1, US, 10, List(10), List(10)),
+        fn
+      )
+      assertFalse(it.hasNext)
     }
   }
-
-
   @Test def testZeroQuanta() {
-    List[(Proposal) => List[Observation]](_.obsList, _.band3Observations).map {
-      fn =>
-        val it = BlockIterator(partners, genQuanta(0), List(US), genPropLists(1, US, 10, List(10)), fn)
-        assertFalse(it.hasNext)
+    List[(Proposal) => List[Observation]](_.obsList, _.band3Observations).map { fn =>
+      val it =
+        BlockIterator(partners, genQuanta(0), List(US), genPropLists(1, US, 10, List(10)), fn)
+      assertFalse(it.hasNext)
     }
   }
 
@@ -55,18 +64,17 @@ class BlockIteratorTest {
   }
 
   @Test def testEmptyPropLists() {
-    List[(Proposal) => List[Observation]](_.obsList, _.band3Observations).map {
-      fn =>
-        val it = BlockIterator(partners, genQuanta(10), List(US), genPropLists(0, US, 10, List(10)), fn)
-        assertFalse(it.hasNext)
+    List[(Proposal) => List[Observation]](_.obsList, _.band3Observations).map { fn =>
+      val it =
+        BlockIterator(partners, genQuanta(10), List(US), genPropLists(0, US, 10, List(10)), fn)
+      assertFalse(it.hasNext)
     }
   }
 
   @Test def testEmptyPartnerSequence() {
-    List[(Proposal) => List[Observation]](_.obsList, _.band3Observations).map {
-      fn =>
-        val it = BlockIterator(partners, genQuanta(10), Nil, genPropLists(1, US, 10, List(10)), fn)
-        assertFalse(it.hasNext)
+    List[(Proposal) => List[Observation]](_.obsList, _.band3Observations).map { fn =>
+      val it = BlockIterator(partners, genQuanta(10), Nil, genPropLists(1, US, 10, List(10)), fn)
+      assertFalse(it.hasNext)
     }
   }
 
@@ -75,9 +83,11 @@ class BlockIteratorTest {
     val qMap = PartnerTime(partners, BR -> Time.hours(10), US -> Time.hours(10))
     // No proposals for Brazil, it will be skipped.
     val pMap: Map[Partner, List[Proposal]] = Map(US -> List(prop))
-    val it = BlockIterator(partners, qMap, List(BR, US), pMap, _.obsList)
+    val it                                 = BlockIterator(partners, qMap, List(BR, US), pMap, _.obsList)
 
-    val expected = List(Block(prop, prop.obsList.head, Time.hours(5), isStart = true, isFinal = true))
+    val expected = List(
+      Block(prop, prop.obsList.head, Time.hours(5), isStart = true, isFinal = true)
+    )
     assertEquals(expected, it.toList(_.obsList))
   }
 
@@ -86,12 +96,14 @@ class BlockIteratorTest {
     val usProp = mkProp(US, 2, List(2), List.empty)
 
     // No time quantum for Brazil, it will be skipped.
-    val qMap = PartnerTime(partners, US -> Time.hours(10))
-    val pMap: Map[Partner, List[Proposal]] = Map(BR -> List(brProp), US -> List(usProp))
+    val qMap                               = PartnerTime(partners, US -> Time.hours(10))
+    val pMap: Map[Partner, List[Proposal]] = Map(BR                   -> List(brProp), US -> List(usProp))
 
     val it = BlockIterator(partners, qMap, List(BR, US), pMap, _.obsList)
 
-    val expected = List(Block(usProp, usProp.obsList.head, Time.hours(2), isStart = true, isFinal = true))
+    val expected = List(
+      Block(usProp, usProp.obsList.head, Time.hours(2), isStart = true, isFinal = true)
+    )
     assertEquals(expected, it.toList(_.obsList))
   }
 
@@ -101,12 +113,14 @@ class BlockIteratorTest {
     val usProp = mkProp(US, 2, List(2), List.empty)
 
     // No time quantum for Brazil, it will be skipped.
-    val qMap = PartnerTime(partners, US -> Time.hours(10))
-    val pMap: Map[Partner, List[Proposal]] = Map(BR -> List(brProp), US -> List(usProp))
+    val qMap                               = PartnerTime(partners, US -> Time.hours(10))
+    val pMap: Map[Partner, List[Proposal]] = Map(BR                   -> List(brProp), US -> List(usProp))
 
     val it = BlockIterator(partners, qMap, List(BR, US), pMap, _.obsList)
 
-    val expected = List(Block(usProp, usProp.obsList.head, Time.hours(2), isStart = true, isFinal = true))
+    val expected = List(
+      Block(usProp, usProp.obsList.head, Time.hours(2), isStart = true, isFinal = true)
+    )
     assertEquals(expected, it.toList(_.obsList))
 
   }
@@ -116,7 +130,7 @@ class BlockIteratorTest {
     val usProp = mkProp(US, 2, List(2), List.empty)
 
     val pMap: Map[Partner, List[Proposal]] = Map(BR -> List(brProp), US -> List(usProp))
-    val it = BlockIterator(partners, genQuanta(10), List(BR, US, BR, US), pMap, _.obsList)
+    val it                                 = BlockIterator(partners, genQuanta(10), List(BR, US, BR, US), pMap, _.obsList)
 
     val expected = List(
       Block(brProp, brProp.obsList.head, Time.hours(1), isStart = true, isFinal = true),
@@ -132,7 +146,7 @@ class BlockIteratorTest {
     val usProp = mkProp(US, 5, List(5), List.empty)
 
     val pMap: Map[Partner, List[Proposal]] = Map(BR -> List(brProp), US -> List(usProp))
-    val it = BlockIterator(partners, genQuanta(10), List(BR, US, BR, US), pMap, _.obsList)
+    val it                                 = BlockIterator(partners, genQuanta(10), List(BR, US, BR, US), pMap, _.obsList)
 
     val expected = List(
       Block(brProp, brProp.obsList.head, Time.hours(10), isStart = true, isFinal = false),
@@ -148,7 +162,7 @@ class BlockIteratorTest {
     val usProp = mkProp(US, 10, List(10), List.empty)
 
     val pMap: Map[Partner, List[Proposal]] = Map(BR -> List(brProp), US -> List(usProp))
-    val it = BlockIterator(partners, genQuanta(10), List(BR, US, BR, US), pMap, _.obsList)
+    val it                                 = BlockIterator(partners, genQuanta(10), List(BR, US, BR, US), pMap, _.obsList)
 
     val expected = List(
       Block(brProp, brProp.obsList.head, Time.hours(10), isStart = true, isFinal = true),
@@ -280,7 +294,17 @@ class BlockIteratorTest {
     assertEquals(List(usProp, brProp).sortWith(_.id < _.id), it.remPropList.sortWith(_.id < _.id))
 
     //          BR(1)    BR(2)   US(1)   US(2)   BR(3)
-    val it2 = it.next(_.obsList)._2.next(_.obsList)._2.next(_.obsList)._2.next(_.obsList)._2.next(_.obsList)._2
+    val it2 = it
+      .next(_.obsList)
+      ._2
+      .next(_.obsList)
+      ._2
+      .next(_.obsList)
+      ._2
+      .next(_.obsList)
+      ._2
+      .next(_.obsList)
+      ._2
 
     // all of brazil's proposals generated
     assertEquals(List(usProp), it2.remPropList)

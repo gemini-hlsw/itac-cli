@@ -24,20 +24,20 @@ class ProgramIdTest {
   }
 
   @Test def testSiteOrderingFirst() {
-    val p1 = ProgramId(Site.north, Semester.parse("2011B"), Mode.Queue,    99)
+    val p1 = ProgramId(Site.north, Semester.parse("2011B"), Mode.Queue, 99)
     val p2 = ProgramId(Site.south, Semester.parse("2010A"), Mode.Classical, 1)
     assertLessThan(p1, p2)
   }
 
   @Test def testSemesterOrderingSecond() {
-    val p1 = ProgramId(Site.north, Semester.parse("2010A"), Mode.Queue,    99)
+    val p1 = ProgramId(Site.north, Semester.parse("2010A"), Mode.Queue, 99)
     val p2 = ProgramId(Site.north, Semester.parse("2010B"), Mode.Classical, 1)
     assertLessThan(p1, p2)
   }
 
   @Test def testModeOrderingThird() {
-    val p1 = ProgramId(Site.north, Semester.parse("2010A"), Mode.Classical,   99)
-    val p2 = ProgramId(Site.north, Semester.parse("2010A"), Mode.Queue,        1)
+    val p1 = ProgramId(Site.north, Semester.parse("2010A"), Mode.Classical, 99)
+    val p2 = ProgramId(Site.north, Semester.parse("2010A"), Mode.Queue, 1)
     val p3 = ProgramId(Site.north, Semester.parse("2010A"), Mode.LargeProgram, 9)
     assertLessThan(p1, p2)
     assertLessThan(p1, p3)
@@ -45,22 +45,22 @@ class ProgramIdTest {
   }
 
   @Test def testIndexOrderingForth() {
-    val p1 = ProgramId(Site.north, Semester.parse("2010A"), Mode.Queue,  1)
+    val p1 = ProgramId(Site.north, Semester.parse("2010A"), Mode.Queue, 1)
     val p2 = ProgramId(Site.north, Semester.parse("2010A"), Mode.Queue, 99)
     assertLessThan(p1, p2)
   }
 
   @Test def testSomeStringsThatDontParse() {
     val nones = List(
-        ""
-      , "GN"
-      , "GN-2011A"
-      , "GN-2011A-Q"
-      , "GX-2011A-Q-8"
-      , "GN-211A-Q-8"
-      , "GN-2011C-Q-8"
-      , "GN-2011A-X-8"
-      , "GN-2011A-Q--8"
+      "",
+      "GN",
+      "GN-2011A",
+      "GN-2011A-Q",
+      "GX-2011A-Q-8",
+      "GN-211A-Q-8",
+      "GN-2011C-Q-8",
+      "GN-2011A-X-8",
+      "GN-2011A-Q--8"
     )
 
     nones.foreach(n => assertEquals(None, ProgramId.parse(n)))
@@ -68,16 +68,16 @@ class ProgramIdTest {
 
   @Test def testSomeStringsThatParse() {
     val ids = for {
-      site  <- List(Site.north, Site.south)
-      year  <- 2010 to 2011
-      half  <- List(Semester.Half.A, Semester.Half.B)
+      site     <- List(Site.north, Site.south)
+      year     <- 2010 to 2011
+      half     <- List(Semester.Half.A, Semester.Half.B)
       semester = new Semester(year, half)
-      mode  <- Mode.All
-      index <- 1 to 10
+      mode     <- Mode.All
+      index    <- 1 to 10
     } yield ProgramId(site, semester, mode, index)
 
-    ids.foreach {
-      id => assertEquals(Some(id), ProgramId.parse(id.toString))
+    ids.foreach { id =>
+      assertEquals(Some(id), ProgramId.parse(id.toString))
     }
 
   }

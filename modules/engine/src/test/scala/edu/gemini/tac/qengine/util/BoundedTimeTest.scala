@@ -38,7 +38,7 @@ class BoundedTimeTest {
   }
 
   @Test def testZeroLimit() {
-    val t = Time.Zero
+    val t  = Time.Zero
     val bt = BoundedTime(t)
 
     assertTrue(bt.isEmpty)
@@ -53,7 +53,7 @@ class BoundedTimeTest {
   }
 
   @Test def testFull() {
-    val t = Time.hours(1.0)
+    val t  = Time.hours(1.0)
     val bt = BoundedTime(t, t)
     assertFalse(bt.isEmpty)
     assertTrue(bt.isFull)
@@ -66,8 +66,8 @@ class BoundedTimeTest {
 
   @Test def testMid() {
     val l  = Time.hours(10.0)
-    val u  = Time.hours( 6.0)
-    val r  = Time.hours( 4.0)
+    val u  = Time.hours(6.0)
+    val r  = Time.hours(4.0)
     val bt = BoundedTime(l, u)
 
     assertFalse(bt.isEmpty)
@@ -129,7 +129,7 @@ class BoundedTimeTest {
     val bt1 = BoundedTime(Time.hours(1.0), Time.minutes(30.0))
     bt1.reserve(Time.minutes(-40.0)) match {
       case None => // ok
-      case _ => fail
+      case _    => fail
     }
   }
 
@@ -146,12 +146,12 @@ class BoundedTimeTest {
 
     bt3.overbook(-Time.minutes(61.0)) match {
       case None => // ok
-      case _ => fail
+      case _    => fail
     }
   }
 
   @Test def testReserveAvailable() {
-    val bt1 = BoundedTime(Time.hours(1.0))
+    val bt1           = BoundedTime(Time.hours(1.0))
     val (bt2, spill2) = bt1.reserveAvailable(Time.minutes(59))
     assertEquals(Time.Minutes.zero, spill2)
     assertFalse(bt2.isFull)
@@ -160,14 +160,14 @@ class BoundedTimeTest {
     assertEquals(Time.minutes(1), spill3)
     assertTrue(bt3.isFull)
 
-    val t10 = Time.minutes(10)
+    val t10           = Time.minutes(10)
     val (bt4, spill4) = bt3.reserveAvailable(t10)
     assertSame(bt3, bt4)
     assertEquals(t10, spill4)
   }
 
   @Test def testReleaseAvailable() {
-    val bt1 = BoundedTime(Time.hours(1.0), Time.hours(1.0))
+    val bt1           = BoundedTime(Time.hours(1.0), Time.hours(1.0))
     val (bt2, spill2) = bt1.releaseAvailable(Time.minutes(59))
     assertEquals(Time.Minutes.zero, spill2)
     assertEquals(Time.minutes(1.0).value, bt2.used.toMinutes.value, Delta)

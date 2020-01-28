@@ -5,7 +5,7 @@ package edu.gemini.tac.qengine.ctx
  * Site and Semester.
  */
 object ContextOrderingImplicits {
-  implicit val siteOrdering = new  Ordering[Site] {
+  implicit val siteOrdering = new Ordering[Site] {
     def compare(s1: Site, s2: Site): Int = s1.compareTo(s2)
   }
 

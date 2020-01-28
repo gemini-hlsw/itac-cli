@@ -54,10 +54,10 @@ class ClassicalTimeTest extends PartnerTimeCalcTestBase {
 
   // Redundant I suppose.  Tests everything above in one case
   @Test def testClassicalAll() {
-    val ar1 = mkProp(AR, "ar-1", Time.hours( 5), Site.north, Mode.Classical)
-    val ar2 = mkProp(AR, "ar-2", Time.hours( 5), Site.north, Mode.Classical)
-    val au  = mkProp(AU, "au-1", Time.hours( 5), Site.south, Mode.Classical) // south
-    val br  = mkProp(BR, "br-1", Time.hours( 5), Site.north, Mode.Queue)     // queue
+    val ar1 = mkProp(AR, "ar-1", Time.hours(5), Site.north, Mode.Classical)
+    val ar2 = mkProp(AR, "ar-2", Time.hours(5), Site.north, Mode.Classical)
+    val au  = mkProp(AU, "au-1", Time.hours(5), Site.south, Mode.Classical) // south
+    val br  = mkProp(BR, "br-1", Time.hours(5), Site.north, Mode.Queue) // queue
     val ca  = mkProp(CA, "ca-1", Time.hours(20), Site.north, Mode.Classical)
     val c   = classical(Site.north, List(ar1, ar2, au, br, ca), partners)
 
@@ -68,11 +68,11 @@ class ClassicalTimeTest extends PartnerTimeCalcTestBase {
 
   @Test def testJointClassical() {
     val cl1 = mkProp(CL, "cl-1", Time.hours(20), Site.south, Mode.Classical)
-    val us1 = mkProp(US, "us-2", Time.hours(3),  Site.south, Mode.Classical)
+    val us1 = mkProp(US, "us-2", Time.hours(3), Site.south, Mode.Classical)
     val j   = JointProposal("j1", us1, List(us1.ntac, cl1.ntac))
     val c   = classical(Site.south, List(j), partners)
 
-    assertEquals(Time.hours( 3), c(US))
+    assertEquals(Time.hours(3), c(US))
     assertEquals(Time.hours(20), c(CL))
     assertZero(partners.filter(p => (p != CL) && (p != US)), c)
   }

@@ -8,7 +8,7 @@ import edu.gemini.tac.qengine.ctx.{Partner, Site}
 import org.mockito.Mockito
 
 class JointProposalTest {
-  def mockPartner(partnerCountryKey : String) : Partner = {
+  def mockPartner(partnerCountryKey: String): Partner = {
     val p = Mockito.mock(classOf[Partner])
     Mockito.when(p.id).thenReturn(partnerCountryKey)
     p
@@ -26,13 +26,14 @@ class JointProposalTest {
 
   def mkObs(hrs: Double): Observation = Observation(target0, conds50, Time.hours(hrs))
 
-  def mkProp(partner: Partner, ref: String,  hrs: Double, obsHrs: Double*): CoreProposal = {
+  def mkProp(partner: Partner, ref: String, hrs: Double, obsHrs: Double*): CoreProposal = {
     val ntac = Ntac(partner, ref, 0, Time.hours(hrs))
     val lst  = obsHrs.map(mkObs).toList
     CoreProposal(ntac, site, obsList = lst)
   }
 
-  def ntac(partner: Partner, ref: String, hrs: Double): Ntac = Ntac(partner, ref, 0, Time.hours(hrs))
+  def ntac(partner: Partner, ref: String, hrs: Double): Ntac =
+    Ntac(partner, ref, 0, Time.hours(hrs))
   def ntac(partner: Partner, ref: String): Ntac = ntac(partner, ref, 10)
   def core(partner: Partner, ref: String): CoreProposal =
     CoreProposal(ntac(partner, ref), site)
@@ -50,11 +51,11 @@ class JointProposalTest {
     assertEquals("j1", j.jointId.get)
     assertTrue(j.isPoorWeather)
     assertEquals(3, j.obsList.size)
-    assertEquals(Time.hours( 2), j.obsList(0).time)
+    assertEquals(Time.hours(2), j.obsList(0).time)
     assertEquals(Time.hours(10), Observation.relativeObsTime(j.obsList(0), j.time, j.obsList)) // (20 + 30) * 2/10
-    assertEquals(Time.hours( 2), j.obsList(1).time)
+    assertEquals(Time.hours(2), j.obsList(1).time)
     assertEquals(Time.hours(10), Observation.relativeObsTime(j.obsList(1), j.time, j.obsList)) // (20 + 30) * 2/10
-    assertEquals(Time.hours( 6), j.obsList(2).time)
+    assertEquals(Time.hours(6), j.obsList(2).time)
     assertEquals(Time.hours(30), Observation.relativeObsTime(j.obsList(2), j.time, j.obsList)) // (20 + 30) * 6/10
   }
 
@@ -62,11 +63,11 @@ class JointProposalTest {
     val m     = mkProp(AR, "ar1", 10, 2, 2, 6).copy(isPoorWeather = true)
     val part1 = JointProposalPart("j1", m.copy(ntac = ntac(BR, "br1", 20)))
     val part2 = JointProposalPart("j1", m.copy(ntac = ntac(CA, "ca1", 30)))
-    val j = JointProposal.merge(List(part1, part2))
+    val j     = JointProposal.merge(List(part1, part2))
 
-    assertEquals(BR,   j.ntac.partner)
+    assertEquals(BR, j.ntac.partner)
     assertEquals("j1", j.ntac.reference)
-    assertEquals(0,  j.ntac.ranking.num.get, 0.00001)
+    assertEquals(0, j.ntac.ranking.num.get, 0.00001)
     assertEquals(Time.hours(50), j.ntac.awardedTime)
   }
 
@@ -94,9 +95,9 @@ class JointProposalTest {
     val ntacAR = ntac(AR, "ar1")
     val ntacBR = ntac(BR, "br1")
     val prop   = core(AR, "ar1")
-    val part1 = JointProposalPart("j1", prop)
-    val part2 = JointProposalPart("j1", prop.copy(ntac = ntacBR))
-    val j = JointProposal("j1", prop, ntacAR, ntacBR)
+    val part1  = JointProposalPart("j1", prop)
+    val part2  = JointProposalPart("j1", prop.copy(ntac = ntacBR))
+    val j      = JointProposal("j1", prop, ntacAR, ntacBR)
     assertEquals(List(part1, part2), j.toParts)
   }
 
@@ -129,9 +130,9 @@ class JointProposalTest {
   }
 
   @Test def testMergeMismatchedPartsProducesNone() {
-    val prop   = core(AR, "ar1")
-    val part1  = JointProposalPart("j1", prop)
-    val part2  = JointProposalPart("j2", prop)
+    val prop  = core(AR, "ar1")
+    val part1 = JointProposalPart("j1", prop)
+    val part2 = JointProposalPart("j2", prop)
 
     assertEquals(None, JointProposal.mergeOption(List(part1, part2)))
 
@@ -190,7 +191,7 @@ class JointProposalTest {
 
     val pAU = core(AU, "au1")
     val pUS = core(US, "us1")
-    val j2  = JointProposal("j2", pAU, pUS.ntac)  // master only included if in the list of parts
+    val j2  = JointProposal("j2", pAU, pUS.ntac) // master only included if in the list of parts
 
     // Expanding joint proposals results in a list of proposal parts in the
     // order they are set in the joint proposal.

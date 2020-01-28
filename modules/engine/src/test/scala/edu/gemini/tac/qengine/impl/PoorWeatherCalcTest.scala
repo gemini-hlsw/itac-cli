@@ -28,17 +28,17 @@ class PoorWeatherCalcTest {
   }
 
   @Test def testNonJoint() {
-    val br = core(BR, "br1", GoodWeather)
-    val ca = core(CA, "ca1", PoorWeather)
+    val br  = core(BR, "br1", GoodWeather)
+    val ca  = core(CA, "ca1", PoorWeather)
     val lst = List(br, ca)
     assertEquals(List(ca), PoorWeatherCalc(lst))
   }
 
   @Test def testJoint() {
     val pBR = core(BR, "br1", PoorWeather)
-    val br = pBR.ntac
-    val gs = ntac(GS, "gs1")
-    val j1 = JointProposal("j1", pBR, br, gs)
+    val br  = pBR.ntac
+    val gs  = ntac(GS, "gs1")
+    val j1  = JointProposal("j1", pBR, br, gs)
 
     val lst = List(j1)
     assertEquals(lst, PoorWeatherCalc(lst))
@@ -46,14 +46,14 @@ class PoorWeatherCalcTest {
 
   @Test def testJointParts() {
     val pBR = core(BR, "br1", PoorWeather)
-    val br = pBR.ntac
-    val gs = ntac(GS, "gs1")
-    val j1 = JointProposal("j1", pBR, br, gs)
+    val br  = pBR.ntac
+    val gs  = ntac(GS, "gs1")
+    val j1  = JointProposal("j1", pBR, br, gs)
 
     val pCA = core(CA, "ca1", PoorWeather)
-    val ca = pCA.ntac
-    val uh = ntac(UH, "uh1")
-    val j2 = JointProposal("j2", pCA, ca, uh)
+    val ca  = pCA.ntac
+    val uh  = ntac(UH, "uh1")
+    val j2  = JointProposal("j2", pCA, ca, uh)
 
     val lst = j1.toParts ::: j2.toParts
 

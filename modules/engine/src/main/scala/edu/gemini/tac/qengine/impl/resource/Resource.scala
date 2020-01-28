@@ -35,13 +35,20 @@ trait Resource {
 object Resource {
 
   @tailrec
-  private def reserveAll[A <: Resource{type T=A}](b: Block, q: ProposalQueueBuilder, inList: List[A], outList: List[A]): RejectMessage Either List[A] =
+  private def reserveAll[A <: Resource { type T = A }](
+    b: Block,
+    q: ProposalQueueBuilder,
+    inList: List[A],
+    outList: List[A]
+  ): RejectMessage Either List[A] =
     inList match {
-      case Nil => Right(outList.reverse)  // reverse the list to maintain the original order -- really only important for testing?
-      case headA :: _ => headA.reserve(b, q) match {
-        case Left(msg) => Left(msg)
-        case Right(newA) => reserveAll(b, q, inList.tail, newA :: outList)
-      }
+      case Nil =>
+        Right(outList.reverse) // reverse the list to maintain the original order -- really only important for testing?
+      case headA :: _ =>
+        headA.reserve(b, q) match {
+          case Left(msg)   => Left(msg)
+          case Right(newA) => reserveAll(b, q, inList.tail, newA :: outList)
+        }
     }
 
   /**
@@ -50,6 +57,10 @@ object Resource {
    * block, then an updated list is returned.  Otherwise, the first element that
    * rejects the block stops the computation and returns a RejectMessage
    */
-  def reserveAll[A <: Resource{type T=A}](b: Block, q: ProposalQueueBuilder, lst: List[A]): RejectMessage Either List[A] =
+  def reserveAll[A <: Resource { type T = A }](
+    b: Block,
+    q: ProposalQueueBuilder,
+    lst: List[A]
+  ): RejectMessage Either List[A] =
     reserveAll(b, q, lst, Nil)
 }

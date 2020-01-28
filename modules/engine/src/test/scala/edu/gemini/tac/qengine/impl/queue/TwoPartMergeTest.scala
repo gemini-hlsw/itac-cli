@@ -34,7 +34,7 @@ import edu.gemini.tac.qengine.ctx.{Partner, Site}
 
   // Place the initial part into an empty list.
   @Test def testInitialJointEmptyList() {
-    val p   = masterPart("j-1", GS, 10)
+    val p = masterPart("j-1", GS, 10)
 
     val lst = s.add(p, Nil)
     s.merge(lst) match {
@@ -65,7 +65,7 @@ import edu.gemini.tac.qengine.ctx.{Partner, Site}
     val pGS = masterPart("j-1", GS, 10)
     val pUS = otherPart(pGS, US, 10)
 
-    val lst = s.add(pUS, s.add(pGS,  Nil))
+    val lst = s.add(pUS, s.add(pGS, Nil))
     s.merge(lst) match {
       case List(j: JointProposal) => {
         assertEquals("j-1", j.jointId.get)
@@ -83,7 +83,7 @@ import edu.gemini.tac.qengine.ctx.{Partner, Site}
     val pBR = core(BR, 10)
     val pUS = otherPart(pGS, US, 10)
 
-    val lst0 = pBR :: s.add(pGS,  Nil)
+    val lst0 = pBR :: s.add(pGS, Nil)
     val lst1 = s.add(pUS, lst0)
 
     // (pGS,pUS) :: pBR
@@ -103,7 +103,7 @@ import edu.gemini.tac.qengine.ctx.{Partner, Site}
     val pBR = core(BR, 10)
     val pUS = otherPart(pGS, US, 10)
 
-    val lst0 = pBR :: s.add(pGS,  Nil)
+    val lst0 = pBR :: s.add(pGS, Nil)
     val lst1 = s.add(pUS, lst0)
 
     s.merge(lst1) match {
@@ -124,7 +124,7 @@ import edu.gemini.tac.qengine.ctx.{Partner, Site}
     val pGS = otherPart(pUS, GS, 10)
     val pBR = core(BR, 10)
 
-    val lst0 = pBR :: s.add(pGS,  Nil)
+    val lst0 = pBR :: s.add(pGS, Nil)
     val lst1 = s.add(pUS, lst0)
 
     s.merge(lst1) match {
@@ -150,29 +150,29 @@ import edu.gemini.tac.qengine.ctx.{Partner, Site}
 
     val lst: List[Proposal] = pAU :: pBR :: pCA :: s.add(pGS, List(pUH))
     s.merge(s.add(pAR, lst)).flatMap {
-      case c: CoreProposal  => List(c.ntac.partner)
-      case j: JointProposal => j.toParts.map(_.ntac.partner).sortBy(_.id)
+      case c: CoreProposal       => List(c.ntac.partner)
+      case j: JointProposal      => j.toParts.map(_.ntac.partner).sortBy(_.id)
       case _: DelegatingProposal => sys.error("Shouldn't happen")
     }
   }
 
   @Test def testInsert() {
-    assertEquals(List(AR, GS, AU, BR, CA, UH), insert_AR_into_AU_BR_CA_jGS_UH(100,        1))
-    assertEquals(List(AU, AR, GS, BR, CA, UH), insert_AR_into_AU_BR_CA_jGS_UH( 16.66667, 10))
-    assertEquals(List(AU, BR, AR, GS, CA, UH), insert_AR_into_AU_BR_CA_jGS_UH(  6,       10))
-    assertEquals(List(AU, BR, CA, AR, GS, UH), insert_AR_into_AU_BR_CA_jGS_UH(  1.42857, 10))
-    assertEquals(List(AU, BR, CA, AR, GS, UH), insert_AR_into_AU_BR_CA_jGS_UH(  0.0000001, 1000000))
+    assertEquals(List(AR, GS, AU, BR, CA, UH), insert_AR_into_AU_BR_CA_jGS_UH(100, 1))
+    assertEquals(List(AU, AR, GS, BR, CA, UH), insert_AR_into_AU_BR_CA_jGS_UH(16.66667, 10))
+    assertEquals(List(AU, BR, AR, GS, CA, UH), insert_AR_into_AU_BR_CA_jGS_UH(6, 10))
+    assertEquals(List(AU, BR, CA, AR, GS, UH), insert_AR_into_AU_BR_CA_jGS_UH(1.42857, 10))
+    assertEquals(List(AU, BR, CA, AR, GS, UH), insert_AR_into_AU_BR_CA_jGS_UH(0.0000001, 1000000))
   }
 
   @Test def testMergeJoints() {
-    val pAR = masterPart("j-1", AR, 10)
-    val pAU = otherPart(pAR, AU, 10)
+    val pAR  = masterPart("j-1", AR, 10)
+    val pAU  = otherPart(pAR, AU, 10)
     val j1_0 = JointProposal.merge(List(pAR, pAU))
 
     val pBR = core(BR, 1)
 
-    val pCA = otherPart(pAR, CA, 10)
-    val pUH = otherPart(pAR, UH, 10)
+    val pCA  = otherPart(pAR, CA, 10)
+    val pUH  = otherPart(pAR, UH, 10)
     val j1_1 = JointProposal.merge(List(pCA, pUH))
 
     val lst = s.add(j1_1, s.add(pBR, s.add(j1_0, Nil)))

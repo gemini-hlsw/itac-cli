@@ -23,12 +23,12 @@ class TimeResourceGroupTest {
   private def conds(wv: WaterVapor) =
     ObsConditions(CCAny, IQAny, SBAny, wv)
 
-  private val wvBin  = TimeRestriction("WV", Percent(10)) {
-    (_, obs, _) => obs.conditions.wv <= WV50
+  private val wvBin = TimeRestriction("WV", Percent(10)) { (_, obs, _) =>
+    obs.conditions.wv <= WV50
   }
 
-  private val lgsBin = TimeRestriction("lgs", Time.hours(1)) {
-    (_, obs, _) => obs.lgs
+  private val lgsBin = TimeRestriction("lgs", Time.hours(1)) { (_, obs, _) =>
+    obs.lgs
   }
 
   // 10% of 10 hours = 1 hr = 60 min
@@ -39,10 +39,14 @@ class TimeResourceGroupTest {
   private val grp = new TimeResourceGroup(lst)
 
   private def mkProp(wv: WaterVapor, lgs: Boolean): Proposal =
-    CoreProposal(ntac, site = Site.south, obsList = List(Observation(target, conds(wv), Time.hours(10), lgs)))
+    CoreProposal(
+      ntac,
+      site = Site.south,
+      obsList = List(Observation(target, conds(wv), Time.hours(10), lgs))
+    )
 
   @Test def testReserveWv() {
-    val prop  = mkProp(WV20, lgs = false)  // matches WV limit, not LGS limit
+    val prop  = mkProp(WV20, lgs = false) // matches WV limit, not LGS limit
     val block = Block(prop, prop.obsList.head, Time.minutes(15))
 
     grp.reserve(block, Fixture.emptyQueue) match {
@@ -90,27 +94,27 @@ class TimeResourceGroupTest {
   }
 
   @Test def testFailWv() {
-    val prop  = mkProp(WV20, lgs = false)  // matches WV limit, not LGS limit
+    val prop  = mkProp(WV20, lgs = false) // matches WV limit, not LGS limit
     val block = Block(prop, prop.obsList.head, Time.minutes(61))
 
     grp.reserve(block, Fixture.emptyQueue) match {
       case Left(msg: RejectRestrictedBin) => // ok
-      case _ => fail()
+      case _                              => fail()
     }
   }
 
   @Test def testFailLgs() {
-    val prop  = mkProp(WV80, lgs = true)  // matches LGS, not WV
+    val prop  = mkProp(WV80, lgs = true) // matches LGS, not WV
     val block = Block(prop, prop.obsList.head, Time.minutes(61))
 
     grp.reserve(block, Fixture.emptyQueue) match {
       case Left(msg: RejectRestrictedBin) => // ok
-      case _ => fail()
+      case _                              => fail()
     }
   }
 
   @Test def testNoMatch() {
-    val prop  = mkProp(WV80, lgs = false)  // matches LGS, not WV
+    val prop = mkProp(WV80, lgs = false) // matches LGS, not WV
 
     // no match so it doesn't matter that we try to reserve too much
     val block = Block(prop, prop.obsList.head, Time.minutes(61))

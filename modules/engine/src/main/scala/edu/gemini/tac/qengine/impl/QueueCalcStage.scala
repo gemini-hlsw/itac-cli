@@ -21,7 +21,12 @@ object QueueCalcStage {
 
   object Params {
     //Sets parameters for Band1 and 2
-    def apply(props: ProposalPrep, qtime: QueueTime, config: QueueEngineConfig, bins: RaResourceGroup) = {
+    def apply(
+      props: ProposalPrep,
+      qtime: QueueTime,
+      config: QueueEngineConfig,
+      bins: RaResourceGroup
+    ) = {
       // Calculate for the full time category (bands 1 and 2)
       val cat = Category.B1_2
 
@@ -30,15 +35,22 @@ object QueueCalcStage {
 
       // Create a new block iterator that will step through the proposals
       // according to partner sequence and time quantum
-      val iter = BlockIterator(config.partners, qtime.partnerQuanta, config.partnerSeq.sequence, props.group, _.obsList)
+      val iter = BlockIterator(
+        config.partners,
+        qtime.partnerQuanta,
+        config.partnerSeq.sequence,
+        props.group,
+        _.obsList
+      )
 
       // Create the initial restricted bins.  Percent bins are mapped to a
       // percentage of guaranteed queue time, and time bins set their own bound.
       val rbins = config.restrictedBinConfig.mapTimeRestrictions(
         percent => BoundedTime(qtime.full * percent),
-        time => BoundedTime(time))
-      val time = new TimeResourceGroup(rbins.map(new TimeResource(_)))
-      val band = new BandResource(config.restrictedBinConfig.bandRestrictions)
+        time => BoundedTime(time)
+      )
+      val time   = new TimeResourceGroup(rbins.map(new TimeResource(_)))
+      val band   = new BandResource(config.restrictedBinConfig.bandRestrictions)
       val semRes = new SemesterResource(bins, time, band)
       // Log.trace(semRes.toXML.toString())
 
@@ -46,7 +58,14 @@ object QueueCalcStage {
     }
 
     //This is the Band3 Constructor. Uses info from the passed-in queue calc stage.
-    def apply(partners: List[Partner],  props: ProposalPrep, config: QueueEngineConfig, pass1: QueueCalcStage, clean: QueueCalcStage, partnerQuanta : PartnerTime) = {
+    def apply(
+      partners: List[Partner],
+      props: ProposalPrep,
+      config: QueueEngineConfig,
+      pass1: QueueCalcStage,
+      clean: QueueCalcStage,
+      partnerQuanta: PartnerTime
+    ) = {
       // Use the clean queue state that was previously calculated as the starting
       // point.
       val queue = clean.queue
@@ -69,27 +88,45 @@ object QueueCalcStage {
        */
       val iter =
         prevIter.quantaMap == PartnerTime.empty(partners) match {
-          case false => BlockIterator(partners, prevIter.quantaMap, prevIter.seq, props.group, _.band3Observations)
-          case true => BlockIterator(partners, partnerQuanta, config.partnerSeq.sequence, props.group, _.band3Observations)
+          case false =>
+            BlockIterator(
+              partners,
+              prevIter.quantaMap,
+              prevIter.seq,
+              props.group,
+              _.band3Observations
+            )
+          case true =>
+            BlockIterator(
+              partners,
+              partnerQuanta,
+              config.partnerSeq.sequence,
+              props.group,
+              _.band3Observations
+            )
         }
       new Params(cat, queue, iter, _.band3Observations, semRes, props.log)
     }
   }
 
-  class Params(val cat: QueueBand.Category,
-               val queue: ProposalQueueBuilder,
-               val iter: BlockIterator,
-               val activeList : Proposal=>List[Observation],
-               val res: SemesterResource,
-               val log: ProposalLog)
+  class Params(
+    val cat: QueueBand.Category,
+    val queue: ProposalQueueBuilder,
+    val iter: BlockIterator,
+    val activeList: Proposal => List[Observation],
+    val res: SemesterResource,
+    val log: ProposalLog
+  )
 
-
-  private def rollback(stack: List[QueueFrame], prop: Proposal, activeList: Proposal => List[Observation]): List[QueueFrame] =
+  private def rollback(
+    stack: List[QueueFrame],
+    prop: Proposal,
+    activeList: Proposal => List[Observation]
+  ): List[QueueFrame] =
     stack.dropWhile(!_.isStartOf(prop)) match {
       case head :: tail => head.skip(activeList) :: tail
-      case Nil => sys.error("Tried to skip a proposal that wasn't seen.")
+      case Nil          => sys.error("Tried to skip a proposal that wasn't seen.")
     }
-
 
   //
   // Recurse through calling stack.head.next until hasNext returns false or we move to a
@@ -102,23 +139,38 @@ object QueueCalcStage {
   // RejectMessage. Call skip on that frame and push it so that it considers
   // the next proposal in the sequence.
   //
-  @tailrec private def compute(cat: Category, stack: List[QueueFrame], log: ProposalLog, activeList : Proposal=>List[Observation]): Result = {
+  @tailrec private def compute(
+    cat: Category,
+    stack: List[QueueFrame],
+    log: ProposalLog,
+    activeList: Proposal => List[Observation]
+  ): Result = {
     Log.debug("👉  Compute!")
     val stackHead = stack.head
     // Log.trace(stackHead.toXML.toString())
     if (stackHead.emptyOrOtherCategory(cat)) {
       Log.debug(s"❌  Stack empty or other category ($cat).")
       // Log.trace("Stack is empty [" + ! stackHead.hasNext + "] or in other category [Expected : " + cat + " Actual: " + stackHead.queue.band + "]")
-      (stackHead, log.updated(stackHead.iter.remPropList, cat, RejectCategoryOverAllocation(_, cat)))
-    } else stackHead.next(activeList) match {
-      case Left(msg) => //Error, so roll back (and recurse)
-        Log.debug("❌  Error, rolling back.")
-        compute(cat, rollback(stack, msg.prop, activeList), log.updated(msg.prop.id, cat, msg), activeList)
-      case Right(frameNext) => //OK, so accept (and recurse)
-        Log.debug("💚  Continuing.")
-        val updatedLog = frameNext.accept.map(msg => log.updated(msg.prop.id, cat, msg)).getOrElse(log)
-        compute(cat, frameNext.frame :: stack, updatedLog, activeList)
-    }
+      (
+        stackHead,
+        log.updated(stackHead.iter.remPropList, cat, RejectCategoryOverAllocation(_, cat))
+      )
+    } else
+      stackHead.next(activeList) match {
+        case Left(msg) => //Error, so roll back (and recurse)
+          Log.debug("❌  Error, rolling back.")
+          compute(
+            cat,
+            rollback(stack, msg.prop, activeList),
+            log.updated(msg.prop.id, cat, msg),
+            activeList
+          )
+        case Right(frameNext) => //OK, so accept (and recurse)
+          Log.debug("💚  Continuing.")
+          val updatedLog =
+            frameNext.accept.map(msg => log.updated(msg.prop.id, cat, msg)).getOrElse(log)
+          compute(cat, frameNext.frame :: stack, updatedLog, activeList)
+      }
   }
 
   /**
@@ -135,7 +187,7 @@ object QueueCalcStage {
    */
   def apply(p: Params): QueueCalcStage = {
     val queueFrameHead = List(new QueueFrame(p.queue, p.iter, p.res))
-    val result = compute(p.cat, queueFrameHead, p.log, p.activeList)
+    val result         = compute(p.cat, queueFrameHead, p.log, p.activeList)
     new QueueCalcStage(p.cat, result)
   }
 }
@@ -143,11 +195,11 @@ object QueueCalcStage {
 /**
  * Contains the result of calculating (a portion of) the queue.
  */
-case class QueueCalcStage private(cat: Category, result: QueueCalcStage.Result) {
+case class QueueCalcStage private (cat: Category, result: QueueCalcStage.Result) {
   private val frame: QueueFrame = result._1
 
   val resource = frame.res
-  val iter = frame.iter
+  val iter     = frame.iter
 
   // Take the queue and log from the result and run the band restriction filter
   // again -- merging proposals can cause movement in the queue and band

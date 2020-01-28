@@ -10,7 +10,11 @@ import org.slf4j.LoggerFactory
  * usable form for the QueueEngine.  It contains a list of proposals and a
  * map of Proposal.Id to LogMessage for any proposals that are rejected.
  */
-final class ProposalPrep private (val propList: List[Proposal], val cat: QueueBand.Category, val log: ProposalLog) {
+final class ProposalPrep private (
+  val propList: List[Proposal],
+  val cat: QueueBand.Category,
+  val log: ProposalLog
+) {
 
   /**
    * Groups the proposal list into a map of lists keyed by partner.  The lists
@@ -77,14 +81,18 @@ object ProposalPrep {
 
     // Filter out duplicate ids.  There are several parts of the code that
     // assume each proposal has a unique id.
-    val unique   = expanded.groupBy(_.id).values.map(_.head).toList
+    val unique = expanded.groupBy(_.id).values.map(_.head).toList
 
     val prep = new ProposalPrep(unique, QueueBand.Category.B1_2, log)
 
     val withTime = prep.withTime
-    LOG.debug(s"👉  Removing those with no time given, we are down to ${withTime.propList.length} proposals.")
+    LOG.debug(
+      s"👉  Removing those with no time given, we are down to ${withTime.propList.length} proposals."
+    )
     val withObservations = withTime.withObservations
-    LOG.debug(s"👉  Removing those with no observations, we are down to ${withObservations.propList.length} proposals.")
+    LOG.debug(
+      s"👉  Removing those with no observations, we are down to ${withObservations.propList.length} proposals."
+    )
     withObservations
   }
 }

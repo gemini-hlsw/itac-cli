@@ -6,7 +6,7 @@ import edu.gemini.tac.qengine.util.Time.toPercentMultiplier
 
 class TimeTest {
   @Test def testPercent() {
-    val t = Time.hours(1.0)
+    val t            = Time.hours(1.0)
     val fiftyPercent = Percent(50)
     assertEquals(Time.hours(0.5), t.percent(50))
     assertEquals(Time.hours(0.5), t * fiftyPercent)

@@ -4,6 +4,7 @@ package edu.gemini.tac.qengine.p1
  * Observing Mode.
  */
 sealed trait Mode extends Ordered[Mode] {
+
   /** The part of a program id that identifies it as a member of this mode. */
   def programId: String
 

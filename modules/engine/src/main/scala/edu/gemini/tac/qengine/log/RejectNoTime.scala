@@ -14,6 +14,6 @@ final case class RejectNoTime(prop: Proposal) extends RejectMessage {
   def reason: String = RejectNoTime.name
   def detail: String = RejectNoTime.description
 
-  override def subToXML : Elem = <NoTimeAward><Proposal id= { prop.id.toString }/></NoTimeAward>
+  override def subToXML: Elem = <NoTimeAward><Proposal id= {prop.id.toString}/></NoTimeAward>
 
 }

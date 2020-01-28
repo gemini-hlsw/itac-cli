@@ -23,15 +23,19 @@ class TimeResourceTest {
   private def conds(wv: WaterVapor) =
     ObsConditions(CCAny, IQAny, SBAny, wv)
 
-  private val bin = TimeRestriction("WV", Percent(10)) {
-    (_, obs, _) => obs.conditions.wv <= WV50
+  private val bin = TimeRestriction("WV", Percent(10)) { (_, obs, _) =>
+    obs.conditions.wv <= WV50
   }
 
   // 10% of 10 hours = 1 hr = 60 min
   private val res60min = TimeResource(bin, Time.hours(10))
 
   private def mkProp(wv: WaterVapor): Proposal =
-    CoreProposal(ntac, site = Site.south, obsList = List(Observation(target, conds(wv), Time.hours(10))))
+    CoreProposal(
+      ntac,
+      site = Site.south,
+      obsList = List(Observation(target, conds(wv), Time.hours(10)))
+    )
 
   @Test def testReserveNoMatch() {
     val prop = mkProp(WV80)
@@ -41,7 +45,7 @@ class TimeResourceTest {
     val block = Block(prop, prop.obsList.head, Time.hours(1))
     res60min.reserve(block, Fixture.emptyQueue) match {
       case Right(res) => assertSame(res60min, res)
-      case _ => fail()
+      case _          => fail()
     }
   }
 
@@ -53,7 +57,7 @@ class TimeResourceTest {
     val block = Block(prop, prop.obsList.head, Time.hours(0))
     res60min.reserve(block, Fixture.emptyQueue) match {
       case Right(res) => assertSame(res60min, res)
-      case _ => fail()
+      case _          => fail()
     }
   }
 
@@ -64,7 +68,7 @@ class TimeResourceTest {
     val block = Block(prop, prop.obsList.head, Time.minutes(15))
     res60min.reserve(block, Fixture.emptyQueue) match {
       case Right(res) => assertEquals(Time.minutes(45), res.remaining)
-      case _ => fail()
+      case _          => fail()
     }
   }
 
@@ -75,7 +79,7 @@ class TimeResourceTest {
     val block = Block(prop, prop.obsList.head, Time.minutes(61))
     res60min.reserve(block, Fixture.emptyQueue) match {
       case Left(msg: RejectRestrictedBin) => assertEquals(prop, msg.prop)
-      case _ => fail()
+      case _                              => fail()
     }
   }
 }

@@ -3,14 +3,18 @@ package edu.gemini.tac.qengine.api.queue
 import edu.gemini.tac.qengine.util.Time
 import edu.gemini.tac.qengine.ctx.Partner
 
-class PartnerFairness(remainingTime: Partner => Time, availableTime: Partner => Time, partners: List[Partner]) {
+class PartnerFairness(
+  remainingTime: Partner => Time,
+  availableTime: Partner => Time,
+  partners: List[Partner]
+) {
 
   private def hours(time: Time): Double = time.toHours.value
 
   private def calcErrorPercent(p: Partner): Double =
     hours(availableTime(p)) match {
       case 0.0   => 0.0
-      case avail => - hours(remainingTime(p))/avail * 100
+      case avail => -hours(remainingTime(p)) / avail * 100
     }
 
   /**
@@ -33,7 +37,7 @@ class PartnerFairness(remainingTime: Partner => Time, availableTime: Partner => 
     case lst => {
       val second = lst.size / 2
       val first  = second - 1
-      (lst(first) + lst(second))/2
+      (lst(first) + lst(second)) / 2
     }
   }
 

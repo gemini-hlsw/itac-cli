@@ -88,8 +88,8 @@ trait ProposalLog {
    * in the ProposalLog.
    */
   def proposalIds: SortedSet[Proposal.Id] =
-    log.foldLeft(SortedSet.empty[Proposal.Id]) {
-      (s,e) => s + e.key.id
+    log.foldLeft(SortedSet.empty[Proposal.Id]) { (s, e) =>
+      s + e.key.id
     }
 
   /**
@@ -113,8 +113,8 @@ trait ProposalLog {
    * function.
    */
   def updated(propList: List[Proposal], cat: TimeCat, f: Proposal => LogMessage): ProposalLog =
-    mkProposalLog(propList.foldLeft(log) {
-      (lst, prop) => Entry(Key(prop.id, cat), f(prop)) :: lst
+    mkProposalLog(propList.foldLeft(log) { (lst, prop) =>
+      Entry(Key(prop.id, cat), f(prop)) :: lst
     })
 
   /**
@@ -124,11 +124,12 @@ trait ProposalLog {
 
   def toXML =
     <ProposalLog>
-      { log.reverse.map(_.msg.toXML) }
+      {log.reverse.map(_.msg.toXML)}
     </ProposalLog>
 }
 
 object ProposalLog {
+
   /**
    * A combination of proposal id and queue band time category that serves as
    * a key for looking up proposal log messages.
@@ -165,14 +166,14 @@ object ProposalLog {
     // Note: reverses the log entries as it goes leaving them in insertion
     // order and selecting only the final entry per key (which is the first
     // one to show up in the reversed list).
-    reverseLst.foldLeft(empty) {
-      (res, entry) =>
+    reverseLst
+      .foldLeft(empty) { (res, entry) =>
         if (res.keys.contains(entry.key))
           res // skip this one
         else
-
           Res(entry :: res.lst, res.keys + entry.key)
-    }.lst
+      }
+      .lst
   }
 
   val Empty: ProposalLog = new ProposalLogImpl(List.empty)
@@ -185,6 +186,5 @@ object ProposalLog {
   private class ProposalLogImpl(val log: List[Entry]) extends ProposalLog {
     protected def mkProposalLog(l: List[Entry]): ProposalLog = new ProposalLogImpl(l)
   }
-
 
 }

@@ -27,11 +27,13 @@ final class BandResource(val lst: List[BandRestriction]) extends Resource {
   private def getBand(prop: Proposal, queue: ProposalQueueBuilder) =
     prop match {
       case p: JointProposalPart => (queue :+ p).positionOf(p).get.band
-      case _ => queue.band
+      case _                    => queue.band
     }
 
   def bandAndPercent(queue: ProposalQueueBuilder): (QueueBand, Percent) = {
-    val perc = Percent((queue.usedTime.toHours.value / queue.queueTime.full.toHours.value * 100).round.toInt.toDouble)
+    val perc = Percent(
+      (queue.usedTime.toHours.value / queue.queueTime.full.toHours.value * 100).round.toInt.toDouble
+    )
     (queue.band, perc)
   }
 
@@ -44,7 +46,11 @@ final class BandResource(val lst: List[BandRestriction]) extends Resource {
    * Checks the band restriction for the subset of restrictions for which the
    * proposal matches the predicate (is rapid TOO, requires LGS, etc).
    */
-  private def checkBand(prop: Proposal, queue: ProposalQueueBuilder, valid: List[BandRestriction]): RejectMessage Either BandResource = {
+  private def checkBand(
+    prop: Proposal,
+    queue: ProposalQueueBuilder,
+    valid: List[BandRestriction]
+  ): RejectMessage Either BandResource = {
     val band = getBand(prop, queue)
     valid.find(!_.bands.contains(band)) match {
       case None    => Right(this)
@@ -52,15 +58,16 @@ final class BandResource(val lst: List[BandRestriction]) extends Resource {
     }
   }
 
-
-  private def checkBand(prop: Proposal, queue: ProposalQueueBuilder): RejectMessage Either BandResource =
+  private def checkBand(
+    prop: Proposal,
+    queue: ProposalQueueBuilder
+  ): RejectMessage Either BandResource =
     // Only consider restrictions for which the predicate matches this
     // proposal.
     lst.filter(_.matches(prop)) match {
       case Nil               => Right(this)
       case validRestrictions => checkBand(prop, queue, validRestrictions)
     }
-
 
   def reserve(block: Block, queue: ProposalQueueBuilder): RejectMessage Either BandResource =
     // This check can be rather expensive so we check only at the beginning and
@@ -74,14 +81,13 @@ final class BandResource(val lst: List[BandRestriction]) extends Resource {
         case Right(a) =>
           LOG.debug(s"    💚  Band resource check passed.")
           Right(a)
-        case Left(e)  =>
+        case Left(e) =>
           LOG.debug(s"    ❌  Band resource check failed: $e")
           Left(e)
       }
     } else {
       Right(this)
     }
-
 
   // --------------------------------------------------------------------------
   // ProposalQueue filtering to correct for moving proposals around during the
@@ -94,16 +100,27 @@ final class BandResource(val lst: List[BandRestriction]) extends Resource {
   private def isValid(prop: Proposal, pos: ProposalPosition): Boolean =
     bandViolation(prop, pos).isEmpty
 
-  private def logMessage(prop: Proposal, pos: ProposalPosition, queue: ProposalQueueBuilder, r: BandRestriction): RejectBand = {
-    val perc = Percent((pos.time.toHours.value / queue.queueTime.full.toHours.value * 100).round.toInt.toDouble)
+  private def logMessage(
+    prop: Proposal,
+    pos: ProposalPosition,
+    queue: ProposalQueueBuilder,
+    r: BandRestriction
+  ): RejectBand = {
+    val perc = Percent(
+      (pos.time.toHours.value / queue.queueTime.full.toHours.value * 100).round.toInt.toDouble
+    )
     RejectBand(prop, r.name, pos.band, perc)
   }
 
-  private def updatedLog(queue: ProposalQueueBuilder, log: ProposalLog, lst: List[(Proposal, ProposalPosition)]): ProposalLog =
-    lst.foldLeft(log) {
-      (curLog, tup) => {
-        val prop = tup._1  // proposal that violates the restriction
-        val pos  = tup._2  // position of the proposal relative orig queue
+  private def updatedLog(
+    queue: ProposalQueueBuilder,
+    log: ProposalLog,
+    lst: List[(Proposal, ProposalPosition)]
+  ): ProposalLog =
+    lst.foldLeft(log) { (curLog, tup) =>
+      {
+        val prop = tup._1 // proposal that violates the restriction
+        val pos  = tup._2 // position of the proposal relative orig queue
 
         val rest = bandViolation(prop, pos).get // which restriction violated
         val cat  = pos.band.logCategory         // Category for the log
@@ -129,7 +146,7 @@ final class BandResource(val lst: List[BandRestriction]) extends Resource {
     (newQueue, newLog)
   }
 
-  def toXML : Elem = <BandResource>
-    { lst.map(_.toXML) }
+  def toXML: Elem = <BandResource>
+    {lst.map(_.toXML)}
     </BandResource>
 }
