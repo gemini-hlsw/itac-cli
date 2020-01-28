@@ -19,9 +19,8 @@ object ContextOrderingImplicits {
     def compare(s1: Semester, s2: Semester): Int = s1.compareTo(s2)
   }
 
-  implicit val contextOrdering = new Ordering[Context] {
-    def compare(c1: Context, c2: Context): Int = c1.compareTo(c2)
-  }
+  implicit val contextOrdering: Ordering[Context] =
+    Ordering.by(c => (c.semester, c.site))
 
   implicit val semesterWrapper = (semester: Semester) => new RichSemester(semester)
 }

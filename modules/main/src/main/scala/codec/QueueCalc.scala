@@ -22,7 +22,7 @@ trait QueueCalcEncoder {
             "id"     -> p.id.reference.asJson,
             "ngo"    -> p.id.partner.id.asJson,
             "comment" -> "TBD".asJson,
-            "pid"    -> s"${p.site.abbreviation}-${qc.context.getSemester.toString}-${p.mode.programId}-${pos.programNumber}".asJson,
+            "pid"    -> s"${p.site.abbreviation}-${qc.context.semester.toString}-${p.mode.programId}-${pos.programNumber}".asJson,
             "accept" -> Json.obj(
               "contact" -> "TBD".asJson,
               "email"   -> "TBD".asJson,
