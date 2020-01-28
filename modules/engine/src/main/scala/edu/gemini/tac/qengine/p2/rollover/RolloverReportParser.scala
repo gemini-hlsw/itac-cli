@@ -41,7 +41,7 @@ class RolloverReportParser(partners: List[Partner]) {
            val d = s.toDouble
            if (d < 0) None else Some(Time.hours(d))
          } catch {
-           case ex: NumberFormatException => None
+           case _: NumberFormatException => None
          })
 
   private def toRollover(n: Int, rolloverObsStr: String): RolloverParseError Either RolloverObservation =
@@ -67,7 +67,7 @@ class RolloverReportParser(partners: List[Partner]) {
     reportStr.lines.toList.zipWithIndex map {
       case (s, n) => (n+1, s.trim)
     } filterNot {
-      case (n, s) => s.isEmpty || s.startsWith("#")
+      case (_, s) => s.isEmpty || s.startsWith("#")
     }
 
   private def toParsedRollovers(reportStr: String): List[RolloverParseError Either RolloverObservation] =

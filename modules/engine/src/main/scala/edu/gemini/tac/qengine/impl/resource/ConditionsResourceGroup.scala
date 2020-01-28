@@ -8,7 +8,6 @@ import edu.gemini.tac.qengine.util.{BoundedTime, Percent, Time}
 import edu.gemini.tac.qengine.p1.ObsConditions
 import edu.gemini.tac.qengine.impl.queue.ProposalQueueBuilder
 import xml.Elem
-import org.slf4j.LoggerFactory
 
 object ConditionsResourceGroup {
 
@@ -45,14 +44,14 @@ final case class ConditionsResourceGroup private (val bins: ConditionsBinGroup[B
 
   private def sum(c: ObsConditions, f: (BoundedTime => Time)): Time = {
     val cats = bins.searchPath(c)
-    (Time.Minutes.zero/:cats)((t: Time, cat: Cat) => t + f(bins(cat)))
+    cats.foldLeft(Time.Minutes.zero)((t: Time, cat: Cat) => t + f(bins(cat)))
   }
 
   def limit(c: ObsConditions): Time = sum(c, _.limit)
   def remaining(c: ObsConditions): Time = sum(c, _.remaining)
   def isFull(c: ObsConditions): Boolean = remaining(c).isZero
 
-  private def conds(block: Block, queue: ProposalQueueBuilder): ObsConditions =
+  private def conds(block: Block): ObsConditions =
     block.obs.conditions
 
 
@@ -62,7 +61,7 @@ final case class ConditionsResourceGroup private (val bins: ConditionsBinGroup[B
    * observation's time, or else an error.
    */
   override def reserve(block: Block, queue: ProposalQueueBuilder): RejectMessage Either ConditionsResourceGroup = {
-    val c = conds(block, queue)
+    val c = conds(block)
     reserveAvailable(block.time, c) match {
       case (newGrp, t) if t.isZero => Right(newGrp)
       case _                       => Left(rejectConditions(block.prop, block.obs, queue.band, sum(c, _.used), sum(c, _.limit)))

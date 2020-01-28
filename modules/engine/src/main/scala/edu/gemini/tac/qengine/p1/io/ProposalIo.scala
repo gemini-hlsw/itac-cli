@@ -54,7 +54,7 @@ class ProposalIo(partners: Map[String, Partner]) {
       val sites = obsGroups.map(_._1).list.toList.distinct
 
       // Make a proposal per site represented in the observations.
-      val (props, newGen) = ((List.empty[Proposal], jointIdGen)/:sites) { case ((propList, gen), site) =>
+      val (props, newGen) = sites.foldLeft((List.empty[Proposal], jointIdGen)) { case ((propList, gen), site) =>
 
         // Get the list of observations associated with the given band category (if any).
         def bandList(cat: QueueBand.Category): List[Observation] =
@@ -69,7 +69,7 @@ class ProposalIo(partners: Map[String, Partner]) {
         // If there are more ntacs, it is a Joint, otherwise just this core.
         val (prop, newGen) = ntacs.tail.toList match {
           case Nil => (core, gen)
-          case lst => (JointProposal(gen.toString, core, ntacs.list.toList), gen.next)
+          case _   => (JointProposal(gen.toString, core, ntacs.list.toList), gen.next)
         }
         (prop :: propList, newGen)
       }

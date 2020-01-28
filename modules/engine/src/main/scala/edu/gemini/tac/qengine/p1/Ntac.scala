@@ -2,7 +2,7 @@ package edu.gemini.tac.qengine.p1
 
 import edu.gemini.tac.qengine.util.{Percent, CompoundOrdering, Time}
 import edu.gemini.tac.qengine.p1.Ntac.Rank
-import edu.gemini.tac.qengine.ctx.{Share, Partner}
+import edu.gemini.tac.qengine.ctx.Partner
 
 
 case class Ntac(partner: Partner, reference: String, ranking: Rank, awardedTime: Time, poorWeather: Boolean = false, lead: Option[String] = None) extends Ordered[Ntac] {
@@ -58,7 +58,7 @@ object Ntac {
    * Sums the awarded time in a collection of Ntacs.
    */
   def awardedTimeSum(ntacs: Iterable[Ntac]): Time =
-    (Time.ZeroHours/:ntacs)(_ + _.awardedTime)
+    ntacs.foldLeft(Time.ZeroHours)(_ + _.awardedTime)
 
   def apply(partner: Partner, reference: String, ranking: Double, awardedTime: Time, poorWeather : Boolean): Ntac =
       new Ntac(partner, reference, Ntac.Rank(ranking), awardedTime, poorWeather, lead = None)

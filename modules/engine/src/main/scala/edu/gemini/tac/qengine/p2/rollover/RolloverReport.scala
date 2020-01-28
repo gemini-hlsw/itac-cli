@@ -19,7 +19,7 @@ case class RolloverReport(obsList: List[RolloverObservation]) {
    * Total of all rollover observation times.  This amount of time is subtracted
    * from the available queue time.
    */
-  def total: Time = (Time.ZeroHours/:obsList)(_ + _.time)
+  def total: Time = obsList.foldLeft(Time.ZeroHours)(_ + _.time)
 }
 
 object RolloverReport {

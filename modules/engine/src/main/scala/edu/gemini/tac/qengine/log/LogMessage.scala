@@ -5,10 +5,8 @@ import edu.gemini.tac.qengine.util.BoundedTime
 import xml.Elem
 import java.text.SimpleDateFormat
 import java.util.{UUID, Date}
-import org.slf4j.LoggerFactory
 
 trait LogMessage {
-  private val LOGGER = LoggerFactory.getLogger(LogMessage.getClass)
 
   val prop: Proposal
 

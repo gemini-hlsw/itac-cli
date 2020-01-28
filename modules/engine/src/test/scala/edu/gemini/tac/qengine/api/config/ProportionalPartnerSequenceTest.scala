@@ -72,9 +72,9 @@ class ProportionalPartnerSequenceTest {
     val seqWithOverride = new ProportionalPartnerSequence(ps, site, c)
     val resultsOverride = seqWithOverride.sequence.take(10).toList
 
-    assertEquals("A,C,B,A,A,C,B,A,A,C,B", resultsNoOverride.mkString(","))
+    assertEquals("A,C,B,A,A,C,B,A,A,C,B", resultsNoOverride.map(_.id).mkString(","))
     //Initial "A" is dropped, but calcs are as if it were included...
-    assertEquals(  "C,B,A,A,C,B,A,A,C,B", resultsOverride.mkString(","))
+    assertEquals(  "C,B,A,A,C,B,A,A,C,B", resultsOverride.map(_.id).mkString(","))
 
     //Drives towards proportions
     val longEnough = seqWithOverride.sequence.take(100).toList

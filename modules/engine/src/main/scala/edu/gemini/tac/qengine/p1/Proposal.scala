@@ -228,5 +228,5 @@ object Proposal {
   /**
    * Sums the awarded time for the proposals in the given
    */
-  def sumTimes(lst: Traversable[Proposal]): Time = (Time.ZeroHours/:lst)(_ + _.time)
+  def sumTimes(lst: Traversable[Proposal]): Time = lst.foldLeft(Time.ZeroHours)(_ + _.time)
 }

@@ -31,7 +31,7 @@ final class BandResource(val lst: List[BandRestriction]) extends Resource {
     }
 
   def bandAndPercent(queue: ProposalQueueBuilder): (QueueBand, Percent) = {
-    val perc = Percent((queue.usedTime.toHours.value / queue.queueTime.full.toHours.value * 100).round.toInt)
+    val perc = Percent((queue.usedTime.toHours.value / queue.queueTime.full.toHours.value * 100).round.toInt.toDouble)
     (queue.band, perc)
   }
 
@@ -95,7 +95,7 @@ final class BandResource(val lst: List[BandRestriction]) extends Resource {
     bandViolation(prop, pos).isEmpty
 
   private def logMessage(prop: Proposal, pos: ProposalPosition, queue: ProposalQueueBuilder, r: BandRestriction): RejectBand = {
-    val perc = Percent((pos.time.toHours.value / queue.queueTime.full.toHours.value * 100).round.toInt)
+    val perc = Percent((pos.time.toHours.value / queue.queueTime.full.toHours.value * 100).round.toInt.toDouble)
     RejectBand(prop, r.name, pos.band, perc)
   }
 

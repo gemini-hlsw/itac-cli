@@ -3,7 +3,7 @@ package edu.gemini.qengine.skycalc
 import edu.gemini.tac.qengine.ctx.{Semester, Site}
 
 import collection.JavaConverters._
-import edu.gemini.skycalc.{TwilightBoundType, Angle}
+import edu.gemini.skycalc.Angle
 
 /**
  * Writes out a CSV table with the RA/Dec bin sizes.
@@ -36,7 +36,7 @@ object CsvTable {
     for(col <- 0 to 23; row <- 0 to 8) { buf(row)(col) = percList(col)(row) }
 
     val hdr1 = hList.zipWithIndex map {
-      case (hrs, index) => "%d".format(index)
+      case (_, index) => "%d".format(index)
     }
     val hdr2 = hList.zipWithIndex map {
       case (hrs, index) => "%.1f".format(hrs.getHours)

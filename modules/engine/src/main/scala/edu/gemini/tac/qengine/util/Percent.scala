@@ -40,8 +40,8 @@ object Percent {
   def relativePercentages[T](ts: List[T], precision: Int = DefaultPrecision)(implicit num: Numeric[T]): List[Percent] = {
     require(precision >= 0)
 
-    val sum   = num.toDouble((num.zero/:ts) { num.plus })
-    val total = pow(10, 2 + precision).toInt
+    val sum   = num.toDouble(ts.foldLeft(num.zero) { num.plus })
+    val total = pow(10, 2.0 + precision).toInt
 
     // Percentages expressed as raw Doubles
     val percs = ts.map(t => num.toDouble(t)/sum * total)

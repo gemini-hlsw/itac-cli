@@ -1,6 +1,6 @@
 package edu.gemini.tac.qengine.util
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 import annotation.tailrec
 
@@ -14,8 +14,8 @@ object QEngineUtil {
   private def promoteEither[L,R](rem: List[Either[L, R]], res: List[R]): Either[L, List[R]] =
     rem match {
       case Nil => Right(res.reverse)
-      case h @ Left(l)  :: tail => Left(l)
-      case h @ Right(r) :: tail => promoteEither(tail, r :: res)
+      case Left(l)  :: _ => Left(l)
+      case Right(r) :: tail => promoteEither(tail, r :: res)
     }
 
   /**
@@ -31,7 +31,7 @@ object QEngineUtil {
    * the Java collection is null.
    */
   def toList[T](javaCol: java.util.Collection[T]): List[T] =
-    Option(javaCol).map(_.toList).getOrElse(Nil)
+    Option(javaCol).map(_.asScala.toList).getOrElse(Nil)
 
   /**
    * Trims the given (possibly null) string, returning an Option that is Some

@@ -7,7 +7,6 @@ inThisBuild(Seq(
 
 lazy val engine = project
   .in(file("modules/engine"))
-  .disablePlugins(TpolecatPlugin)
   .settings(
     name := "itc-cli-engine",
     libraryDependencies ++= Seq(
@@ -19,7 +18,8 @@ lazy val engine = project
       "com.novocode"             % "junit-interface"             % "0.11"    % "test",
       "junit"                    % "junit"                       % "4.12"    % "test",
       "org.mockito"              % "mockito-all"                 % "1.10.19" % "test",
-    )
+    ),
+    Test / scalacOptions := Nil, // don't worry about warnings in tests right now
   )
 
 lazy val main = project

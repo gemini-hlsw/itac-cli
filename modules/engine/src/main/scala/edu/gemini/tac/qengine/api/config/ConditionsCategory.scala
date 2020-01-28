@@ -67,7 +67,7 @@ object ConditionsCategory {
 
   case class SearchPath(cats: List[ConditionsCategory]) {
     def apply(oc: ObsConditions): List[ConditionsCategory] =
-      (List.empty[ConditionsCategory]/:cats) {
+      cats.foldLeft(List.empty[ConditionsCategory]) {
         (upgradePath, cat) => if (cat.canObserve(oc)) cat :: upgradePath else upgradePath
       }
 

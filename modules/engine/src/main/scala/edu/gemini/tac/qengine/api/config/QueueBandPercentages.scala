@@ -20,7 +20,7 @@ final case class QueueBandPercentages(band1: Percent = Default.Band1Percent, ban
    * The percentage of the queue associated with the given QueueBand Category.
    */
   def categoryPercent(cat: QueueBand.Category): Percent =
-    (Percent.Zero/:QueueBand.values.filter(_.categories.contains(cat))) {
+    QueueBand.values.filter(_.categories.contains(cat)).foldLeft(Percent.Zero) {
       (perc, band) => perc + bandPercent(band)
     }
 
@@ -35,5 +35,5 @@ object QueueBandPercentages {
   def apply() = new QueueBandPercentages()
 
   def apply(band1: Int, band2: Int, band3: Int) =
-    new QueueBandPercentages(Percent(band1), Percent(band2), Percent(band3))
+    new QueueBandPercentages(Percent(band1.toDouble), Percent(band2.toDouble), Percent(band3.toDouble))
 }

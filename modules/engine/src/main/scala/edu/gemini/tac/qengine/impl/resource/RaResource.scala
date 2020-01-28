@@ -7,7 +7,6 @@ import edu.gemini.tac.qengine.log.{RejectTarget, RejectMessage}
 import edu.gemini.tac.qengine.util.{BoundedTime, Time}
 import edu.gemini.tac.qengine.impl.queue.ProposalQueueBuilder
 import xml.Elem
-import org.slf4j.LoggerFactory
 
 object RaResource {
   def apply(t: Time, c: SiteSemesterConfig): RaResource = {

@@ -8,11 +8,9 @@ import resource._
 import edu.gemini.tac.qengine.impl.queue.ProposalQueueBuilder
 import edu.gemini.tac.qengine.log.{RejectCategoryOverAllocation, ProposalLog}
 import edu.gemini.tac.qengine.api.config.QueueEngineConfig
-import edu.gemini.tac.qengine.util.BoundedTime._
 import edu.gemini.tac.qengine.util.BoundedTime
 import edu.gemini.tac.qengine.api.queue.time.{PartnerTime, QueueTime}
 import edu.gemini.tac.qengine.ctx.Partner
-import java.util.logging.{Level, Logger}
 import org.slf4j.LoggerFactory
 import edu.gemini.tac.qengine.impl.queue.EagerMergeStrategy
 

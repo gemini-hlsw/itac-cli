@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory
  * time quanta.
  */
 trait BlockIterator {
-  private val LOGGER = LoggerFactory.getLogger(this.getClass)
 
   val allPartners: List[Partner]
 
@@ -141,15 +140,15 @@ trait BlockIterator {
         mkIterator(s, quantaMap(s.head), blockIteratorByPartner)
       } else {
         val moreSeq = s.tail
-        moreSeq.isEmpty match {
-          case true => // LOGGER.debug("End of sequence")
-          case false => {
-            val nextPartner = moreSeq.head
-            // LOGGER.debug(<Event source="BlockIterator" event="advancePartner">
-              // {nextPartner.fullName}
-            // </Event>.toString)
-          }
-        }
+        // moreSeq.isEmpty match {
+        //   case true => // LOGGER.debug("End of sequence")
+        //   case false => {
+        //     val nextPartner = moreSeq.head
+        //     // LOGGER.debug(<Event source="BlockIterator" event="advancePartner">
+        //       // {nextPartner.fullName}
+        //     // </Event>.toString)
+        //   }
+        // }
         //QueueCalculationLog.logger.log(Level.INFO, (<Event source="BlockIterator" event="advancePartner">{s.head.fullName}</Event>).toString)
         advancePartner(moreSeq, blockIteratorByPartner, remaining - s.head)
       }
@@ -224,7 +223,7 @@ object BlockIterator {
     // }
 
     val x = init(quantaMap, iterMap, seq, validpartners(allPartners, quantaMap)) match {
-      case (s, t) if s.isEmpty => new Empty(allPartners)
+      case (s, _) if s.isEmpty => new Empty(allPartners)
       case (partnerSeq, remainingTime) => {
         new BlockIteratorImpl(allPartners, quantaMap, partnerSeq, remainingTime, iterMap)
       }

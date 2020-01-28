@@ -7,11 +7,7 @@ import edu.gemini.tac.qengine.p1.QueueBand
 import edu.gemini.tac.qengine.p1.QueueBand._
 import edu.gemini.tac.qengine.util.{Percent, Time}
 
-import java.util.logging.{Logger, Level}
-import org.slf4j.LoggerFactory
-
 object QueueTime {
-  private val Log = LoggerFactory.getLogger(this.getClass)
 
   /** Number of hours in each "cycle" of 100 Partner countries. */
   val CycleTimeConstant = 300
@@ -20,8 +16,6 @@ object QueueTime {
 
   def apply(s: Site, m: Map[Partner, Time], partners: List[Partner]): QueueTime = new QueueTime(s, PartnerTime(partners, m))
 }
-
-import QueueTime.Log
 
 /**
  * Record of queue times for each partner.  Provides access to the total queue

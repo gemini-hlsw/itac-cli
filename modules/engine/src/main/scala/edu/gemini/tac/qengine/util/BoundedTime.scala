@@ -1,5 +1,4 @@
 package edu.gemini.tac.qengine.util
-import org.slf4j.LoggerFactory
 
 /**
  * A class that represents a limited amount of time and the current amount used.

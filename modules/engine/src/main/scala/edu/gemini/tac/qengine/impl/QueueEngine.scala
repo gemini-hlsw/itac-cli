@@ -14,7 +14,6 @@ import edu.gemini.tac.qengine.p2.rollover.RolloverObservation
 
 import collection.immutable.List._
 import edu.gemini.tac.qengine.api.queue.time.{PartnerTime, QueueTime}
-import java.util.logging.{Level, Logger}
 
 import edu.gemini.tac.qengine.util.BoundedTime
 import org.slf4j.LoggerFactory
@@ -34,7 +33,7 @@ object QueueEngine extends edu.gemini.tac.qengine.api.QueueEngine {
       case (h, b) =>
         val ra = (h, math.round(b.remaining.toMinutes.value) / 60.0, math.round(b.limit.toMinutes.value) / 60.0)
         val conds = b.condsRes.bins.bins.toList.sortBy(_._1.name).map {
-          case (c, t) => "Conditions" -> (c, math.round(t.remaining.toMinutes.value) / 60.0, math.round(t.limit.toMinutes.value) / 60.0)
+          case (c, t) => "Conditions" -> ((c, math.round(t.remaining.toMinutes.value) / 60.0, math.round(t.limit.toMinutes.value) / 60.0))
         }
         //s"$ra\n${conds.mkString("\n")}"
         ("RA" -> ra) :: conds
