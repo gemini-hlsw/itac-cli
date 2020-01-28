@@ -4,12 +4,13 @@ import org.junit._
 import Assert._
 
 import edu.gemini.tac.qengine.util.Time
-import edu.gemini.tac.qengine.ctx.{Site, Partner}
+import edu.gemini.tac.qengine.ctx.Partner
+import edu.gemini.spModel.core.Site
 
 class NtacTest {
 
   def mockPartner(partnerCountryKey: String, pct: Double): Partner =
-    Partner(partnerCountryKey, "", pct, Set(Site.south, Site.north))
+    Partner(partnerCountryKey, "", pct, Set(Site.GS, Site.GN))
 
   val US = mockPartner("US", 0.42)
   val AR = mockPartner("AR", 0.10)

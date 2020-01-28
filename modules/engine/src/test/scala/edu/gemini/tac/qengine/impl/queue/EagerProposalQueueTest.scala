@@ -12,7 +12,7 @@ import WaterVapor.WV50
 import edu.gemini.tac.qengine.api.config.QueueBandPercentages
 import edu.gemini.tac.qengine.api.queue.ProposalPosition
 import edu.gemini.tac.qengine.api.queue.time.{PartnerTime, QueueTime}
-import edu.gemini.tac.qengine.ctx.Site
+import edu.gemini.spModel.core.Site
 
 /**
  * ProposalQueue tests focused on testing joint proposal merge features and
@@ -29,7 +29,7 @@ class EagerProposalQueueTest {
     val ntac = Ntac(GS, ref, 0, Time.hours(propTimeHours))
 
     // Make a proposal with just no observations.  We won't be using them anyway.
-    CoreProposal(ntac, site = Site.south)
+    CoreProposal(ntac, site = Site.GS)
   }
 
   private def masterPart(propTimeHours: Int, ref: String, jointId: String): JointProposalPart = {
@@ -44,7 +44,7 @@ class EagerProposalQueueTest {
 
   private val qs = ProposalQueueBuilder(
     new QueueTime(
-      Site.south,
+      Site.GS,
       PartnerTime(partners, GS -> Time.hours(100)),
       QueueBandPercentages(30, 30, 40)
     ),

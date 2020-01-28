@@ -17,12 +17,12 @@ import java.nio.file.NoSuchFileException
 import io.circe.CursorOp.DownField
 import itac.config.Common
 import edu.gemini.tac.qengine.p1.Proposal
-import edu.gemini.tac.qengine.ctx.Site
 import itac.config.QueueConfig
 import cats.effect.concurrent.Ref
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.nio.file.Paths
+import edu.gemini.spModel.core.Site
 
 /** Interface for some Workspace operations. */
 trait Workspace[F[_]] {
@@ -126,7 +126,7 @@ object Workspace {
             conf <- commonConfig
             p     = cwd.resolve("proposals")
             pas   = conf.engine.partners.map { p => (p.id, p) } .toMap
-            when  = conf.semester.getMidpoint(Site.north).getTime // arbitrary
+            when  = conf.semester.getMidpointDate(Site.GN).getTime // arbitrary
             _    <- log.info(s"Reading proposals from $p")
             ps   <- ProposalLoader[F](pas, when).loadMany(p.toFile)
             _    <- ps.traverse { case (f, Left(es)) => log.warn(s"$f: ${es.toList.mkString(", ")}") ; case _ => ().pure[F] }

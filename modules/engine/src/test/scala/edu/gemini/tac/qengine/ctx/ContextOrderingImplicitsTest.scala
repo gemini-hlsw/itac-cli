@@ -2,13 +2,15 @@ package edu.gemini.tac.qengine.ctx
 
 import org.junit._
 import Assert._
+import edu.gemini.spModel.core.Site
+import edu.gemini.spModel.core.Semester
 
 class ContextOrderingImplicitsTest {
   import ContextOrderingImplicits._
 
   @Test def testSiteOrdering() {
-    val s1 = Site.north
-    val s2 = Site.south
+    val s1 = Site.GN
+    val s2 = Site.GS
 
     val orderedList = List(s1, s2)
     assertEquals(orderedList, orderedList.sorted)
@@ -37,8 +39,8 @@ class ContextOrderingImplicitsTest {
   @Test def testContextOrdering() {
     val s10B = Semester.parse("2010B")
     val s11A = Semester.parse("2011A")
-    val gn   = Site.north
-    val gs   = Site.south
+    val gn   = Site.GN
+    val gs   = Site.GS
 
     val gn_10B = new Context(gn, s10B)
     val gn_11A = new Context(gn, s11A)

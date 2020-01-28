@@ -3,6 +3,8 @@
 
 package edu.gemini.tac.qengine.ctx
 
+import edu.gemini.spModel.core.Semester
+
 /**
  * Adds Ordered features to Semester.
  */

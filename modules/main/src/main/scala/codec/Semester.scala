@@ -5,8 +5,8 @@ package itac.codec
 
 import cats.implicits._
 import io.circe._
-import edu.gemini.tac.qengine.ctx.Semester
 import java.text.ParseException
+import edu.gemini.spModel.core.Semester
 
 trait SemesterCodec {
 

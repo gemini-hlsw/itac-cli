@@ -10,7 +10,6 @@ import cats.implicits._
 import com.monovore.decline.Command
 import com.monovore.decline.effect.CommandIOApp
 import com.monovore.decline.Opts
-import edu.gemini.tac.qengine.ctx.Semester
 import io.chrisdavenport.log4cats.Logger
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import itac.operation._
@@ -19,6 +18,7 @@ import java.nio.file.Paths
 import java.text.ParseException
 import scala.util.control.NonFatal
 import edu.gemini.tac.qengine.impl.QueueEngine
+import edu.gemini.spModel.core.Semester
 
 object Main extends CommandIOApp(
   name    = "itac",

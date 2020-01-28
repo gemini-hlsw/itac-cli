@@ -4,8 +4,9 @@ import org.junit._
 import Assert._
 
 import edu.gemini.tac.qengine.util.Time
-import edu.gemini.tac.qengine.ctx.{Partner, Site}
+import edu.gemini.tac.qengine.ctx.Partner
 import org.mockito.Mockito
+import edu.gemini.spModel.core.Site
 
 class JointProposalPartTest {
 //  private def mockPartnerPercentage(partnerCountryKey : String, proportion : Double, queue : PsQueue, isNorth : Boolean, isSouth : Boolean) : PartnerPercentage = {
@@ -49,7 +50,7 @@ class JointProposalPartTest {
   val CA = Mockito.mock(classOf[Partner])
   val AR = Mockito.mock(classOf[Partner])
 
-  val site    = Site.south
+  val site    = Site.GS
   val target0 = Target(0.0, 0.0) // required but not used for this test
   val conds50 = ObsConditions(cc = CloudCover.CC50)
   val conds80 = ObsConditions(cc = CloudCover.CC80)
@@ -78,7 +79,7 @@ class JointProposalPartTest {
   // proposal for all other details.
   @Test def testDelegates() {
     val c = mkProp(BR, "br1", 20, 2, 2, 2, 2, 2).copy(
-      site = Site.north,
+      site = Site.GN,
       mode = Mode.Classical,
       too = Too.rapid,
       band3Observations = List(
@@ -97,7 +98,7 @@ class JointProposalPartTest {
     assertEquals(jp.obsList.size, 5)
     assertEquals(jp.band3Observations.size, 3)
     assertEquals(Time.hours(4), Observation.relativeObsTime(jp.obsList(0), jp.time, jp.obsList)) // 20 / 5
-    assertEquals(Site.north, jp.site)
+    assertEquals(Site.GN, jp.site)
     assertEquals(Mode.Classical, jp.mode)
     assertEquals(Too.rapid, jp.too)
     assertTrue(jp.isPoorWeather)

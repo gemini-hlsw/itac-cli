@@ -2,7 +2,7 @@ package edu.gemini.tac.qengine.impl.queue
 
 import edu.gemini.tac.qengine.api.queue.ProposalPosition
 import edu.gemini.tac.qengine.api.queue.time.{PartnerTime, QueueTime}
-import edu.gemini.tac.qengine.ctx.{Partner, Site}
+import edu.gemini.tac.qengine.ctx.Partner
 import edu.gemini.tac.qengine.p1._
 import edu.gemini.tac.qengine.p1.QueueBand._
 import edu.gemini.tac.qengine.p1.QueueBand.Category._
@@ -14,6 +14,7 @@ import edu.gemini.tac.qengine.util.{Angle, BoundedTime, Time}
 
 import org.junit._
 import Assert._
+import edu.gemini.spModel.core.Site
 
 class ProposalBuilderTest {
   import edu.gemini.tac.qengine.ctx.TestPartners._
@@ -26,7 +27,7 @@ class ProposalBuilderTest {
     val ntac = Ntac(partner, id, 0, Time.hours(propTimeHours))
 
     // Make a proposal with just no observations.  We won't be using them anyway.
-    CoreProposal(ntac, site = Site.south)
+    CoreProposal(ntac, site = Site.GS)
   }
 
   private def mkProp(propTimeHours: Int, id: String): CoreProposal =
@@ -36,7 +37,7 @@ class ProposalBuilderTest {
     val ntac = Ntac(GS, id, 0, Time.hours(propTimeHours))
     val b3   = Band3(obsConds)
 
-    CoreProposal(ntac, site = Site.south, band3Observations = List(mkObservation))
+    CoreProposal(ntac, site = Site.GS, band3Observations = List(mkObservation))
   }
 
   private def mkObservation: Observation = {
@@ -57,7 +58,7 @@ class ProposalBuilderTest {
   }
 
   private val qs = ProposalQueueBuilder(
-    QueueTime(Site.south, Map(GS -> Time.hours(100)), partners),
+    QueueTime(Site.GS, Map(GS -> Time.hours(100)), partners),
     ProposalQueueBuilder.DefaultStrategy
   )
 
@@ -177,7 +178,7 @@ class ProposalBuilderTest {
   }
 
   @Test def testAddJointProposal() {
-    val site = Site.south
+    val site = Site.GS
     val qs = ProposalQueueBuilder(
       new QueueTime(site, PartnerTime.distribute(Time.hours(100), site, partners)),
       ProposalQueueBuilder.DefaultStrategy

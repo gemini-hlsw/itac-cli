@@ -4,11 +4,11 @@ import org.junit._
 import Assert._
 
 import edu.gemini.tac.qengine.api.queue.time.PartnerTimeCalc._
-import edu.gemini.tac.qengine.ctx.Site
 import edu.gemini.tac.qengine.p2.rollover.{RolloverObservation, RolloverReport}
 import edu.gemini.tac.qengine.p2.ObservationId
 import edu.gemini.tac.qengine.p1.{ObsConditions, Target}
 import edu.gemini.tac.qengine.util.Time
+import edu.gemini.spModel.core.Site
 
 class RolloverTimeTest extends PartnerTimeCalcTestBase {
   import edu.gemini.tac.qengine.ctx.TestPartners._
@@ -17,7 +17,7 @@ class RolloverTimeTest extends PartnerTimeCalcTestBase {
   @Test def testEmptyReport() {
     val rop              = RolloverReport.empty
     val partnersExceptCL = partners.filter(p => p != CL && p.id != "KECK" && p.id != "SUBARU")
-    assertZero(partnersExceptCL, rollover(Site.north, rop, partners))
+    assertZero(partnersExceptCL, rollover(Site.GN, rop, partners))
   }
 
   val partner = CA
@@ -29,13 +29,13 @@ class RolloverTimeTest extends PartnerTimeCalcTestBase {
   val ro = RolloverObservation(partner, obsId, target, conds, time)
 
   private def assert100Even(rop: RolloverReport): Unit = {
-    val pt = rollover(Site.north, rop, partners)
+    val pt = rollover(Site.GN, rop, partners)
     assertEquals(pt.total.toHours.value, 100.0, Double.MinValue)
     partners.foreach { p =>
       assertEquals(
         "Wrong time for " + p.id,
         pt(p).toHours.value,
-        p.percentAt(Site.north),
+        p.percentAt(Site.GN),
         Double.MinValue
       )
     }

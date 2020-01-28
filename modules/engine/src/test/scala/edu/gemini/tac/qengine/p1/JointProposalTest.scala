@@ -4,8 +4,9 @@ import org.junit._
 import Assert._
 
 import edu.gemini.tac.qengine.util.Time
-import edu.gemini.tac.qengine.ctx.{Partner, Site}
+import edu.gemini.tac.qengine.ctx.Partner
 import org.mockito.Mockito
+import edu.gemini.spModel.core.Site
 
 class JointProposalTest {
   def mockPartner(partnerCountryKey: String): Partner = {
@@ -20,7 +21,7 @@ class JointProposalTest {
   val US = mockPartner("US")
   val AU = mockPartner("AU")
 
-  val site    = Site.south
+  val site    = Site.GS
   val target0 = Target(0.0, 0.0) // required but not used for this test
   val conds50 = ObsConditions(cc = CloudCover.CC50)
 

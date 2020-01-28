@@ -4,7 +4,7 @@
 package itac.codec
 
 import io.circe._
-import edu.gemini.tac.qengine.ctx.Site
+import edu.gemini.spModel.core.Site
 
 trait SiteCodec {
   import tokens._

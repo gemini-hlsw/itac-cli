@@ -4,9 +4,9 @@ import org.junit._
 import Assert._
 import edu.gemini.tac.qengine.util.Time
 import edu.gemini.tac.qengine.p1._
-
-import edu.gemini.tac.qengine.ctx.{Partner, Site}
+import edu.gemini.tac.qengine.ctx.Partner
 import edu.gemini.tac.qengine.api.queue.time.PartnerTime
+import edu.gemini.spModel.core.Site
 
 class BlockIteratorTest {
   import edu.gemini.tac.qengine.ctx.TestPartners._
@@ -22,7 +22,7 @@ class BlockIteratorTest {
     val ntac  = Ntac(p, "na", 0, Time.hours(hrs))
     val lst   = obsHrs.map(curHrs => Observation(target, conds, Time.hours(curHrs))).toList
     val b3obs = b3ObsHrs.map(curHrs => Observation(target, conds, Time.hours(curHrs))).toList
-    CoreProposal(ntac, site = Site.south, obsList = lst, band3Observations = b3obs)
+    CoreProposal(ntac, site = Site.GS, obsList = lst, band3Observations = b3obs)
   }
 
   def genQuanta(hrs: Double): PartnerTime = PartnerTime.constant(Time.hours(hrs), partners)

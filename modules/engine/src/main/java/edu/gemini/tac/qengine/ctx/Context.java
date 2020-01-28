@@ -11,6 +11,8 @@ package edu.gemini.tac.qengine.ctx;
 
 import java.io.Serializable;
 import java.util.Date;
+import edu.gemini.spModel.core.Semester;
+import edu.gemini.spModel.core.Site;
 
 /**
  * Combination of Site and Semester.
@@ -31,7 +33,7 @@ public final class Context implements Comparable<Context>, Serializable {
     public Semester getSemester() { return semester; }
 
     public Date getStartDate() { return semester.getStartDate(site); }
-    public Date getMidpoint() { return semester.getMidpoint(site); }
+    public Date getMidpoint() { return semester.getMidpointDate(site); }
     public Date getEndDate() { return semester.getEndDate(site); }
 
     @Override

@@ -2,8 +2,7 @@ package edu.gemini.tac.qengine.p2.rollover
 
 import org.junit._
 import Assert._
-
-import edu.gemini.tac.qengine.ctx.Site
+import edu.gemini.spModel.core.Site
 
 class RolloverReportTest {
   import RolloverFixture._
@@ -11,16 +10,16 @@ class RolloverReportTest {
   val report = RolloverReport(List(obsNormal, obsSpaces, obsGN, obsAnyConds))
 
   @Test def testSiteFilter() {
-    val gs = report.filter(Site.south)
+    val gs = report.filter(Site.GS)
     assertEquals(List(obsNormal, obsSpaces, obsAnyConds), gs.obsList)
 
-    val gn = report.filter(Site.north)
+    val gn = report.filter(Site.GN)
     assertEquals(List(obsGN), gn.obsList)
 
-    val empty = gn.filter(Site.south)
+    val empty = gn.filter(Site.GS)
     assertEquals(Nil, empty.obsList)
 
-    assertEquals(Nil, RolloverReport.empty.filter(Site.south).obsList)
+    assertEquals(Nil, RolloverReport.empty.filter(Site.GS).obsList)
   }
 
   @Test def testTimeSum() {

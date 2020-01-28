@@ -1,14 +1,15 @@
 package edu.gemini.tac.qengine.api.config
 
-import edu.gemini.tac.qengine.ctx.{Site, Partner}
+import edu.gemini.tac.qengine.ctx.Partner
 
 import org.junit.Test
 import org.junit.Assert._
+import edu.gemini.spModel.core.Site
 
 class ProportionalPartnerSequenceTest {
   @Test
   def doesAdhereToPortions(): Unit = {
-    val site = Site.north
+    val site = Site.GN
     val ps = List(
       Partner("A", "A", 42.0, Set(site)),
       Partner("B", "B", 32.0, Set(site)),
@@ -24,12 +25,12 @@ class ProportionalPartnerSequenceTest {
 
   @Test
   def doesFilterOutOtherSites(): Unit = {
-    val site = Site.north
+    val site = Site.GN
     val ps = List(
       Partner("A", "A", 42.0, Set(site)),
       Partner("B", "B", 32.0, Set(site)),
-      Partner("C", "C", 26.0, Set(site, Site.south)),
-      Partner("D", "D", 25.0, Set(Site.south))
+      Partner("C", "C", 26.0, Set(site, Site.GS)),
+      Partner("D", "D", 25.0, Set(Site.GS))
     )
     val pps         = new ProportionalPartnerSequence(ps, site)
     val results     = pps.sequence.take(100).toList
@@ -40,12 +41,12 @@ class ProportionalPartnerSequenceTest {
   }
   @Test
   def doesCycleProperlyEvenIfSomePartnerHasZero(): Unit = {
-    val site = Site.north
+    val site = Site.GN
     val ps = List(
       Partner("A", "A", 42.0, Set(site)),
       Partner("B", "B", 32.0, Set(site)),
-      Partner("C", "C", 26.0, Set(site, Site.south)),
-      Partner("D", "D", 25.0, Set(Site.south)),
+      Partner("C", "C", 26.0, Set(site, Site.GS)),
+      Partner("D", "D", 25.0, Set(Site.GS)),
       Partner("E", "E", 0.0, Set(site))
     )
     val pps         = new ProportionalPartnerSequence(ps, site)
@@ -58,7 +59,7 @@ class ProportionalPartnerSequenceTest {
 
   @Test
   def doesDriveTowardsProportionalityEvenIfFirstPartnerIsOverridden(): Unit = {
-    val site = Site.north
+    val site = Site.GN
     val c    = Partner("C", "C", 25.0, Set(site))
     val ps = List(
       Partner("A", "A", 50.0, Set(site)),

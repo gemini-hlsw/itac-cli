@@ -10,10 +10,12 @@ import edu.gemini.tac.qengine.p1.WaterVapor._
 import edu.gemini.tac.qengine.api.config._
 import edu.gemini.tac.qengine.impl.queue.ProposalQueueBuilder
 import edu.gemini.tac.qengine.api.queue.time.{PartnerTime, QueueTime}
-import edu.gemini.tac.qengine.ctx.{TestPartners, Semester, Site}
+import edu.gemini.tac.qengine.ctx.TestPartners
+import edu.gemini.spModel.core.Site
+import edu.gemini.spModel.core.Semester
 
 object Fixture {
-  val site     = Site.south
+  val site     = Site.GS
   val semester = new Semester(2011, Semester.Half.A)
   val partners = TestPartners.All
 
@@ -66,7 +68,7 @@ object Fixture {
     )
 
   val emptyQueue = ProposalQueueBuilder(
-    QueueTime(Site.north, PartnerTime.empty(partners).map, partners),
+    QueueTime(Site.GN, PartnerTime.empty(partners).map, partners),
     ProposalQueueBuilder.DefaultStrategy
   )
   def evenQueue(hrs: Double): ProposalQueueBuilder =

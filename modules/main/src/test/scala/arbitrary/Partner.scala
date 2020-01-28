@@ -4,9 +4,9 @@
 package test.arbitrary
 import org.scalacheck._
 import org.scalacheck.Arbitrary.arbitrary
-import edu.gemini.tac.qengine.ctx.Site
 import edu.gemini.tac.qengine.util.Percent
 import edu.gemini.tac.qengine.ctx.Partner
+import edu.gemini.spModel.core.Site
 
 trait PartnerArbitrary {
   import percent._

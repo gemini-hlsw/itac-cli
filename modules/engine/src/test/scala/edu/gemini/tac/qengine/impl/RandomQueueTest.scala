@@ -7,13 +7,15 @@ import edu.gemini.tac.qengine.api.config._
 import edu.gemini.tac.qengine.api.queue.time.QueueTime
 import edu.gemini.tac.qengine.p1.QueueBand.Category.Guaranteed
 import edu.gemini.tac.qengine.util.{Angle, Percent, Time}
-import edu.gemini.tac.qengine.ctx.{Partner, Semester, Site}
+import edu.gemini.tac.qengine.ctx.Partner
+import edu.gemini.spModel.core.Site
+import edu.gemini.spModel.core.Semester
 
 class RandomQueueTest {
   import edu.gemini.tac.qengine.ctx.TestPartners._
   val partners = All
 
-  val site     = Site.north
+  val site     = Site.GN
   val semester = new Semester(2011, Semester.Half.A)
   val rand     = new Random(42)
 

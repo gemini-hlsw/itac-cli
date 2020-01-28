@@ -8,7 +8,8 @@ import edu.gemini.tac.qengine.p1.SkyBackground.SBAny
 import edu.gemini.tac.qengine.p1.WaterVapor._
 import edu.gemini.tac.qengine.p1._
 import edu.gemini.tac.qengine.util.{Time, Percent}
-import edu.gemini.tac.qengine.ctx.{TestPartners, Site}
+import edu.gemini.tac.qengine.ctx.TestPartners
+import edu.gemini.spModel.core.Site
 
 class TimeRestrictionTest {
 
@@ -26,7 +27,7 @@ class TimeRestrictionTest {
   private def mkProp(wv: WaterVapor): Proposal =
     CoreProposal(
       ntac,
-      site = Site.south,
+      site = Site.GS,
       obsList = List(Observation(target, conds(wv), Time.hours(10)))
     )
   @Test def testMatches() {

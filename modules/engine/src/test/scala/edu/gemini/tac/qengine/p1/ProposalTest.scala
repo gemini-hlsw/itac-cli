@@ -3,8 +3,9 @@ package edu.gemini.tac.qengine.p1
 import org.junit._
 import Assert._
 import edu.gemini.tac.qengine.util.{Percent, Time}
-import edu.gemini.tac.qengine.ctx.{Share, Partner, Site}
+import edu.gemini.tac.qengine.ctx.{Share, Partner}
 import org.mockito.{Matchers, Mockito}
+import edu.gemini.spModel.core.Site
 
 class ProposalTest {
   def mockPartner(partnerCountryKey: String, proportion: Double): Partner = {
@@ -29,7 +30,7 @@ class ProposalTest {
   def mkProp(hrs: Double, obsHrs: Double*): CoreProposal = {
     val ntac = Ntac(AR, "na", 0, Time.hours(hrs))
     val lst  = obsHrs.map(curHrs => Observation(target, conds, Time.hours(curHrs))).toList
-    CoreProposal(ntac, site = Site.south, obsList = lst)
+    CoreProposal(ntac, site = Site.GS, obsList = lst)
   }
 
   @Test def testObsConditionsDifferForBand3() {
@@ -113,7 +114,7 @@ class ProposalTest {
   }
 
   def core(partner: Partner, id: String): CoreProposal =
-    CoreProposal(Ntac(partner, id, 0, Time.Zero), site = Site.south)
+    CoreProposal(Ntac(partner, id, 0, Time.Zero), site = Site.GS)
 
   @Test def testNonJointContainsId() {
     val pBR = core(BR, "br1")

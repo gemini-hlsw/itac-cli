@@ -4,7 +4,6 @@
 package test
 
 import cats.tests.CatsSuite
-import edu.gemini.tac.qengine.ctx.Site
 import edu.gemini.tac.qengine.util.Percent
 import io.circe._
 import io.circe.parser._
@@ -14,6 +13,7 @@ import java.time.LocalDate
 import org.scalacheck.Arbitrary
 import test.arbitrary.all._
 import org.scalatest.matchers.should.Matchers
+import edu.gemini.spModel.core.Site
 
 class CodecSuite extends CatsSuite with Matchers {
 

@@ -3,6 +3,9 @@
 
 package edu.gemini.tac.qengine.ctx
 
+import edu.gemini.spModel.core.Site
+import edu.gemini.spModel.core.Semester
+
 /**
  * Put this object's content into scope to define orderings based upon
  * Site and Semester.

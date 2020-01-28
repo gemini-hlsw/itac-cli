@@ -5,6 +5,7 @@ package edu.gemini.tac.qengine.ctx
 
 import xml.Elem
 import edu.gemini.tac.qengine.util.Percent
+import edu.gemini.spModel.core.Site
 
 //object Partner {
 //
@@ -42,7 +43,7 @@ case class Partner(id: String, fullName: String, share: Percent, sites: Set[Site
       <sites>
         {
       sites.map { s =>
-        <Site>{s.abbreviation()}</Site>
+        <Site>{s.abbreviation}</Site>
       }
     }
       </sites>

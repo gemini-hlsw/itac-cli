@@ -3,10 +3,9 @@
 
 package edu.gemini.tac.qengine.api.config
 
-import edu.gemini.tac.qengine.ctx.Site
-
 import java.text.SimpleDateFormat
 import java.util.Date
+import edu.gemini.spModel.core.Site
 
 /**
  * Defines a shutdown period.
@@ -27,7 +26,7 @@ case class Shutdown(site: Site, start: Date, end: Date) extends Ordered[Shutdown
 
   def toDateString: String = {
     val df = new SimpleDateFormat("MMM d")
-    df.setTimeZone(site.timeZone)
+    df.setTimeZone(site.timezone)
 
     "%s - %s".format(df.format(start), df.format(end))
   }

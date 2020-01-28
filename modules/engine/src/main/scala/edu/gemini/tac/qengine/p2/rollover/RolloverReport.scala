@@ -3,8 +3,8 @@
 
 package edu.gemini.tac.qengine.p2.rollover
 
-import edu.gemini.tac.qengine.ctx.Site
 import edu.gemini.tac.qengine.util.Time
+import edu.gemini.spModel.core.Site
 
 /**
  * A collection of rollover observations whose time values should be deducted

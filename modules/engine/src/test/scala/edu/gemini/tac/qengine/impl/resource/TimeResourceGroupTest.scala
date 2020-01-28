@@ -12,7 +12,7 @@ import edu.gemini.tac.qengine.p1.WaterVapor
 import edu.gemini.tac.qengine.p1.WaterVapor._
 import edu.gemini.tac.qengine.impl.block.Block
 import edu.gemini.tac.qengine.log.RejectRestrictedBin
-import edu.gemini.tac.qengine.ctx.Site
+import edu.gemini.spModel.core.Site
 
 class TimeResourceGroupTest {
   import edu.gemini.tac.qengine.ctx.TestPartners._
@@ -41,7 +41,7 @@ class TimeResourceGroupTest {
   private def mkProp(wv: WaterVapor, lgs: Boolean): Proposal =
     CoreProposal(
       ntac,
-      site = Site.south,
+      site = Site.GS,
       obsList = List(Observation(target, conds(wv), Time.hours(10), lgs))
     )
 

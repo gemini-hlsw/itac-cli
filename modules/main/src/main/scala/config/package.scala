@@ -3,12 +3,12 @@
 
 package itac
 
-import edu.gemini.tac.qengine.ctx.Site
+import edu.gemini.spModel.core.Site
 
 package object config {
 
-  type Semester = edu.gemini.tac.qengine.ctx.Semester
-  type Site     = edu.gemini.tac.qengine.ctx.Site
+  type Semester = edu.gemini.spModel.core.Semester
+  type Site     = edu.gemini.spModel.core.Site
 
   type Time     = edu.gemini.tac.qengine.util.Time
   val  Time     = edu.gemini.tac.qengine.util.Time
@@ -17,7 +17,7 @@ package object config {
   val  Percent  = edu.gemini.tac.qengine.util.Percent
 
   // N.B. `Site` is a Java class so it has no companion. So alias these directly.
-  final val GN = Site.north
-  final val GS = Site.south
+  final val GN = Site.GN
+  final val GS = Site.GS
 
 }

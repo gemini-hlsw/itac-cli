@@ -2,26 +2,26 @@ package edu.gemini.tac.qengine.api.config
 
 import org.junit._
 import Assert._
-import edu.gemini.tac.qengine.ctx.Site
+import edu.gemini.spModel.core.Site
 
 class PartnerSequenceTest {
   import edu.gemini.tac.qengine.ctx.TestPartners._
   val partners = All
 
   @Test def initialUS() {
-    assertEquals(US, new ProportionalPartnerSequence(partners, Site.north, US).sequence.head)
+    assertEquals(US, new ProportionalPartnerSequence(partners, Site.GN, US).sequence.head)
   }
   @Test def initialUH() {
-    assertEquals(UH, new ProportionalPartnerSequence(partners, Site.north, UH).sequence.head)
+    assertEquals(UH, new ProportionalPartnerSequence(partners, Site.GN, UH).sequence.head)
   }
   @Test def initialBR() {
-    assertEquals(BR, new ProportionalPartnerSequence(partners, Site.north, BR).sequence.head)
+    assertEquals(BR, new ProportionalPartnerSequence(partners, Site.GN, BR).sequence.head)
   }
 
   @Test def basics() {
     assertEquals(
       List(US, CA, UH),
-      new ProportionalPartnerSequence(partners, Site.north, US).sequence.take(3).toList
+      new ProportionalPartnerSequence(partners, Site.GN, US).sequence.take(3).toList
     )
   }
 
@@ -35,7 +35,7 @@ class PartnerSequenceTest {
 
   @Test def testBadInitial() {
     try {
-      new ProportionalPartnerSequence(partners, Site.north, CL)
+      new ProportionalPartnerSequence(partners, Site.GN, CL)
       fail()
     } catch {
       case ex: IllegalArgumentException => // ok
@@ -62,7 +62,7 @@ class PartnerSequenceTest {
 
   @Test
   def xmlRepresentation() {
-    val elem = new ProportionalPartnerSequence(partners, Site.north).configuration
+    val elem = new ProportionalPartnerSequence(partners, Site.GN).configuration
     assertTrue(elem.size > 0)
   }
 }

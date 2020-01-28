@@ -4,10 +4,11 @@
 package edu.gemini.tac.qengine.api.queue.time
 
 import edu.gemini.tac.qengine.api.config.QueueBandPercentages
-import edu.gemini.tac.qengine.ctx.{Partner, Site}
+import edu.gemini.tac.qengine.ctx.Partner
 import edu.gemini.tac.qengine.p1.QueueBand
 import edu.gemini.tac.qengine.p1.QueueBand._
 import edu.gemini.tac.qengine.util.{Percent, Time}
+import edu.gemini.spModel.core.Site
 
 object QueueTime {
 

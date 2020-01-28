@@ -3,13 +3,13 @@
 
 package edu.gemini.tac.qengine.api.queue.time
 
-import edu.gemini.tac.qengine.ctx.Site
 import edu.gemini.tac.qengine.util.Time
 import edu.gemini.tac.qengine.p1.{Mode, Proposal}
 import edu.gemini.tac.qengine.ctx.Partner
 import edu.gemini.tac.qengine.p2.rollover.RolloverReport
 
 import org.slf4j.LoggerFactory
+import edu.gemini.spModel.core.Site
 
 /**
  * Contains calculations of various PartnerTime categories that go into the

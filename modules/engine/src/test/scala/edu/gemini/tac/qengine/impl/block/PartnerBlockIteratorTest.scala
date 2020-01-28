@@ -4,7 +4,7 @@ import org.junit._
 import Assert._
 import edu.gemini.tac.qengine.p1._
 import edu.gemini.tac.qengine.util.Time
-import edu.gemini.tac.qengine.ctx.Site
+import edu.gemini.spModel.core.Site
 
 class PartnerBlockIteratorTest {
   import edu.gemini.tac.qengine.ctx.TestPartners._
@@ -27,7 +27,7 @@ class PartnerBlockIteratorTest {
     val ntac = Ntac(AR, gen.id, 0, Time.hours(hrs))
     gen = gen.next
     val lst = obsHrs.map(curHrs => Observation(target, conds, Time.hours(curHrs))).toList
-    CoreProposal(ntac, site = Site.south, obsList = lst)
+    CoreProposal(ntac, site = Site.GS, obsList = lst)
   }
 
   @Test def testCreateEmpty() {

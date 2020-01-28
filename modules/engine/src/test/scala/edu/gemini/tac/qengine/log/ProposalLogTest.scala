@@ -2,19 +2,20 @@ package edu.gemini.tac.qengine.log
 
 import org.junit._
 import Assert._
-import edu.gemini.tac.qengine.ctx.{TestPartners, Site, Partner}
+import edu.gemini.tac.qengine.ctx.{TestPartners, Partner}
 import edu.gemini.tac.qengine.util.{BoundedTime, Time}
 import ProposalLog.Key
 import ProposalLog.Entry
 import edu.gemini.tac.qengine.p1._
 import edu.gemini.tac.qengine.p1.QueueBand.Category._
+import edu.gemini.spModel.core.Site
 
 class ProposalLogTest {
   import TestPartners._
   val partners = All
 
   private val dummyProp: Proposal =
-    CoreProposal(Ntac(AR, "x", 0, Time.Zero), Site.south)
+    CoreProposal(Ntac(AR, "x", 0, Time.Zero), Site.GS)
 
   private def propId(p: Partner, s: String): Proposal.Id = new Proposal.Id(p, s)
   private def br(i: Int): Proposal.Id                    = propId(BR, i.toString)
@@ -194,9 +195,9 @@ class ProposalLogTest {
 
   @Test def testUpdatedFunction() {
     val cat = QueueBand.Category.B1_2
-    val ar0 = CoreProposal(Ntac(AR, "ar0", 0, Time.Zero), Site.south)
-    val ar1 = CoreProposal(Ntac(AR, "ar1", 0, Time.Zero), Site.south)
-    val br0 = CoreProposal(Ntac(BR, "br0", 0, Time.Zero), Site.south)
+    val ar0 = CoreProposal(Ntac(AR, "ar0", 0, Time.Zero), Site.GS)
+    val ar1 = CoreProposal(Ntac(AR, "ar1", 0, Time.Zero), Site.GS)
+    val br0 = CoreProposal(Ntac(BR, "br0", 0, Time.Zero), Site.GS)
 
     val propList = List(ar0, ar1, br0)
 
@@ -216,9 +217,9 @@ class ProposalLogTest {
 
   @Test def producesXml() {
     val cat = QueueBand.Category.B1_2
-    val ar0 = CoreProposal(Ntac(AR, "ar0", 0, Time.Zero), Site.south)
-    val ar1 = CoreProposal(Ntac(AR, "ar1", 0, Time.Zero), Site.south)
-    val br0 = CoreProposal(Ntac(BR, "br0", 0, Time.Zero), Site.south)
+    val ar0 = CoreProposal(Ntac(AR, "ar0", 0, Time.Zero), Site.GS)
+    val ar1 = CoreProposal(Ntac(AR, "ar1", 0, Time.Zero), Site.GS)
+    val br0 = CoreProposal(Ntac(BR, "br0", 0, Time.Zero), Site.GS)
 
     val propList = List(ar0, ar1, br0)
 

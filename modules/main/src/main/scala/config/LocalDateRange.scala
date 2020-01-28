@@ -44,8 +44,8 @@ object LocalDateRange {
 
   /** Dummy date range at mid-semester, for `init` when no prior config is available. */
   def dummy(semester: Semester, site: Site): LocalDateRange = {
-    val inst  = Instant.ofEpochMilli(semester.getMidpoint(site).getTime)
-    val start = inst.atZone(site.timeZone.toZoneId).toLocalDate
+    val inst  = Instant.ofEpochMilli(semester.getMidpointDate(site).getTime)
+    val start = inst.atZone(site.timezone.toZoneId).toLocalDate
     apply(start, start.plusDays(2)).toOption.get
   }
 

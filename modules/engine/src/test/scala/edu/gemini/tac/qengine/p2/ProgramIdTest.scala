@@ -1,16 +1,17 @@
 package edu.gemini.tac.qengine.p2
 
-import edu.gemini.tac.qengine.ctx.{Semester, Site}
 import edu.gemini.tac.qengine.p1.Mode
 
 import org.junit._
 import Assert._
+import edu.gemini.spModel.core.Site
+import edu.gemini.spModel.core.Semester
 
 class ProgramIdTest {
 
   @Test def testNegativeProgramIndicesNotAllowed() {
     try {
-      ProgramId(Site.north, Semester.parse("2011A"), Mode.Queue, -1)
+      ProgramId(Site.GN, Semester.parse("2011A"), Mode.Queue, -1)
       fail()
     } catch {
       case ex: IllegalArgumentException => // ok
@@ -24,29 +25,29 @@ class ProgramIdTest {
   }
 
   @Test def testSiteOrderingFirst() {
-    val p1 = ProgramId(Site.north, Semester.parse("2011B"), Mode.Queue, 99)
-    val p2 = ProgramId(Site.south, Semester.parse("2010A"), Mode.Classical, 1)
+    val p1 = ProgramId(Site.GN, Semester.parse("2011B"), Mode.Queue, 99)
+    val p2 = ProgramId(Site.GS, Semester.parse("2010A"), Mode.Classical, 1)
     assertLessThan(p1, p2)
   }
 
   @Test def testSemesterOrderingSecond() {
-    val p1 = ProgramId(Site.north, Semester.parse("2010A"), Mode.Queue, 99)
-    val p2 = ProgramId(Site.north, Semester.parse("2010B"), Mode.Classical, 1)
+    val p1 = ProgramId(Site.GN, Semester.parse("2010A"), Mode.Queue, 99)
+    val p2 = ProgramId(Site.GN, Semester.parse("2010B"), Mode.Classical, 1)
     assertLessThan(p1, p2)
   }
 
   @Test def testModeOrderingThird() {
-    val p1 = ProgramId(Site.north, Semester.parse("2010A"), Mode.Classical, 99)
-    val p2 = ProgramId(Site.north, Semester.parse("2010A"), Mode.Queue, 1)
-    val p3 = ProgramId(Site.north, Semester.parse("2010A"), Mode.LargeProgram, 9)
+    val p1 = ProgramId(Site.GN, Semester.parse("2010A"), Mode.Classical, 99)
+    val p2 = ProgramId(Site.GN, Semester.parse("2010A"), Mode.Queue, 1)
+    val p3 = ProgramId(Site.GN, Semester.parse("2010A"), Mode.LargeProgram, 9)
     assertLessThan(p1, p2)
     assertLessThan(p1, p3)
     assertLessThan(p3, p2)
   }
 
   @Test def testIndexOrderingForth() {
-    val p1 = ProgramId(Site.north, Semester.parse("2010A"), Mode.Queue, 1)
-    val p2 = ProgramId(Site.north, Semester.parse("2010A"), Mode.Queue, 99)
+    val p1 = ProgramId(Site.GN, Semester.parse("2010A"), Mode.Queue, 1)
+    val p2 = ProgramId(Site.GN, Semester.parse("2010A"), Mode.Queue, 99)
     assertLessThan(p1, p2)
   }
 
@@ -68,7 +69,7 @@ class ProgramIdTest {
 
   @Test def testSomeStringsThatParse() {
     val ids = for {
-      site     <- List(Site.north, Site.south)
+      site     <- List(Site.GN, Site.GS)
       year     <- 2010 to 2011
       half     <- List(Semester.Half.A, Semester.Half.B)
       semester = new Semester(year, half)

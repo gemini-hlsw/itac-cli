@@ -20,7 +20,7 @@ import edu.gemini.tac.qengine.util.{Percent, Time}
 import edu.gemini.tac.qengine.impl.block.Block
 import edu.gemini.tac.qengine.api.queue.time.QueueTime
 import edu.gemini.tac.qengine.impl.queue.ProposalQueueBuilder
-import edu.gemini.tac.qengine.ctx.Site
+import edu.gemini.spModel.core.Site
 
 class ConditionsResourceTest {
   import edu.gemini.tac.qengine.ctx.TestPartners._
@@ -41,7 +41,7 @@ class ConditionsResourceTest {
 
   private def mkProp(obsConds: ObsConditions): CoreProposal = {
     val obsList = List(Observation(target, obsConds, Time.minutes(10)))
-    CoreProposal(ntac, site = Site.south, obsList = obsList)
+    CoreProposal(ntac, site = Site.GS, obsList = obsList)
   }
 
   private def mkConds(cc: CloudCover): ObsConditions =
@@ -128,7 +128,7 @@ class ConditionsResourceTest {
     // Create a proposal to fill the first two queue bands and put us into
     // band 3.
     val q0 = ProposalQueueBuilder(
-      QueueTime(Site.south, Map(GS -> Time.minutes(166)), partners),
+      QueueTime(Site.GS, Map(GS -> Time.minutes(166)), partners),
       ProposalQueueBuilder.DefaultStrategy
     )
     val q1 = q0 :+ mkProp(mkConds(CC50))

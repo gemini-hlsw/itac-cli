@@ -10,13 +10,13 @@ import m.CloudCover._
 import m.ImageQuality._
 import m.SkyBackground._
 import m.WaterVapor._
-import edu.gemini.tac.qengine.ctx.Site
 import edu.gemini.tac.qengine.p1._
 import edu.gemini.tac.qengine.util.Time
 
 import scalaz._
 import Scalaz._
 import scalaz.Validation.FlatMap._
+import edu.gemini.spModel.core.Site
 
 /**
  * Extracts relevant information out of a Phase 1 observation, if possible.
@@ -41,7 +41,7 @@ object ObservationIo {
         case g: im.GeminiBlueprintBase => g.instrument.site
         case _                         => im.Site.GN
       } | im.Site.GN
-      if (imSite == im.Site.GN) Site.north else Site.south
+      if (imSite == im.Site.GN) Site.GN else Site.GS
     }
 
     // Get the p1 observations QueueBand.Category (Band 3 or Band 1/2).

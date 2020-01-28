@@ -7,13 +7,15 @@ import edu.gemini.tac.qengine.util.Time
 import edu.gemini.tac.qengine.p1.{ObsConditions, Target, Ntac}
 import edu.gemini.tac.qengine.api.config.SiteSemesterConfig
 import resource.{RaResourceGroup, Fixture}
-import edu.gemini.tac.qengine.ctx.{Partner, Semester, Site}
+import edu.gemini.tac.qengine.ctx.Partner
+import edu.gemini.spModel.core.Site
+import edu.gemini.spModel.core.Semester
 
 class TooBlocksTest {
   import edu.gemini.tac.qengine.ctx.TestPartners._
   val partners = All
 
-  val site     = Site.south
+  val site     = Site.GS
   val semester = new Semester(2011, Semester.Half.A)
 
   val target = Target(0.0, 0.0) // not used for ToO observations

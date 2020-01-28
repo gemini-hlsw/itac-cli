@@ -3,13 +3,14 @@ package edu.gemini.tac.qengine.p2
 import org.junit._
 import Assert._
 
-import edu.gemini.tac.qengine.ctx.{Semester, Site}
 import edu.gemini.tac.qengine.p1.Mode
+import edu.gemini.spModel.core.Site
+import edu.gemini.spModel.core.Semester
 
 class ObservtionIdTest {
 
   @Test def testNegativeObservationIndicesNotAllowed() {
-    val progId = ProgramId(Site.north, Semester.parse("2011A"), Mode.Queue, 1)
+    val progId = ProgramId(Site.GN, Semester.parse("2011A"), Mode.Queue, 1)
     try {
       ObservationId(progId, -1)
       fail()
@@ -25,8 +26,8 @@ class ObservtionIdTest {
   }
 
   @Test def testProgramOrderingFirst() {
-    val p1 = ProgramId(Site.north, Semester.parse("2011B"), Mode.Queue, 1)
-    val p2 = ProgramId(Site.north, Semester.parse("2011B"), Mode.Queue, 2)
+    val p1 = ProgramId(Site.GN, Semester.parse("2011B"), Mode.Queue, 1)
+    val p2 = ProgramId(Site.GN, Semester.parse("2011B"), Mode.Queue, 2)
 
     val o1 = ObservationId(p1, 99)
     val o2 = ObservationId(p2, 1)
@@ -34,7 +35,7 @@ class ObservtionIdTest {
   }
 
   @Test def testObservationIndexOrderingSecond() {
-    val p = ProgramId(Site.north, Semester.parse("2011B"), Mode.Queue, 1)
+    val p = ProgramId(Site.GN, Semester.parse("2011B"), Mode.Queue, 1)
 
     val o1 = ObservationId(p, 1)
     val o2 = ObservationId(p, 2)
@@ -60,7 +61,7 @@ class ObservtionIdTest {
   }
 
   @Test def testSomeStringsThatParse() {
-    val progId = ProgramId(Site.north, Semester.parse("2011A"), Mode.Queue, 1)
+    val progId = ProgramId(Site.GN, Semester.parse("2011A"), Mode.Queue, 1)
     val ids = for {
       index <- 1 to 10
     } yield ObservationId(progId, index)
@@ -72,10 +73,10 @@ class ObservtionIdTest {
 
   @Test def testDelegatesToProgId() {
     val semester = Semester.parse("2011A")
-    val progId   = ProgramId(Site.north, semester, Mode.Queue, 42)
+    val progId   = ProgramId(Site.GN, semester, Mode.Queue, 42)
     val obsId    = ObservationId(progId, 99)
 
-    assertEquals(Site.north, obsId.site)
+    assertEquals(Site.GN, obsId.site)
     assertEquals(semester, obsId.semester)
     assertEquals(Mode.Queue, obsId.mode)
     assertEquals(42, obsId.progIndex)

@@ -6,7 +6,8 @@ import edu.gemini.tac.qengine.util.Time
 import edu.gemini.tac.qengine.p1._
 import edu.gemini.tac.qengine.p1.QueueBand.Category._
 import edu.gemini.tac.qengine.log.{RejectNotBand3, RejectNoTime, RejectNoObs, ProposalLog}
-import edu.gemini.tac.qengine.ctx.{Partner, Site}
+import edu.gemini.tac.qengine.ctx.Partner
+import edu.gemini.spModel.core.Site
 
 class ProposalPrepTest {
   import edu.gemini.tac.qengine.ctx.TestPartners._
@@ -27,7 +28,7 @@ class ProposalPrepTest {
   ): CoreProposal =
     CoreProposal(
       Ntac(partner, id, 0, time),
-      site = Site.south,
+      site = Site.GS,
       band3Observations = b3,
       obsList = obsList
     )

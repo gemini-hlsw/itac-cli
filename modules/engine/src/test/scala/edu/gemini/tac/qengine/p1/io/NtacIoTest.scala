@@ -2,7 +2,7 @@ package edu.gemini.tac.qengine.p1.io
 
 import edu.gemini.model.p1.{immutable => im}
 
-import edu.gemini.tac.qengine.ctx.{Site, Partner, TestPartners}
+import edu.gemini.tac.qengine.ctx.{Partner, TestPartners}
 import edu.gemini.tac.qengine.p1.Ntac
 import edu.gemini.tac.qengine.util.Time
 
@@ -13,6 +13,7 @@ import java.util.UUID
 
 import scalaz._
 import Scalaz._
+import edu.gemini.spModel.core.Site
 
 object NtacIoTest {
   def hrs(h: Double): im.TimeAmount = im.TimeAmount(h, im.TimeUnit.HR)
@@ -100,7 +101,7 @@ class NtacIoTest {
     val p = new ProposalFixture {
       override def queueSubs: Either[List[im.NgoSubmission], im.ExchangeSubmission] = Right(sub)
     }
-    val SUBARU = Partner("SUBARU", "Subaru", 1.0, Set(Site.north))
+    val SUBARU = Partner("SUBARU", "Subaru", 1.0, Set(Site.GN))
     val io     = new NtacIo(TestPartners.AllMap + ("SUBARU" -> SUBARU))
     io.read(p.proposal) match {
       case Success(NonEmptyList(ntac, _)) =>
@@ -124,7 +125,7 @@ class NtacIoTest {
     val p = new ProposalFixture {
       override def proposalClass = lpClass
     }
-    val LP = Partner("LP", "Large Program", 1.0, Set(Site.north))
+    val LP = Partner("LP", "Large Program", 1.0, Set(Site.GN))
     val io = new NtacIo(TestPartners.AllMap + ("LP" -> LP))
     io.read(p.proposal) match {
       case Success(NonEmptyList(ntac, _)) =>

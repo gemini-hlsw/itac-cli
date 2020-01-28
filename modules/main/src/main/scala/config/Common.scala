@@ -42,7 +42,7 @@ final case class Common(
       shutdown.forSite(site).map { ldr =>
         // Turn a LocalDate to a ju.Date at noon at `site`.
         def date(ldt: LocalDate): ju.Date = {
-          val zid = site.timeZone.toZoneId
+          val zid = site.timezone.toZoneId
           val zdt = ldt.atStartOfDay(zid).plusHours(12L)
           new ju.Date(zdt.toEpochSecond * 1000)
         }

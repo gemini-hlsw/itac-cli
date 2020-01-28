@@ -6,12 +6,12 @@ package itac.operation
 import cats._
 import cats.effect.ExitCode
 import cats.implicits._
-import edu.gemini.tac.qengine.ctx.Semester
 import io.chrisdavenport.log4cats.Logger
 import itac.config.Common
 import itac.Workspace
 import itac.Operation
 import java.nio.file.Paths
+import edu.gemini.spModel.core.Semester
 
 object Init {
 
