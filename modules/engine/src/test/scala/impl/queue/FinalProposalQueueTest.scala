@@ -1,7 +1,7 @@
 package edu.gemini.tac.qengine.impl.queue
 
 import edu.gemini.tac.qengine.api.queue.ProposalPosition
-import edu.gemini.tac.qengine.api.queue.time.{PartnerTime, QueueTime}
+import edu.gemini.tac.qengine.api.queue.time.{PartnerTimes, QueueTime}
 import edu.gemini.tac.qengine.ctx.Partner
 import edu.gemini.tac.qengine.p1.QueueBand._
 import edu.gemini.tac.qengine.p1._
@@ -20,7 +20,7 @@ class FinalProposalQueueTest {
 
   val delta     = 0.000001
   val site      = Site.GS
-  val queueTime = new QueueTime(site, PartnerTime.distribute(Time.hours(100), site, partners))
+  val queueTime = new QueueTime(site, PartnerTimes.distribute(Time.hours(100), site, partners))
 
   private def mkProp(partner: Partner, propTimeHours: Int, id: String): CoreProposal = {
     val ntac = Ntac(partner, id, 0, Time.hours(propTimeHours))

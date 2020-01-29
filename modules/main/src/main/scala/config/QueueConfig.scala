@@ -28,7 +28,7 @@ final case class QueueConfig(
     import edu.gemini.tac.qengine.util.Time
     import edu.gemini.tac.qengine.ctx.{ Partner => ItacPartner }
     import edu.gemini.tac.qengine.api.queue.time.{ QueueTime => ItacQueueTime }
-    import edu.gemini.tac.qengine.api.queue.time.{ PartnerTime => ItacPartnerTime }
+    import edu.gemini.tac.qengine.api.queue.time.{ PartnerTimes => ItacPartnerTime }
 
     def fullPartnerTime(allPartners: List[ItacPartner]): ItacPartnerTime =
       // PartnerTime.distribute(Time.hours(totalHours), site, allPartners)

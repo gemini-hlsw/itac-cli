@@ -6,7 +6,7 @@ package edu.gemini.tac.qengine.impl.block
 import edu.gemini.tac.qengine.util.Time
 
 import BlockIterator.IMap
-import edu.gemini.tac.qengine.api.queue.time.PartnerTime
+import edu.gemini.tac.qengine.api.queue.time.PartnerTimes
 import edu.gemini.tac.qengine.ctx.Partner
 import edu.gemini.tac.qengine.p1.{Observation, Proposal}
 import org.slf4j.LoggerFactory
@@ -24,7 +24,7 @@ trait BlockIterator {
   /**
    * Maps a Partner to the length of its time quantum.
    */
-  val quantaMap: PartnerTime
+  val quantaMap: PartnerTimes
 
   /**
    * The remaining sequence of Partner time quanta.  As the iterator progresses,
@@ -179,7 +179,7 @@ object BlockIterator {
   type IMap = Map[Partner, PartnerBlockIterator]
 
   private case class Empty(val allPartners: List[Partner]) extends BlockIterator {
-    val quantaMap: PartnerTime = PartnerTime.empty(allPartners)
+    val quantaMap: PartnerTimes = PartnerTimes.empty(allPartners)
     val seq: Seq[Partner]      = Seq.empty
     val remTime: Time          = Time.Zero
     val iterMap: IMap          = Map.empty
@@ -192,7 +192,7 @@ object BlockIterator {
 
   private case class BlockIteratorImpl(
     val allPartners: List[Partner],
-    val quantaMap: PartnerTime,
+    val quantaMap: PartnerTimes,
     val seq: Seq[Partner],
     val remTime: Time,
     val iterMap: IMap
@@ -215,7 +215,7 @@ object BlockIterator {
   // list and returns the sequence advanced to that partner and the time in its
   // time quantum.
   private def init(
-    qMap: PartnerTime,
+    qMap: PartnerTimes,
     iMap: IMap,
     partnerSeq: Seq[Partner],
     remaining: Set[Partner]
@@ -229,7 +229,7 @@ object BlockIterator {
 
   // Calculates an initial set of valid partners.  It trims any partners
   // without a time quanta.  These partners should not appear in the sequence.
-  private def validpartners(allPartners: List[Partner], quantaMap: PartnerTime): Set[Partner] =
+  private def validpartners(allPartners: List[Partner], quantaMap: PartnerTimes): Set[Partner] =
     allPartners.filter(!quantaMap(_).isZero).toSet
 
   /**
@@ -242,7 +242,7 @@ object BlockIterator {
    */
   def apply(
     allPartners: List[Partner],
-    quantaMap: PartnerTime,
+    quantaMap: PartnerTimes,
     seq: Seq[Partner],
     propLists: Map[Partner, List[Proposal]],
     activeList: Proposal => List[Observation]

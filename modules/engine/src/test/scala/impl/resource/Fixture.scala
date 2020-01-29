@@ -9,7 +9,7 @@ import edu.gemini.tac.qengine.p1.ImageQuality._
 import edu.gemini.tac.qengine.p1.WaterVapor._
 import edu.gemini.tac.qengine.api.config._
 import edu.gemini.tac.qengine.impl.queue.ProposalQueueBuilder
-import edu.gemini.tac.qengine.api.queue.time.{PartnerTime, QueueTime}
+import edu.gemini.tac.qengine.api.queue.time.{PartnerTimes, QueueTime}
 import edu.gemini.tac.qengine.ctx.TestPartners
 import edu.gemini.spModel.core.Site
 import edu.gemini.spModel.core.Semester
@@ -56,7 +56,7 @@ object Fixture {
   // Falls in the second conditions bin (>=CC80)
   val badCC = ObservingConditions(CC80, IQAny, SBAny, WVAny)
 
-  def genQuanta(hrs: Double): PartnerTime = PartnerTime.constant(Time.hours(hrs), partners)
+  def genQuanta(hrs: Double): PartnerTimes = PartnerTimes.constant(Time.hours(hrs), partners)
 
   // Makes a proposal with the given ntac info, and observations according
   // to the descriptions (target, conditions, time)
@@ -68,14 +68,14 @@ object Fixture {
     )
 
   val emptyQueue = ProposalQueueBuilder(
-    QueueTime(Site.GN, PartnerTime.empty(partners).toMap, partners),
+    QueueTime(Site.GN, PartnerTimes.empty(partners).toMap, partners),
     ProposalQueueBuilder.DefaultStrategy
   )
   def evenQueue(hrs: Double): ProposalQueueBuilder =
     evenQueue(hrs, Some(QueueTime.DefaultPartnerOverfillAllowance))
 
   def evenQueue(hrs: Double, overfill: Option[Percent]): ProposalQueueBuilder = {
-    val pt = PartnerTime(partners.map(p => (p, Time.hours(hrs))): _*)
+    val pt = PartnerTimes(partners.map(p => (p, Time.hours(hrs))): _*)
     ProposalQueueBuilder(
       new QueueTime(site, pt, partnerOverfillAllowance = overfill),
       ProposalQueueBuilder.DefaultStrategy

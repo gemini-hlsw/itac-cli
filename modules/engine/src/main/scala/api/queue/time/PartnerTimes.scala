@@ -12,7 +12,7 @@ import edu.gemini.spModel.core.Site
  * map is complete, adding zero Time entries for partners not specified if
  * necessary and allows some math ops on the PartnerTime as a whole.
  */
-final case class PartnerTime(
+final case class PartnerTimes(
   toMap: Map[Partner, Time]
 ) {
 
@@ -24,13 +24,13 @@ final case class PartnerTime(
   lazy val total: Time =
     toMap.values.foldRight(Time.ZeroHours)(_ + _)
 
-  def -(that: PartnerTime): PartnerTime =
+  def -(that: PartnerTimes): PartnerTimes =
     modify((p, t) => t - that(p))
 
-  def +(that: PartnerTime): PartnerTime =
+  def +(that: PartnerTimes): PartnerTimes =
     modify((p, t) => t + that(p))
 
-  def *(perc: Percent): PartnerTime =
+  def *(perc: Percent): PartnerTimes =
     modify((_, t) => t * perc)
 
   /**
@@ -44,56 +44,56 @@ final case class PartnerTime(
    * Applies the given function from (Partner, Time) -> Time on every entry in
    * the PartnerTime object, returning a new PartnerTime containing the results.
    */
-  def modify(f: (Partner, Time) => Time): PartnerTime =
+  def modify(f: (Partner, Time) => Time): PartnerTimes =
     copy(toMap = toMap.map { case (k, v) => (k, f(k, v)) })
 
   /**
    * Adds the given amount of time associated with the given partner returning
    * and updated PartnerTime to reflect the change.
    */
-  def add(p: Partner, t: Time): PartnerTime =
+  def add(p: Partner, t: Time): PartnerTimes =
     copy(toMap = toMap.updated(p, apply(p) + t))
 
   override def toString = toMap.toString()
 }
 
-object PartnerTime {
+object PartnerTimes {
 
   /**
    * Creates a PartnerTime object using the given partial function to map from
    * Partner to the associated Time value.  Any Partners for which pf is not
    * defined are set to zero hours.
    */
-  def apply(partners: List[Partner], pf: PartialFunction[Partner, Time]): PartnerTime =
-    new PartnerTime(Partner.mkMap(partners, pf, Time.ZeroHours))
+  def apply(partners: List[Partner], pf: PartialFunction[Partner, Time]): PartnerTimes =
+    new PartnerTimes(Partner.mkMap(partners, pf, Time.ZeroHours))
 
   /**
    * Creates a PartnerTime object using the given (Partner, Time) pairs,
    */
-  def apply(tups: (Partner, Time)*): PartnerTime =
+  def apply(tups: (Partner, Time)*): PartnerTimes =
     apply(Map(tups: _*))
 
   /**
    * Calculates a PartnerTime using the given function Partner -> Time
    */
-  def calc(participants: List[Partner], f: Partner => Time): PartnerTime =
-    new PartnerTime(Partner.mkMap(participants, f))
+  def calc(participants: List[Partner], f: Partner => Time): PartnerTimes =
+    new PartnerTimes(Partner.mkMap(participants, f))
 
   /**
    * Creates a PartnerTime object with a constant Time value for all partners.
    */
-  def constant(t: Time, participants: List[Partner]): PartnerTime =
+  def constant(t: Time, participants: List[Partner]): PartnerTimes =
     calc(participants, _ => t)
 
   /**
    * Creates a PartnerTime object by distributing the given time amount across
    * all partners according to their relative time share.
    */
-  def distribute(total: Time, site: Site, partners: List[Partner]): PartnerTime = {
+  def distribute(total: Time, site: Site, partners: List[Partner]): PartnerTimes = {
     val timeByPartner = partners.map { p =>
       p -> Time.hours(total.toHours.value * p.percentAt(site) / 100.0)
     }.toMap
-    new PartnerTime(timeByPartner)
+    new PartnerTimes(timeByPartner)
   }
 
   /** Creates a PartnerTime with zero hours for all partners. */

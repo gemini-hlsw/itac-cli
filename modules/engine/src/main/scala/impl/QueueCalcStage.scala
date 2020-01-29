@@ -12,7 +12,7 @@ import edu.gemini.tac.qengine.impl.queue.ProposalQueueBuilder
 import edu.gemini.tac.qengine.log.{RejectCategoryOverAllocation, ProposalLog}
 import edu.gemini.tac.qengine.api.config.QueueEngineConfig
 import edu.gemini.tac.qengine.util.BoundedTime
-import edu.gemini.tac.qengine.api.queue.time.{PartnerTime, QueueTime}
+import edu.gemini.tac.qengine.api.queue.time.{PartnerTimes, QueueTime}
 import edu.gemini.tac.qengine.ctx.Partner
 import org.slf4j.LoggerFactory
 import edu.gemini.tac.qengine.impl.queue.EagerMergeStrategy
@@ -67,7 +67,7 @@ object QueueCalcStage {
       config: QueueEngineConfig,
       pass1: QueueCalcStage,
       clean: QueueCalcStage,
-      partnerQuanta: PartnerTime
+      partnerQuanta: PartnerTimes
     ) = {
       // Use the clean queue state that was previously calculated as the starting
       // point.
@@ -90,7 +90,7 @@ object QueueCalcStage {
       we *may* have some proposals that are schedulable in B3 (i.e., rejected in B1/B2 due to conditions)
        */
       val iter =
-        prevIter.quantaMap == PartnerTime.empty(partners) match {
+        prevIter.quantaMap == PartnerTimes.empty(partners) match {
           case false =>
             BlockIterator(
               partners,

@@ -8,7 +8,7 @@ import edu.gemini.tac.qengine.api.config.{
   QueueEngineConfig,
   ProportionalPartnerSequence
 }
-import edu.gemini.tac.qengine.api.queue.time.{PartnerTime, QueueTime}
+import edu.gemini.tac.qengine.api.queue.time.{PartnerTimes, QueueTime}
 import org.junit.{Assert, Test}
 import resource.RaResource
 import edu.gemini.tac.qengine.p1._
@@ -58,7 +58,7 @@ class QueueEngineTest {
       UH -> Time.hours(163.0),
       GS -> Time.hours(108.0)
     )
-    new QueueTime(site, PartnerTime(ptimes: _*))
+    new QueueTime(site, PartnerTimes(ptimes: _*))
   }
 
   def decBinGroup: DecBinGroup[Percent] = {

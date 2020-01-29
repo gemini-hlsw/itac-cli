@@ -32,7 +32,7 @@ class PartnerTimeCalcTest extends PartnerTimeCalcTestBase {
     val us = mkProp(US, "us-1", Time.hours(5), Site.GN, Mode.Classical)
     val b  = base(Site.GN, Time.hours(100), partners)
     val c  = classical(Site.GN, List(us), partners)
-    val r  = PartnerTime(US -> Time.hours(20))
+    val r  = PartnerTimes(US -> Time.hours(20))
     val n  = net(b, partners, c, r)
 
     assertEquals(US.percentAt(Site.GN) - 5.0 - 20.0, n(US).toHours.value, delta) // 5 classical, 20 rollover
@@ -43,7 +43,7 @@ class PartnerTimeCalcTest extends PartnerTimeCalcTestBase {
     val us = mkProp(US, "us-1", Time.hours(60), Site.GN, Mode.Classical)
     val b  = base(Site.GN, Time.hours(100), partners)
     val c  = classical(Site.GN, List(us), partners)
-    val r  = PartnerTime(US -> Time.hours(30))
+    val r  = PartnerTimes(US -> Time.hours(30))
     val n  = net(b, partners, c, r)
 
     assertEquals(Time.hours(0), n(US))                            // not negative

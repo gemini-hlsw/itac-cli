@@ -22,14 +22,14 @@ object PartnerTimeCalc {
    * Distributes the total queue over the partners for the given site according
    * to their percentage shares.
    */
-  def base(site: Site, totalQueueTime: Time, partners: List[Partner]): PartnerTime =
-    PartnerTime.distribute(totalQueueTime.toHours, site, partners)
+  def base(site: Site, totalQueueTime: Time, partners: List[Partner]): PartnerTimes =
+    PartnerTimes.distribute(totalQueueTime.toHours, site, partners)
 
   /**
    * Extracts the site's classical proposals and sums their times, associating
    * totals with each partner.
    */
-  def classical(site: Site, props: List[Proposal], partners: List[Partner]): PartnerTime = {
+  def classical(site: Site, props: List[Proposal], partners: List[Partner]): PartnerTimes = {
     // Get the classical proposals for this site.
     val filteredProps = props filter { prop =>
       (prop.mode == Mode.Classical) && (prop.site == site)
@@ -48,7 +48,7 @@ object PartnerTimeCalc {
     }
 
     // Create a PartnerTime from the map.
-    PartnerTime(partners, timemap)
+    PartnerTimes(partners, timemap)
   }
 
   /**
@@ -63,16 +63,16 @@ object PartnerTimeCalc {
    * <p>For this reason, the time is distributed across partners evenly by this
    * calculation.</p>
    */
-  def rollover(site: Site, rop: RolloverReport, partners: List[Partner]): PartnerTime =
-    PartnerTime.distribute(rop.filter(site).total, site, partners)
+  def rollover(site: Site, rop: RolloverReport, partners: List[Partner]): PartnerTimes =
+    PartnerTimes.distribute(rop.filter(site).total, site, partners)
 
   /**
    * Computes the net queue time, which is
    * <code>base - (classical + large program + rollover + exchange)</code>
    * where negative times are left at zero.
    */
-  def net(base: PartnerTime, partners: List[Partner], deductions: PartnerTime*): PartnerTime = {
-    val totalDeductions = deductions.foldLeft(PartnerTime.empty(partners))(_ + _)
+  def net(base: PartnerTimes, partners: List[Partner], deductions: PartnerTimes*): PartnerTimes = {
+    val totalDeductions = deductions.foldLeft(PartnerTimes.empty(partners))(_ + _)
     val tmp             = base - totalDeductions
     tmp.modify((_: Partner, t: Time) => Time.max(Time.ZeroHours, t))
   }
@@ -86,16 +86,16 @@ import PartnerTimeCalc.Log
  */
 case class PartnerTimeCalc(
   partners: List[Partner],
-  base: PartnerTime,
-  classical: PartnerTime,
-  rollover: PartnerTime,
-  exchange: PartnerTime,
-  adjustment: PartnerTime,
-  partnerTrade: PartnerTime
+  base: PartnerTimes,
+  classical: PartnerTimes,
+  rollover: PartnerTimes,
+  exchange: PartnerTimes,
+  adjustment: PartnerTimes,
+  partnerTrade: PartnerTimes
 ) {
   Log.trace("PartnerTimeCalc.base = " + base.toString)
 
-  val net: PartnerTime =
+  val net: PartnerTimes =
     PartnerTimeCalc.net(base, partners, classical, rollover, exchange, adjustment, partnerTrade)
   Log.trace("PartnerTimeCalc.net = " + net.toString)
 }

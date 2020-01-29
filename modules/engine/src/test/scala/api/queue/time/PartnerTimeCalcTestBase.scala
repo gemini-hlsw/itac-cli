@@ -12,7 +12,7 @@ import edu.gemini.spModel.core.Site
  */
 trait PartnerTimeCalcTestBase {
 
-  protected def assertZero(lst: List[Partner], pt: PartnerTime): Unit = {
+  protected def assertZero(lst: List[Partner], pt: PartnerTimes): Unit = {
     lst.foreach { p =>
       assertEquals(Time.ZeroHours, pt(p))
     }

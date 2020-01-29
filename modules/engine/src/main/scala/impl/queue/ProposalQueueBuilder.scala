@@ -3,7 +3,7 @@
 
 package edu.gemini.tac.qengine.impl.queue
 
-import edu.gemini.tac.qengine.api.queue.time.{QueueTime, PartnerTime}
+import edu.gemini.tac.qengine.api.queue.time.{QueueTime, PartnerTimes}
 import edu.gemini.tac.qengine.util.Time
 import edu.gemini.tac.qengine.p1.QueueBand.{Category, QBand3, QBand4}
 import annotation.tailrec
@@ -36,14 +36,14 @@ object ProposalQueueBuilder {
     new ProposalQueueBuilder(
       queueTime.fullPartnerTime.partners,
       new Config(queueTime, strategy),
-      PartnerTime.empty(queueTime.fullPartnerTime.partners)
+      PartnerTimes.empty(queueTime.fullPartnerTime.partners)
     )
 }
 
 case class ProposalQueueBuilder(
   val partners: List[Partner],
   val config: ProposalQueueBuilder.Config,
-  val usedGuaranteed: PartnerTime,
+  val usedGuaranteed: PartnerTimes,
   val usedTime: Time = Time.ZeroHours,
   val proposals: List[Proposal] = Nil
 ) extends edu.gemini.tac.qengine.api.queue.ProposalQueue {
@@ -58,10 +58,10 @@ case class ProposalQueueBuilder(
   override def usedTime(c: Category): Time =
     if (c == Category.Guaranteed) usedGuaranteed.total else super.usedTime(c)
 
-  def copy(ug: PartnerTime, u: Time, proposals: List[Proposal]): ProposalQueueBuilder =
+  def copy(ug: PartnerTimes, u: Time, proposals: List[Proposal]): ProposalQueueBuilder =
     new ProposalQueueBuilder(partners, config, ug, u, proposals)
 
-  private def addGuaranteedTimeFor(prop: Proposal): PartnerTime =
+  private def addGuaranteedTimeFor(prop: Proposal): PartnerTimes =
     prop match {
       case joint: JointProposal =>
         joint.toParts.foldLeft(usedGuaranteed) {
@@ -212,7 +212,7 @@ case class ProposalQueueBuilder(
         )
 
         // Rebuild the queue with just the filtered proposals.
-        new ProposalQueueBuilder(partners, config, PartnerTime.empty(partners)) ++ filtered.reverse
+        new ProposalQueueBuilder(partners, config, PartnerTimes.empty(partners)) ++ filtered.reverse
       }
     }
 
