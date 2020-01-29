@@ -55,7 +55,7 @@ class PartnerTimeTest {
     }
   }
   @Test def testEmpty(): Unit = {
-    val pt = PartnerTimes.empty(partners)
+    val pt = PartnerTimes.empty
     partners.foreach(p => assertEquals(Time.ZeroHours, pt(p)))
   }
 

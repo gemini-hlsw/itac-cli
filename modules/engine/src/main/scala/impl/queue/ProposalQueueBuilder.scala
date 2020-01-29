@@ -34,14 +34,12 @@ object ProposalQueueBuilder {
    */
   def apply(queueTime: QueueTime, strategy: MergeStrategy): ProposalQueueBuilder =
     new ProposalQueueBuilder(
-      queueTime.fullPartnerTime.partners,
       new Config(queueTime, strategy),
-      PartnerTimes.empty(queueTime.fullPartnerTime.partners)
+      PartnerTimes.empty
     )
 }
 
 case class ProposalQueueBuilder(
-  val partners: List[Partner],
   val config: ProposalQueueBuilder.Config,
   val usedGuaranteed: PartnerTimes,
   val usedTime: Time = Time.ZeroHours,
@@ -59,7 +57,7 @@ case class ProposalQueueBuilder(
     if (c == Category.Guaranteed) usedGuaranteed.total else super.usedTime(c)
 
   def copy(ug: PartnerTimes, u: Time, proposals: List[Proposal]): ProposalQueueBuilder =
-    new ProposalQueueBuilder(partners, config, ug, u, proposals)
+    new ProposalQueueBuilder(config, ug, u, proposals)
 
   private def addGuaranteedTimeFor(prop: Proposal): PartnerTimes =
     prop match {
@@ -212,7 +210,7 @@ case class ProposalQueueBuilder(
         )
 
         // Rebuild the queue with just the filtered proposals.
-        new ProposalQueueBuilder(partners, config, PartnerTimes.empty(partners)) ++ filtered.reverse
+        new ProposalQueueBuilder(config, PartnerTimes.empty) ++ filtered.reverse
       }
     }
 

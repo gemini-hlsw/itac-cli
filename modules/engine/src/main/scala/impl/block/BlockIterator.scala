@@ -179,7 +179,7 @@ object BlockIterator {
   type IMap = Map[Partner, PartnerBlockIterator]
 
   private case class Empty(val allPartners: List[Partner]) extends BlockIterator {
-    val quantaMap: PartnerTimes = PartnerTimes.empty(allPartners)
+    val quantaMap: PartnerTimes = PartnerTimes.empty
     val seq: Seq[Partner]      = Seq.empty
     val remTime: Time          = Time.Zero
     val iterMap: IMap          = Map.empty

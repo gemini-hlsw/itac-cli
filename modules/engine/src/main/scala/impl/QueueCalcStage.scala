@@ -90,7 +90,7 @@ object QueueCalcStage {
       we *may* have some proposals that are schedulable in B3 (i.e., rejected in B1/B2 due to conditions)
        */
       val iter =
-        prevIter.quantaMap == PartnerTimes.empty(partners) match {
+        prevIter.quantaMap.isEmpty match {
           case false =>
             BlockIterator(
               partners,

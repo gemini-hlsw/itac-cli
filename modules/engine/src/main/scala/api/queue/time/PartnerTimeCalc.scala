@@ -71,11 +71,8 @@ object PartnerTimeCalc {
    * <code>base - (classical + large program + rollover + exchange)</code>
    * where negative times are left at zero.
    */
-  def net(base: PartnerTimes, partners: List[Partner], deductions: PartnerTimes*): PartnerTimes = {
-    val totalDeductions = deductions.foldLeft(PartnerTimes.empty(partners))(_ + _)
-    val tmp             = base - totalDeductions
-    tmp.modify((_: Partner, t: Time) => Time.max(Time.ZeroHours, t))
-  }
+  def net(base: PartnerTimes, deductions: PartnerTimes*): PartnerTimes =
+    deductions.foldLeft(base)(_ - _).modify((_, t) => Time.max(Time.ZeroHours, t))
 
 }
 
@@ -96,6 +93,6 @@ case class PartnerTimeCalc(
   Log.trace("PartnerTimeCalc.base = " + base.toString)
 
   val net: PartnerTimes =
-    PartnerTimeCalc.net(base, partners, classical, rollover, exchange, adjustment, partnerTrade)
+    PartnerTimeCalc.net(base, classical, rollover, exchange, adjustment, partnerTrade)
   Log.trace("PartnerTimeCalc.net = " + net.toString)
 }

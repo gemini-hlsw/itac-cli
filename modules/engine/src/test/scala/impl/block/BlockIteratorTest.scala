@@ -42,7 +42,7 @@ class BlockIteratorTest {
     List[(Proposal) => List[Observation]](_.obsList, _.band3Observations).map { fn =>
       val it = BlockIterator(
         partners,
-        PartnerTimes.empty(partners),
+        PartnerTimes.empty,
         List(US),
         genPropLists(1, US, 10, List(10), List(10)),
         fn
