@@ -30,6 +30,13 @@ final case class PartnerTime(
       band3 * pct
     )
 
+  def nonNegative: PartnerTime =
+    PartnerTime(
+      band1.nonNegative,
+      band2.nonNegative,
+      band3.nonNegative
+    )
+
   override def toString: String =
     s"PartnerTime($band1, $band2, $band3)"
 

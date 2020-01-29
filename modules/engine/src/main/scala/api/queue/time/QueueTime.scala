@@ -13,7 +13,7 @@ import edu.gemini.spModel.core.Site
 object QueueTime {
 
   /** Number of hours in each "cycle" of 100 Partner countries. */
-  val CycleTimeConstant = 300
+  private val CycleTimeConstant = 300
 
   val DefaultPartnerOverfillAllowance = Percent(5)
 
