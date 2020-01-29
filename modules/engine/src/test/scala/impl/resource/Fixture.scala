@@ -68,14 +68,14 @@ object Fixture {
     )
 
   val emptyQueue = ProposalQueueBuilder(
-    QueueTime(Site.GN, PartnerTime.empty(partners).map, partners),
+    QueueTime(Site.GN, PartnerTime.empty(partners).toMap, partners),
     ProposalQueueBuilder.DefaultStrategy
   )
   def evenQueue(hrs: Double): ProposalQueueBuilder =
     evenQueue(hrs, Some(QueueTime.DefaultPartnerOverfillAllowance))
 
   def evenQueue(hrs: Double, overfill: Option[Percent]): ProposalQueueBuilder = {
-    val pt = PartnerTime(partners, partners.map(p => (p, Time.hours(hrs))): _*)
+    val pt = PartnerTime(partners.map(p => (p, Time.hours(hrs))): _*)
     ProposalQueueBuilder(
       new QueueTime(site, pt, partnerOverfillAllowance = overfill),
       ProposalQueueBuilder.DefaultStrategy

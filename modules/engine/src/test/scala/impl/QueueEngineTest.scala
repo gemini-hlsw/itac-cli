@@ -58,7 +58,7 @@ class QueueEngineTest {
       UH -> Time.hours(163.0),
       GS -> Time.hours(108.0)
     )
-    new QueueTime(site, PartnerTime(partners, ptimes: _*))
+    new QueueTime(site, PartnerTime(ptimes: _*))
   }
 
   def decBinGroup: DecBinGroup[Percent] = {

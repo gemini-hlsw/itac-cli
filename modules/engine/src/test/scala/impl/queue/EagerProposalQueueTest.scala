@@ -45,7 +45,7 @@ class EagerProposalQueueTest {
   private val qs = ProposalQueueBuilder(
     new QueueTime(
       Site.GS,
-      PartnerTime(partners, GS -> Time.hours(100)),
+      PartnerTime(GS -> Time.hours(100)),
       QueueBandPercentages(30, 30, 40)
     ),
     EagerMergeStrategy

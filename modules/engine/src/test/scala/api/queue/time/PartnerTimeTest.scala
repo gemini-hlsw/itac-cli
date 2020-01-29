@@ -16,7 +16,7 @@ class PartnerTimeTest {
   val delta = 0.000001
 
   @Test def testComplete() {
-    val pt = PartnerTime(partners, AR -> Time.hours(1), BR -> Time.hours(2))
+    val pt = PartnerTime(AR -> Time.hours(1), BR -> Time.hours(2))
 
     assertEquals(Time.hours(1), pt(AR))
     assertEquals(Time.hours(2), pt(BR))
@@ -94,6 +94,6 @@ class PartnerTimeTest {
 
   @Test def distributesRolloverTimeEvenly(): Unit = {
     val pt = PartnerTime.distribute(Time.hours(100), site, partners)
-    pt.map.map(kv => assertEquals(Time.hours(kv._1.percentAt(site)), kv._2))
+    pt.toMap.map(kv => assertEquals(Time.hours(kv._1.percentAt(site)), kv._2))
   }
 }

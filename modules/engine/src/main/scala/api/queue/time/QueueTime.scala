@@ -149,7 +149,7 @@ class QueueTime(
    * Gets a map of Partner -> Time quantum with keys for all partners.
    */
   def partnerQuanta: PartnerTime = {
-    val pt = fullPartnerTime.mapTimes(quantum)
+    val pt = fullPartnerTime.modify(quantum)
     // println(s">> QueueTime.partnerQuanta: $pt")
     pt
   }

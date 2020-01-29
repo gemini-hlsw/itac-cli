@@ -80,7 +80,7 @@ class BlockIteratorTest {
 
   @Test def testPartnerAdvanceNoProps() {
     val prop = mkProp(US, 5, List(5), List.empty)
-    val qMap = PartnerTime(partners, BR -> Time.hours(10), US -> Time.hours(10))
+    val qMap = PartnerTime(BR -> Time.hours(10), US -> Time.hours(10))
     // No proposals for Brazil, it will be skipped.
     val pMap: Map[Partner, List[Proposal]] = Map(US -> List(prop))
     val it                                 = BlockIterator(partners, qMap, List(BR, US), pMap, _.obsList)
@@ -96,7 +96,7 @@ class BlockIteratorTest {
     val usProp = mkProp(US, 2, List(2), List.empty)
 
     // No time quantum for Brazil, it will be skipped.
-    val qMap                               = PartnerTime(partners, US -> Time.hours(10))
+    val qMap                               = PartnerTime(US -> Time.hours(10))
     val pMap: Map[Partner, List[Proposal]] = Map(BR                   -> List(brProp), US -> List(usProp))
 
     val it = BlockIterator(partners, qMap, List(BR, US), pMap, _.obsList)
@@ -113,7 +113,7 @@ class BlockIteratorTest {
     val usProp = mkProp(US, 2, List(2), List.empty)
 
     // No time quantum for Brazil, it will be skipped.
-    val qMap                               = PartnerTime(partners, US -> Time.hours(10))
+    val qMap                               = PartnerTime(US -> Time.hours(10))
     val pMap: Map[Partner, List[Proposal]] = Map(BR                   -> List(brProp), US -> List(usProp))
 
     val it = BlockIterator(partners, qMap, List(BR, US), pMap, _.obsList)

@@ -74,7 +74,7 @@ object PartnerTimeCalc {
   def net(base: PartnerTime, partners: List[Partner], deductions: PartnerTime*): PartnerTime = {
     val totalDeductions = deductions.foldLeft(PartnerTime.empty(partners))(_ + _)
     val tmp             = base - totalDeductions
-    tmp.mapTimes((_: Partner, t: Time) => Time.max(Time.ZeroHours, t))
+    tmp.modify((_: Partner, t: Time) => Time.max(Time.ZeroHours, t))
   }
 
 }
