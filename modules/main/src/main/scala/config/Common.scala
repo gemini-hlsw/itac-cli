@@ -33,7 +33,7 @@ final case class Common(
     def partnerSequence(site: Site): ItacPartnerSequence =
       new ItacPartnerSequence {
         def sequence = self.sequence.forSite(site).map(partnersMap).toStream #::: sequence
-        override def toString = s"ItacPartnerSequence(${sequence.mkString(",")})"
+        override def toString = s"ItacPartnerSequence(...)"
       }
 
     def shutdowns(site: Site): List[Shutdown] =
