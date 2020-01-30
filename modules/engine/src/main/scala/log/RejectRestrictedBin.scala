@@ -26,5 +26,5 @@ final case class RejectRestrictedBin(
   max: Time
 ) extends RejectMessage {
   def reason: String = RejectRestrictedBin.reason(name)
-  def detail: String = RejectRestrictedBin.detail(prop, obs, band, cur, max)
+  def detail: String = RejectRestrictedBin.detail("Restricted", prop, obs, band, cur, max)
 }

@@ -15,13 +15,14 @@ object RejectConditions extends TimeBinMessageFormatter {
 
   private val detailTemplate = "%s %s"
   override def detail(
+    kind: String,
     prop: Proposal,
     obs: Observation,
     band: QueueBand,
     cur: Time,
     max: Time
   ): String =
-    detailTemplate.format(obs.conditions, super.detail(prop, obs, band, cur, max))
+    detailTemplate.format(obs.conditions, super.detail(kind, prop, obs, band, cur, max))
 }
 
 final case class RejectConditions(
@@ -32,7 +33,7 @@ final case class RejectConditions(
   max: Time
 ) extends ObsRejectMessage {
   def reason: String = RejectConditions.name
-  def detail: String = RejectConditions.detail(prop, obs, band, cur, max)
+  def detail: String = RejectConditions.detail("Conditions", prop, obs, band, cur, max)
 
   override def toXML = <RejectConditions>
       <RejectedProposal>{prop}</RejectedProposal>

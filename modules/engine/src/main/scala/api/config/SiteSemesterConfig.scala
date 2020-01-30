@@ -36,4 +36,8 @@ final class SiteSemesterConfig(
   require(decLimits.bins.exists(_.binValue.value == 100))
 
   def context: Context = new Context(site, semester)
+
+  override def toString: String =
+    s"SiteSemesterConfig($site, $semester, $raLimits, $decLimits, $shutdowns, $conditions)"
+
 }

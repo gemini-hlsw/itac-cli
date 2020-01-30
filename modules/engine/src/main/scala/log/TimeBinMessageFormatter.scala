@@ -7,12 +7,12 @@ import edu.gemini.tac.qengine.util.Time
 import edu.gemini.tac.qengine.p1.{QueueBand, Observation, Proposal}
 
 trait TimeBinMessageFormatter {
-  private[this] val binStatusTemplate = "Bin %.1f%% full (%.2f / %.2f hrs)"
-  def binStatus(cur: Time, max: Time): String = {
+  private[this] val binStatusTemplate = "%s Bin %.1f%% full (%.2f / %.2f hrs)"
+  def binStatus(kind: String, cur: Time, max: Time): String = {
     val curHrs = cur.toHours.value
     val maxHrs = max.toHours.value
     val perc   = if (maxHrs.abs < 0.0001) 100.0 else curHrs / maxHrs * 100
-    binStatusTemplate.format(perc, curHrs, maxHrs)
+    binStatusTemplate.format(kind, perc, curHrs, maxHrs)
   }
 
   private[this] val obsInfoTemplate = "%.2f hrs at %s(%.3f hr, %.1f deg)"
@@ -29,8 +29,8 @@ trait TimeBinMessageFormatter {
   }
 
   private[this] val detailTemplate = "%s. Reject %s."
-  def detail(prop: Proposal, obs: Observation, band: QueueBand, cur: Time, max: Time): String = {
-    val statusMsg  = binStatus(cur, max)
+  def detail(kind: String, prop: Proposal, obs: Observation, band: QueueBand, cur: Time, max: Time): String = {
+    val statusMsg  = binStatus(kind, cur, max)
     val obsInfoMsg = obsInfo(prop, obs, band)
     detailTemplate.format(statusMsg, obsInfoMsg)
   }
