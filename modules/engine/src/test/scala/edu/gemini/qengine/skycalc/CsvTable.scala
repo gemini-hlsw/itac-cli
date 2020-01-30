@@ -1,6 +1,6 @@
 package edu.gemini.qengine.skycalc
 
-import edu.gemini.tac.qengine.ctx.{Semester, Site}
+import edu.gemini.spModel.core.{Semester, Site}
 
 import collection.JavaConverters._
 import edu.gemini.skycalc.Angle

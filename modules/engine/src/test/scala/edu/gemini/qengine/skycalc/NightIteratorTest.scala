@@ -2,15 +2,15 @@ package edu.gemini.qengine.skycalc
 
 import org.junit._
 import Assert._
-import edu.gemini.tac.qengine.ctx.Site
+import edu.gemini.spModel.core.Site
 import java.util.{Date, Calendar, GregorianCalendar}
 import edu.gemini.skycalc.{Night, TwilightBoundType, TwilightBoundedNight}
 
 class NightIteratorTest {
-  val site = Site.south
+  val site = Site.GS
 
   def mkCal(year: Int, month: Int, day: Int, hr: Int): Calendar = {
-    val cal = new GregorianCalendar(site.timeZone)
+    val cal = new GregorianCalendar(site.timezone)
     cal.set(year, month, day, hr, 0, 0)
     cal.set(Calendar.MILLISECOND, 0)
     cal
@@ -46,7 +46,7 @@ class NightIteratorTest {
   }
 
   private def wholeNight(d: Date): Night =
-    new TwilightBoundedNight(TwilightBoundType.NAUTICAL, d.getTime, SiteLookup.get(site))
+    new TwilightBoundedNight(TwilightBoundType.NAUTICAL, d.getTime, site)
 
   @Test def testTrimTwo() {
     val cal1 = mkCal(2011, Calendar.JANUARY, 1, 23) // 11 PM, Jan 1

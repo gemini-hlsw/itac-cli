@@ -14,7 +14,6 @@ import edu.gemini.spModel.core.Site;
 
 import edu.gemini.skycalc.*;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -69,16 +68,11 @@ public final class ExcelRaBinCalc implements RaBinCalc {
             JulianDate jdStart = new JulianDate(startTime);
             JulianDate jdEnd   = new JulianDate(endTime);
 
-            System.out.println((endTime - startTime) / (1000 * 60 * 60.0));
-
-            ImprovedSkyCalc calc = new ImprovedSkyCalc(site);
-
-            double eve  = new JulianDate(calc.getLst(new Date(startTime)).getTime()).toDouble();
-            double morn = new JulianDate(calc.getLst(new Date(endTime)).getTime()).toDouble();
+            double eve  = ImprovedSkyCalc.lst(jdStart, longit);
+            double morn = ImprovedSkyCalc.lst(jdEnd,   longit);
 
             for (int bin=0; bin<size.getBinCount(); ++bin) {
                 double ra = ras.get(bin).toHours().getMagnitude();
-                System.out.print("ra = " + ra + "; bin = " + totals[bin] + " -> ");
                 if (eve < morn) {
                     if (ra>eve && ra<morn) totals[bin] += binSizeMs;
                 } else if (morn<ra) {
@@ -86,7 +80,6 @@ public final class ExcelRaBinCalc implements RaBinCalc {
                 } else {
                     if (morn>ra) totals[bin] += binSizeMs;
                 }
-                System.out.println(totals[bin]);
             }
         }
 
@@ -96,9 +89,9 @@ public final class ExcelRaBinCalc implements RaBinCalc {
     }
 
     public static void main(String[] args) throws Exception {
-        RaBinSize    sz = new RaBinSize(60);
-        Site       site = Site.GN;
-        Semester    sem = Semester.parse("2011A");
+        RaBinSize    sz = new RaBinSize(3 * 60);
+        Site       site = Site.GS;
+        Semester    sem = Semester.parse("2020A");
         Date      start = sem.getStartDate(site);
         Date        end = sem.getEndDate(site);
         List<Hours> hrs = (new ExcelRaBinCalc()).calc(site, start, end, sz);
