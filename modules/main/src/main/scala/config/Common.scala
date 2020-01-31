@@ -9,12 +9,15 @@ import io.circe.generic.semiauto._
 import edu.gemini.tac.qengine.api.config.Shutdown
 import java.{util => ju}
 import java.time.LocalDate
+import edu.gemini.tac.qengine.api.config.ConditionsBin
+import edu.gemini.tac.qengine.api.config.ConditionsBinGroup
 
 final case class Common(
   semester: Semester,
   shutdown: PerSite[List[LocalDateRange]],
   partners: Partner => PartnerConfig,
-  sequence: PerSite[List[Partner]]
+  sequence: PerSite[List[Partner]],
+  conditionsBins: List[ConditionsBin[Percent]]
 ) { self =>
 
   object engine {
@@ -47,13 +50,16 @@ final case class Common(
         Shutdown(site, date(ldr.start), date(ldr.end))
       }
 
-  }
+      lazy val conditionsBins: ConditionsBinGroup[Percent] =
+        ConditionsBinGroup.of(Common.this.conditionsBins)
 
-}
+    }
+
+  }
 
 object Common {
   import Partner._ // need higher-priority implicit for sequence
-  import itac.codec.semester._
+  import itac.codec.all._
 
   implicit val encodePartners: Encoder[Partner => PartnerConfig] =
     Encoder[Map[Partner, PartnerConfig]].contramap(Partner.all.fproduct(_).toMap)
@@ -66,17 +72,5 @@ object Common {
 
   implicit val encoderCommon: Encoder[Common] = deriveEncoder
   implicit val decoderCommon: Decoder[Common] = deriveDecoder
-
-  /** A dummy configuration, for `init` when no prior config is available. */
-  def dummy(semester: Semester): Common =
-    Common(
-      semester = semester,
-      shutdown = PerSite(
-        gn = List(LocalDateRange.dummy(semester, GN)),
-        gs = List(LocalDateRange.dummy(semester, GS))
-      ),
-      partners = Partner.all.fproduct(_.dummyConfig).toMap,
-      sequence = PerSite(Partner.all, Partner.all)
-    )
 
 }

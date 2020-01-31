@@ -16,6 +16,7 @@ import util.Random
 import edu.gemini.tac.qengine.util.{Angle, Percent, Time}
 import edu.gemini.spModel.core.Site
 import edu.gemini.spModel.core.Semester
+import edu.gemini.tac.qengine.api.config.Default
 
 /**
  * Higher-level tests. These are intended to exercise the Queue Engine with a large number of pseudo-random proposals.
@@ -176,7 +177,7 @@ class QueueEngineTest {
     semester: Semester = semester,
     initialPick: Partner = initialPick
   ): QueueEngineConfig = {
-    val binConfig = new SiteSemesterConfig(site, semester, raBinGroup, decBinGroup, List.empty)
+    val binConfig = new SiteSemesterConfig(site, semester, raBinGroup, decBinGroup, List.empty, Default.Conditions)
     QueueEngineConfig(
       partners,
       binConfig,

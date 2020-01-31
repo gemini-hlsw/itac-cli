@@ -7,10 +7,10 @@ import cats._
 import cats.effect.ExitCode
 import cats.implicits._
 import io.chrisdavenport.log4cats.Logger
-import itac.config.Common
+// import itac.config.Common
 import itac.Workspace
 import itac.Operation
-import java.nio.file.Paths
+// import java.nio.file.Paths
 import edu.gemini.spModel.core.Semester
 
 object Init {
@@ -25,7 +25,7 @@ object Init {
         def init: F[ExitCode] =
           for {
             _ <- List("proposals", "emails").traverse(ws.mkdirs(_))
-            _ <- ws.writeData(Paths.get("common.yaml"), Common.dummy(semester))
+            // _ <- ws.writeData(Paths.get("common.yaml"), Common.dummy(semester))
           } yield ExitCode.Success
 
         for {

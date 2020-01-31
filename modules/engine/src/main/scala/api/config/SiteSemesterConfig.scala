@@ -25,7 +25,7 @@ final class SiteSemesterConfig(
   val raLimits: RaBinGroup[Time],
   val decLimits: DecBinGroup[Percent],
   val shutdowns: List[Shutdown],
-  val conditions: ConditionsBinGroup[Percent] = Default.Conditions
+  val conditions: ConditionsBinGroup[Percent]
 ) {
 
   // At least one DecBin has to be allocated 100%.  If all are less than 100%,

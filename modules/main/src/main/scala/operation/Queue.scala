@@ -57,10 +57,11 @@ object Queue {
               partnerSeq = cc.engine.partnerSequence(qc.site),
               rollover   = RolloverReport(Nil),
               binConfig = createConfig(
-                ctx       = Context(qc.site, cc.semester),
-                ra        = qc.raBinSize,
-                dec       = qc.decBinSize,
-                shutdowns = cc.engine.shutdowns(qc.site)
+                ctx        = Context(qc.site, cc.semester),
+                ra         = qc.raBinSize,
+                dec        = qc.decBinSize,
+                shutdowns  = cc.engine.shutdowns(qc.site),
+                conditions = cc.engine.conditionsBins
               ),
               restrictedBinConfig = RestrictionConfig(
                 relativeTimeRestrictions = Nil, // TODO
@@ -131,13 +132,13 @@ object Queue {
   private def shutdownHours(shutdowns : List[Shutdown], ctx: Context, size: RaBinSize): List[Time] =
     ShutdownCalc.sumHoursPerRa(ShutdownCalc.trim(shutdowns, ctx), size)
 
-  private def createConfig(ctx: Context, ra: RaBinSize, dec: DecBinSize, shutdowns: List[Shutdown]): SiteSemesterConfig = {
+  private def createConfig(ctx: Context, ra: RaBinSize, dec: DecBinSize, shutdowns: List[Shutdown], conditions: ConditionsBinGroup[Percent]): SiteSemesterConfig = {
     import scala.collection.JavaConverters._
     val calc = RaDecBinCalc.get(ctx.site, ctx.semester, ra, dec)
     val hrs  = calc.getRaHours.asScala.map(h => Time.hours(h.getHours))
     val perc = calc.getDecPercentages.asScala.map(p => Percent(p.getAmount.round.toInt.toDouble))
     val hrsʹ = hrs.zip(shutdownHours(shutdowns, ctx, ra)).map { case (t1, t2) => (t1 - t2).max(Time.ZeroHours) }
-    new SiteSemesterConfig(ctx.site, ctx.semester, RaBinGroup(hrsʹ), DecBinGroup(perc), shutdowns)
+    new SiteSemesterConfig(ctx.site, ctx.semester, RaBinGroup(hrsʹ), DecBinGroup(perc), shutdowns, conditions)
   }
 
 }

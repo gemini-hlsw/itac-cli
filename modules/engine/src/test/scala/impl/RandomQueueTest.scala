@@ -46,7 +46,7 @@ class RandomQueueTest {
     )
 
   private def gnABinConfig: SiteSemesterConfig =
-    new SiteSemesterConfig(site, semester, raLimits, decBins, List.empty)
+    new SiteSemesterConfig(site, semester, raLimits, decBins, List.empty, Default.Conditions)
 
   private def randomConditions: ObservingConditions =
     ObservingConditions(

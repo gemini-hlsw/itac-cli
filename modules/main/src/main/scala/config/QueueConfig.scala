@@ -7,8 +7,6 @@ package config
 import cats.implicits._
 import io.circe._
 import io.circe.generic.semiauto._
-import edu.gemini.tac.qengine.api.config.ConditionsBin
-import edu.gemini.tac.qengine.api.config.ConditionsBinGroup
 import edu.gemini.qengine.skycalc.RaBinSize
 import edu.gemini.qengine.skycalc.DecBinSize
 // import edu.gemini.tac.qengine.api.queue.time.PartnerTime
@@ -21,7 +19,6 @@ final case class QueueConfig(
   overfill:   Option[Percent],
   raBinSize:  RaBinSize,
   decBinSize: DecBinSize,
-  conditionsBins: List[ConditionsBin[Percent]]
 ) {
 
   object engine {
@@ -48,9 +45,6 @@ final case class QueueConfig(
         bands.engine.queueBandPercentages,
         overfill
       )
-
-    lazy val conditionsBins: ConditionsBinGroup[Percent] =
-      ConditionsBinGroup.of(QueueConfig.this.conditionsBins)
 
   }
 
