@@ -5,6 +5,7 @@ package itac
 
 package object codec {
 
+
   object all
     extends PercentCodec
        with SiteCodec
@@ -14,5 +15,7 @@ package object codec {
        with ConditionsCategoryCodec
        with QueueCalcEncoder
        with NtacCodec
+       with RaBinSizeCodec
+       with DecBinSizeCodec
 
 }

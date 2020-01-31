@@ -15,7 +15,7 @@ import edu.gemini.tac.qengine.p1.QueueBand
 import edu.gemini.tac.qengine.log.AcceptMessage
 import edu.gemini.tac.qengine.log.RejectPartnerOverAllocation
 import edu.gemini.tac.qengine.log.RejectNotBand3
-import itac.codec.all._
+// import itac.codec.all._
 import edu.gemini.tac.qengine.log.RejectNoTime
 import java.nio.file.Path
 import _root_.edu.gemini.tac.qengine.log.RejectCategoryOverAllocation
@@ -25,27 +25,11 @@ import edu.gemini.tac.qengine.ctx.Context
 import edu.gemini.qengine.skycalc.RaBinSize
 import edu.gemini.qengine.skycalc.DecBinSize
 import edu.gemini.qengine.skycalc.RaDecBinCalc
-import edu.gemini.qengine.skycalc.Hours
 import edu.gemini.tac.qengine.util.Time
 import edu.gemini.tac.qengine.util.Percent
 import edu.gemini.tac.qservice.impl.shutdown.ShutdownCalc
 
 object Queue {
-
-    private def shutdownHours(shutdowns : List[Shutdown], ctx: Context, size: RaBinSize): List[Time] =
-      ShutdownCalc.sumHoursPerRa(ShutdownCalc.trim(shutdowns, ctx), size)
-
-    def createConfig(ctx: Context, ra: RaBinSize, dec: DecBinSize, shutdowns: List[Shutdown]): SiteSemesterConfig = {
-      import scala.collection.JavaConverters._
-      val calc = RaDecBinCalc.get(ctx.site, ctx.semester, ra, dec)
-      val hrs  = calc.getRaHours.asScala.map((h: Hours) => Time.hours(h.getHours))
-      println("hrs = " + hrs)
-      val perc = calc.getDecPercentages.asScala.map(p => Percent(p.getAmount.round.toInt.toDouble))
-      val adjHrs = hrs.zip(shutdownHours(shutdowns, ctx, ra)).map { case (t1, t2) => (t1 - t2).max(Time.ZeroHours) }
-      val sc = new SiteSemesterConfig(ctx.site, ctx.semester, RaBinGroup(adjHrs), DecBinGroup(perc), shutdowns)
-      println(sc)
-      sys.exit(-1)
-    }
 
   /**
     * @param siteConfig path to site-specific configuration file, which can be absolute or relative
@@ -71,19 +55,11 @@ object Queue {
             config    = QueueEngineConfig(
               partners   = partners,
               partnerSeq = cc.engine.partnerSequence(qc.site),
-              rollover   = RolloverReport(Nil), // TODO
-              // binConfig  = new SiteSemesterConfig(
-              //   site       = qc.site,
-              //   semester   = cc.semester,
-              //   raLimits   = qc.engine.raLimits,
-              //   decLimits  = qc.engine.decLimits,
-              //   shutdowns  = cc.engine.shutdowns(qc.site),
-              //   conditions = qc.engine.conditionsBins
-              // ),
+              rollover   = RolloverReport(Nil),
               binConfig = createConfig(
-                ctx = Context(qc.site, cc.semester),
-                ra  = new RaBinSize(3 * 60),
-                dec = new DecBinSize(20),
+                ctx       = Context(qc.site, cc.semester),
+                ra        = qc.raBinSize,
+                dec       = qc.decBinSize,
                 shutdowns = cc.engine.shutdowns(qc.site)
               ),
               restrictedBinConfig = RestrictionConfig(
@@ -93,10 +69,11 @@ object Queue {
               )
             ),
           )
-          qf <- ws.newQueueFolder(qc.site)
-          _  <- ws.writeData(qf.resolve("common.yaml"), cc)
-          _  <- ws.writeData(qf.resolve(s"${qc.site.abbreviation}.yaml"), qc)
-          _  <- ws.writeData(qf.resolve("queue.yaml"), queueCalc)
+          _ <- log.warn("File output has been commented out!")
+          // qf <- ws.newQueueFolder(qc.site)
+          // _  <- ws.writeData(qf.resolve("common.yaml"), cc)
+          // _  <- ws.writeData(qf.resolve(s"${qc.site.abbreviation}.yaml"), qc)
+          // _  <- ws.writeData(qf.resolve("queue.yaml"), queueCalc)
 
           _  <- {
             val log = queueCalc.proposalLog
@@ -112,16 +89,17 @@ object Queue {
               QueueBand.Category.values.foreach { qc =>
                 println(s"${Console.BOLD}The following proposals were rejected for $qc.${Console.RESET}")
                 pids.foreach { pid =>
+                  val p = ps.find(_.id == pid).get
                   log.get(pid, qc) match {
                     case None =>
                     case Some(AcceptMessage(_, _, _)) =>
-                    case Some(m: RejectPartnerOverAllocation) => println(s"- ${pid.reference} - ${m.detail}")
-                    case Some(m: RejectNotBand3) => println(s"- ${pid.reference} - ${m.detail}")
-                    case Some(m: RejectNoTime) => println(s"- ${pid.reference} - ${m.detail}")
-                    case Some(m: RejectCategoryOverAllocation) => println(s"- ${pid.reference} - ${m.detail}")
-                    case Some(m: RejectTarget) => println(s"- ${pid.reference} - ${m.detail}")
-                    case Some(m: RejectConditions) => println(s"- ${pid.reference} - ${m.detail}")
-                    case Some(lm) => println(s"- ${pid.reference} - $lm")
+                    case Some(m: RejectPartnerOverAllocation) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s ${m.detail}")
+                    case Some(m: RejectNotBand3) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s ${m.detail}")
+                    case Some(m: RejectNoTime) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s ${m.detail}")
+                    case Some(m: RejectCategoryOverAllocation) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s ${m.detail}")
+                    case Some(m: RejectTarget) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s ${m.detail}")
+                    case Some(m: RejectConditions) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s ${m.detail}")
+                    case Some(lm) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s $lm")
                   }
                 }
               }
@@ -145,6 +123,21 @@ object Queue {
           }
         } yield ExitCode.Success
 
+  }
+
+
+  // These methods were lifted from the ITAC web application.
+
+  private def shutdownHours(shutdowns : List[Shutdown], ctx: Context, size: RaBinSize): List[Time] =
+    ShutdownCalc.sumHoursPerRa(ShutdownCalc.trim(shutdowns, ctx), size)
+
+  private def createConfig(ctx: Context, ra: RaBinSize, dec: DecBinSize, shutdowns: List[Shutdown]): SiteSemesterConfig = {
+    import scala.collection.JavaConverters._
+    val calc = RaDecBinCalc.get(ctx.site, ctx.semester, ra, dec)
+    val hrs  = calc.getRaHours.asScala.map(h => Time.hours(h.getHours))
+    val perc = calc.getDecPercentages.asScala.map(p => Percent(p.getAmount.round.toInt.toDouble))
+    val hrsʹ = hrs.zip(shutdownHours(shutdowns, ctx, ra)).map { case (t1, t2) => (t1 - t2).max(Time.ZeroHours) }
+    new SiteSemesterConfig(ctx.site, ctx.semester, RaBinGroup(hrsʹ), DecBinGroup(perc), shutdowns)
   }
 
 }
