@@ -38,7 +38,7 @@ object Partner {
     List(new Partner(Right(Right(LargeProgramPartner))) {})
 
   def fromString(s: String): Either[String, Partner] =
-    all.find(_.id == s).toRight(s"Unknown partner: $s")
+    all.find(p => p.id == s || p.name == s).toRight(s"Unknown partner: $s")
 
   implicit val keyEncoderPartner: KeyEncoder[Partner] = KeyEncoder.instance(_.id)
   implicit val keyDecoderPartner: KeyDecoder[Partner] = KeyDecoder.instance(fromString(_).toOption)

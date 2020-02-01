@@ -23,6 +23,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.nio.file.Paths
 import edu.gemini.spModel.core.Site
+import edu.gemini.tac.qengine.p2.rollover.RolloverReport
 
 /** Interface for some Workspace operations. */
 trait Workspace[F[_]] {
@@ -55,6 +56,8 @@ trait Workspace[F[_]] {
    * relative to the workspace root.
    */
   def newQueueFolder(site: Site): F[Path]
+
+  def writeRolloveReport(path: Path, rr: RolloverReport): F[Path]
 
 }
 
@@ -98,6 +101,15 @@ object Workspace {
             case true  => Sync[F].raiseError(ItacException(s"File exists: $p"))
             case false => log.info(s"Writing: $p") *>
               Sync[F].delay(Files.write(dir.resolve(path), a.asJson.asYaml.spaces2.getBytes("UTF-8")))
+          }
+        }
+
+        def writeRolloveReport(path: Path, rr: RolloverReport): F[Path] = {
+          val p = dir.resolve(path)
+          Sync[F].delay(p.toFile.isFile).flatMap {
+            case true  => Sync[F].raiseError(ItacException(s"File exists: $p"))
+            case false => log.info(s"Writing: $p") *>
+              Sync[F].delay(Files.write(dir.resolve(path), rr.toDelimitedText.getBytes("UTF-8")))
           }
         }
 

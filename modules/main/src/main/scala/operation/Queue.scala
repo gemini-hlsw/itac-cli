@@ -42,7 +42,7 @@ object Queue {
     new Operation[F] {
 
 
-      def run(ws: Workspace[F], log: Logger[F]): F[ExitCode] =
+      def run(ws: Workspace[F], log: Logger[F], b: Blocker): F[ExitCode] =
         for {
           cc <- ws.commonConfig
           qc <- ws.queueConfig(siteConfig)
@@ -55,7 +55,7 @@ object Queue {
             config    = QueueEngineConfig(
               partners   = partners,
               partnerSeq = cc.engine.partnerSequence(qc.site),
-              rollover   = RolloverReport(Nil),
+              rollover   = ??? : RolloverReport,
               binConfig = createConfig(
                 ctx        = Context(qc.site, cc.semester),
                 ra         = qc.raBinSize,

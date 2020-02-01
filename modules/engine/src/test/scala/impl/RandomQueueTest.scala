@@ -10,6 +10,8 @@ import edu.gemini.tac.qengine.util.{Angle, Percent, Time}
 import edu.gemini.tac.qengine.ctx.Partner
 import edu.gemini.spModel.core.Site
 import edu.gemini.spModel.core.Semester
+import edu.gemini.tac.qengine.p2.rollover.RolloverReport
+import java.time.Instant
 
 class RandomQueueTest {
   import edu.gemini.tac.qengine.ctx.TestPartners._
@@ -99,7 +101,7 @@ class RandomQueueTest {
     val binConf         = gnABinConfig
     val props           = randomProposals
     val partnerSequence = new ProportionalPartnerSequence(partners, binConf.site)
-    val conf            = QueueEngineConfig(partners, binConf, partnerSequence)
+    val conf            = QueueEngineConfig(partners, binConf, partnerSequence, new RolloverReport(Site.GN, Semester.parse("2020A"), Instant.now, Nil))
 
     val startTime = System.currentTimeMillis
     val calc      = QueueEngine(props, queueTime, conf, partners)

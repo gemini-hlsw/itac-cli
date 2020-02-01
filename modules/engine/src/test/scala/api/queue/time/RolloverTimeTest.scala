@@ -9,13 +9,15 @@ import edu.gemini.tac.qengine.p2.ObservationId
 import edu.gemini.tac.qengine.p1.{ObservingConditions, Target}
 import edu.gemini.tac.qengine.util.Time
 import edu.gemini.spModel.core.Site
+import java.time.Instant
+import edu.gemini.spModel.core.Semester
 
 class RolloverTimeTest extends PartnerTimeCalcTestBase {
   import edu.gemini.tac.qengine.ctx.TestPartners._
   val partners = All
 
   @Test def testEmptyReport() {
-    val rop              = RolloverReport.empty
+    val rop              = RolloverReport(Site.GN, Semester.parse("2020A"), Instant.now, Nil)
     val partnersExceptCL = partners.filter(p => p != CL && p.id != "KECK" && p.id != "SUBARU")
     assertZero(partnersExceptCL, rollover(Site.GN, rop, partners))
   }
@@ -42,7 +44,7 @@ class RolloverTimeTest extends PartnerTimeCalcTestBase {
   }
 
   @Test def testDistributeEvenly(): Unit = {
-    assert100Even(new RolloverReport(List(ro)))
+    assert100Even(new RolloverReport(Site.GN, Semester.parse("2020A"), Instant.now, List(ro)))
   }
 
   @Test def tstFilterSouth(): Unit = {
@@ -54,7 +56,7 @@ class RolloverTimeTest extends PartnerTimeCalcTestBase {
 
     val roSouth = RolloverObservation(partner, obsId, target, conds, time)
 
-    val rop = new RolloverReport(List(ro, roSouth))
+    val rop = new RolloverReport(Site.GN, Semester.parse("2020A"), Instant.now, List(ro, roSouth))
     assert100Even(rop)
   }
 }

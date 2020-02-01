@@ -12,13 +12,14 @@ import itac.Workspace
 import itac.Operation
 // import java.nio.file.Paths
 import edu.gemini.spModel.core.Semester
+import cats.effect.Blocker
 
 object Init {
 
   def apply[F[_]: Monad](semester: Semester): Operation[F] =
     new Operation[F] {
 
-      def run(ws: Workspace[F], log: Logger[F]): F[ExitCode] = {
+      def run(ws: Workspace[F], log: Logger[F], b: Blocker): F[ExitCode] = {
 
         val initLog = log.withModifiedString("init: " + _)
 

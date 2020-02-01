@@ -19,6 +19,7 @@ import java.text.ParseException
 import scala.util.control.NonFatal
 import edu.gemini.tac.qengine.impl.QueueEngine
 import edu.gemini.spModel.core.Semester
+import edu.gemini.spModel.core.Site
 
 object Main extends CommandIOApp(
   name    = "itac",
@@ -27,16 +28,18 @@ object Main extends CommandIOApp(
 
   def main: Opts[IO[ExitCode]] =
     (cwd, commonConfig, logger[IO], ops).mapN { (cwd, commonConfig, log, cmd) =>
-      for {
-        _  <- IO(System.setProperty("edu.gemini.model.p1.schemaVersion", "2020.1.1")) // how do we figure out what to do here?
-        _  <- log.debug(s"main: workspace directory is $cwd.")
-        ws <- Workspace[IO](cwd, commonConfig, log)
-        c  <- cmd.run(ws, log).handleErrorWith {
-                case ItacException(msg) => log.error(msg).as(ExitCode.Error)
-                case NonFatal(e)        => log.error(e)(e.getMessage).as(ExitCode.Error)
-              }
-        _  <- log.trace(s"main: exiting with ${c.code}")
-      } yield c
+      Blocker[IO].use { b =>
+        for {
+          _  <- IO(System.setProperty("edu.gemini.model.p1.schemaVersion", "2020.1.1")) // how do we figure out what to do here?
+          _  <- log.debug(s"main: workspace directory is $cwd.")
+          ws <- Workspace[IO](cwd, commonConfig, log)
+          c  <- cmd.run(ws, log, b).handleErrorWith {
+                  case ItacException(msg) => log.error(msg).as(ExitCode.Error)
+                  case NonFatal(e)        => log.error(e)(e.getMessage).as(ExitCode.Error)
+                }
+          _  <- log.trace(s"main: exiting with ${c.code}")
+        } yield c
+      }
     }
 
 }
@@ -48,14 +51,14 @@ trait MainOpts { this: CommandIOApp =>
     Opts.option[Path](
       short = "d",
       long  = "dir",
-      help  = "Working directory. Default: current directory."
+      help  = "Working directory. Default is current directory."
     ) .withDefault(Paths.get(System.getProperty("user.dir")))
 
   val commonConfig: Opts[Path] =
     Opts.option[Path](
       short = "c",
       long  = "common",
-      help  = "Common configuation file, relative to workspace (or absolute). Default: common.yaml"
+      help  = "Common configuation file, relative to workspace (or absolute). Default is common.yaml"
     ).withDefault(Paths.get("common.yaml"))
 
   val siteConfig: Opts[Path] =
@@ -69,7 +72,7 @@ trait MainOpts { this: CommandIOApp =>
     Opts.option[Path](
       short = "o",
       long  = "out",
-      help  = s"Output file. Default: $default"
+      help  = s"Output file. Default is $default"
     ).withDefault(default)
 
   val semester: Opts[Semester] =
@@ -119,7 +122,31 @@ trait MainOpts { this: CommandIOApp =>
       header = "TBD"
     )(out(Paths.get("ntac.yaml"))).map(Ntac[IO](_))
 
+  val gn: Opts[Site.GN.type] = Opts.flag(
+    short = "n",
+    long = "north",
+    help = "Gemini North"
+  ).as(Site.GN)
+
+  val gs: Opts[Site.GS.type] = Opts.flag(
+    short = "s",
+    long = "south",
+    help = "Gemini South"
+  ).as(Site.GN)
+
+  val site = gn <+> gs
+
+  val rollover: Command[Operation[IO]] =
+    Command(
+      name   = "rollover",
+      header = "Generate a rollover report by fetching information from the observing database."
+    )((site, Opts.option[Path](
+      short = "o",
+      long  = "out",
+      help  = s"Output file. Default is GN-rollover.yaml or GS-rollover.yaml"
+    ).orNone).mapN(Rollover(_, _)))
+
   val ops: Opts[Operation[IO]] =
-    List(init, ls, queue, ntac).sortBy(_.name).map(Opts.subcommand(_)).foldK
+    List(init, ls, queue, ntac, rollover).sortBy(_.name).map(Opts.subcommand(_)).foldK
 
 }

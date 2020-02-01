@@ -100,7 +100,7 @@ final class Time private (val ms: Long, val unit: Units) extends Ordered[Time] w
   def toHours: Time     = to(Time.Hours)
   def toNights: Time    = to(Time.Nights)
 
-  override def toString = value + " " + unit.toString
+  override def toString = f"$value%3.5f $unit%s"
 
   override def equals(other: Any): Boolean = other match {
     case that: Time => ms == that.ms

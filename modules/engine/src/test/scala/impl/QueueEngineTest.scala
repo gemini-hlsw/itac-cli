@@ -17,6 +17,8 @@ import edu.gemini.tac.qengine.util.{Angle, Percent, Time}
 import edu.gemini.spModel.core.Site
 import edu.gemini.spModel.core.Semester
 import edu.gemini.tac.qengine.api.config.Default
+import edu.gemini.tac.qengine.p2.rollover.RolloverReport
+import java.time.Instant
 
 /**
  * Higher-level tests. These are intended to exercise the Queue Engine with a large number of pseudo-random proposals.
@@ -181,7 +183,8 @@ class QueueEngineTest {
     QueueEngineConfig(
       partners,
       binConfig,
-      new ProportionalPartnerSequence(partners, site, initialPick)
+      new ProportionalPartnerSequence(partners, site, initialPick),
+      new RolloverReport(Site.GN, Semester.parse("2020A"), Instant.now, Nil)
     )
   }
 

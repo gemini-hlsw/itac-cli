@@ -15,13 +15,14 @@ object QueueEngineConfig {
   def apply(
     partners: List[Partner],
     binConfig: SiteSemesterConfig,
-    partnerSequence: PartnerSequence
+    partnerSequence: PartnerSequence,
+    rolloverReport: RolloverReport
   ): QueueEngineConfig =
     new QueueEngineConfig(
       partners,
       binConfig,
       partnerSequence,
-      RolloverReport.empty,
+      rolloverReport,
       RestrictionConfig()
     )
 
