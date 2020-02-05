@@ -33,8 +33,7 @@ object Main extends CommandIOApp(
         for {
           _  <- IO(System.setProperty("edu.gemini.model.p1.schemaVersion", "2020.1.1")) // how do we figure out what to do here?
           _  <- log.debug(s"main: workspace directory is $cwd.")
-          ws <- Workspace[IO](cwd, commonConfig, log, force)
-          c  <- cmd.run(ws, log, b).handleErrorWith {
+          c  <- Workspace[IO](cwd, commonConfig, log, force).flatMap(cmd.run(_, log, b)).handleErrorWith {
                   case ItacException(msg) => log.error(msg).as(ExitCode.Error)
                   case NonFatal(e)        => log.error(e)(e.getMessage).as(ExitCode.Error)
                 }
