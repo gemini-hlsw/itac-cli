@@ -63,6 +63,7 @@ trait Workspace[F[_]] {
   def writeRolloveReport(path: Path, rr: RolloverReport): F[Path]
 
   def readRolloverReport(path: Path): F[RolloverReport]
+  def writeText(path: Path, text: String): F[Path]
 
 }
 
@@ -118,14 +119,17 @@ object Workspace {
             }
           }
 
-        def writeData[A: Encoder](path: Path, a: A, header: String = ""): F[Path] = {
+        def writeText(path: Path, text: String): F[Path] = {
           val p = dir.resolve(path)
           Sync[F].delay(p.toFile.isFile).flatMap {
             case false | `force` => log.info(s"Writing: $p") *>
-              Sync[F].delay(Files.write(dir.resolve(path), (header + printer.pretty(a.asJson)).getBytes("UTF-8")))
+              Sync[F].delay(Files.write(dir.resolve(path), text.getBytes("UTF-8")))
             case true  => Sync[F].raiseError(ItacException(s"File exists: $p"))
           }
         }
+
+        def writeData[A: Encoder](path: Path, a: A, header: String = ""): F[Path] =
+          writeText(path, header + printer.pretty(a.asJson))
 
         def writeRolloveReport(path: Path, rr: RolloverReport): F[Path] = {
           // The user cares about when report was generated in local time, so that's what we will
