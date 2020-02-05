@@ -10,7 +10,6 @@ import edu.gemini.tac.qengine.p1.{CategorizedTime, ObservingConditions, Target}
 import edu.gemini.tac.qengine.p2.ObservationId
 import edu.gemini.tac.qengine.util.Angle
 import edu.gemini.tac.qengine.util.Time
-import gsp.math.{ Angle => GAngle, HourAngle }
 import scala.util.Try
 import scalaz._, Scalaz._
 
@@ -25,54 +24,10 @@ case class RolloverObservation(
   conditions: ObservingConditions,
   time: Time
 ) extends CategorizedTime {
-
   def site: Site = obsId.site
-
-  /**
-    * Convert to a whitespace-delimited string with RA/Dec in HMS/DMS. Humans will read this and
-    * perhaps edit it, then it will be parsed back via fromDelimitedString. So it's ok to change if
-    * users ask, but you'll neeed to change the parser as well. Lines look like this. Abundant
-    * space is given to ensure that printed rows line up.
-    *
-    * US      GN-2019B-Q-138-40  08:05:47.659920   45:41:58.999200 CC50   IQ70   SBAny  WVAny  192.16633 min
-    */
-  def toDelimitedString: String = {
-    val ra = HourAngle.HMS(HourAngle.fromDoubleHours(target.ra.toHr.mag)).format
-    val dec = GAngle.DMS(GAngle.fromDoubleDegrees(target.dec.toDeg.mag)).format
-    f"${partner.id}%-7s ${obsId}%-17s $ra%16s $dec%17s ${conditions.cc}%-6s ${conditions.iq}%-6s ${conditions.sb}%-6s ${conditions.wv}%-6s ${time.toMinutes}"
-  }
-
 }
 
-
 object RolloverObservation {
-
-  /**
-   * Parse a delimited string as specifeid by toDelimitedString, yielding a RolloverObservation or a
-   * failure message.
-   */
-  def fromDelimitedString(s: String, partners: List[Partner]): Either[String, RolloverObservation] =
-    s.split("\\s+") match {
-      case Array(pid, oid, ra, dec, cc, iq, sb, wv, mins, "min") =>
-
-        def fail(field: String): Nothing =
-          sys.error(s"Error parsing RolloverObservation: invalid $field\n$s")
-
-        Try {
-          val pidʹ  = partners.find(_.id == pid).getOrElse(fail("partner id"))
-          val oidʹ  = ObservationId.parse(oid).getOrElse(fail("observation id"))
-          val raʹ   = HourAngle.fromStringHMS.getOption(ra).getOrElse(fail("RA"))
-          val decʹ  = GAngle.fromStringDMS.getOption(dec).getOrElse(fail("DEC"))
-          val ccʹ   = CloudCover.values.find(_.toString == cc).getOrElse(fail("CC"))
-          val iqʹ   = ImageQuality.values.find(_.toString == iq).getOrElse(fail("IQ"))
-          val sbʹ   = SkyBackground.values.find(_.toString == sb).getOrElse(fail("SB"))
-          val wvʹ   = WaterVapor.values.find(_.toString == wv).getOrElse(fail("WV"))
-          val minsʹ = Time.minutes(mins.toDouble)
-          RolloverObservation(pidʹ, oidʹ, Target(raʹ.toDoubleDegrees, decʹ.toDoubleDegrees), ObservingConditions(ccʹ, iqʹ, sbʹ, wvʹ), minsʹ)
-        } .toEither.leftMap(_.getMessage)
-
-      case arr => Left(s"Expected ten columns, found ${arr.length}: $s")
-    }
 
   /**
    * Parse a `RolloverObservation` from an XML element, as provided by the OCS SPDB rollover

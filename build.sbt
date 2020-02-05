@@ -13,7 +13,6 @@ lazy val engine = project
       "edu.gemini.ocs"          %% "edu-gemini-model-p1"         % "2020001.1.0",
       "edu.gemini.ocs"          %% "edu-gemini-shared-skyobject" % "2019101.1.4",
       "edu.gemini.ocs"          %% "edu-gemini-util-skycalc"     % "2019101.1.4",
-      "edu.gemini"              %% "gsp-math"                    % "0.1.10",
       "org.scala-lang.modules"  %% "scala-xml"                   % "2.0.0-M1",
       "org.slf4j"                % "slf4j-api"                   % "1.7.28",
       "com.novocode"             % "junit-interface"             % "0.11"    % "test",
@@ -32,6 +31,7 @@ lazy val main = project
     libraryDependencies ++= Seq(
       "com.monovore"      %% "decline-effect"         % "1.0.0",
       "com.monovore"      %% "decline"                % "1.0.0",
+      "edu.gemini"              %% "gsp-math"                    % "0.1.10",
       "io.chrisdavenport" %% "log4cats-slf4j"         % "1.0.1",
       "io.circe"          %% "circe-core"             % "0.11.1",
       "io.circe"          %% "circe-generic"          % "0.11.1",

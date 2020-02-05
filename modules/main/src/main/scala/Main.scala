@@ -124,15 +124,15 @@ trait MainOpts { this: CommandIOApp =>
 
   val gn: Opts[Site.GN.type] = Opts.flag(
     short = "n",
-    long = "north",
-    help = "Gemini North"
+    long  = "north",
+    help  = Site.GN.displayName,
   ).as(Site.GN)
 
   val gs: Opts[Site.GS.type] = Opts.flag(
     short = "s",
-    long = "south",
-    help = "Gemini South"
-  ).as(Site.GN)
+    long  = "south",
+    help  = Site.GS.displayName,
+  ).as(Site.GS)
 
   val site = gn <+> gs
 

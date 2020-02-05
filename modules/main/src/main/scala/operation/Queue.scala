@@ -9,7 +9,6 @@ import cats.effect._
 import cats.implicits._
 import edu.gemini.tac.qengine.api.config._
 import edu.gemini.tac.qengine.api.QueueEngine
-import edu.gemini.tac.qengine.p2.rollover.RolloverReport
 import io.chrisdavenport.log4cats.Logger
 import edu.gemini.tac.qengine.p1.QueueBand
 import edu.gemini.tac.qengine.log.AcceptMessage
@@ -45,6 +44,7 @@ object Queue {
       def run(ws: Workspace[F], log: Logger[F], b: Blocker): F[ExitCode] =
         for {
           cc <- ws.commonConfig
+          rr <- ws.readRolloverReport("gs-rollovers.yaml")
           qc <- ws.queueConfig(siteConfig)
           ps <- ws.proposals
           partners  = cc.engine.partners
@@ -55,8 +55,8 @@ object Queue {
             config    = QueueEngineConfig(
               partners   = partners,
               partnerSeq = cc.engine.partnerSequence(qc.site),
-              rollover   = ??? : RolloverReport,
-              binConfig = createConfig(
+              rollover   = rr,
+              binConfig  = createConfig(
                 ctx        = Context(qc.site, cc.semester),
                 ra         = qc.raBinSize,
                 dec        = qc.decBinSize,

@@ -25,7 +25,8 @@ object Rollover {
 
       def run(ws: Workspace[F], log: Logger[F], b: Blocker): F[ExitCode] = {
 
-        val fetchXml: F[Elem] = {
+        val fetchXml: F[Elem] =
+          log.info(s"Fetching current rollover report from ${site.displayName}...") *> {
           val host = if (site == Site.GN) "gnodb" else "gsodb"
           val url  = s"http://$host.gemini.edu:8442/rollover"
           b.blockOn(Sync[F].delay(XML.load(new URL(url))))
@@ -40,8 +41,11 @@ object Rollover {
           case Left(msg) => Sync[F].raiseError(ItacException(msg))
           case Right(rr) =>
             for {
-              _   <- log.info(s"Fetched rollover report for ${rr.semester} from ${rr.site.displayName}.")
-              outʹ = out.getOrElse(Paths.get(s"${site.abbreviation}-rollover.csv"))
+              _   <- log.info(s"Got rollover information for ${rr.semester}")
+              cc  <- ws.commonConfig
+              exp  = cc.semester.prev
+              _   <- Sync[F].raiseError(ItacException(s"Expected rollover data for $exp but the current semester is ${rr.semester}.")).whenA(rr.semester != exp)
+              outʹ = out.getOrElse(Paths.get(s"${site.abbreviation.toLowerCase}-rollovers.yaml"))
               _   <- ws.writeRolloveReport(outʹ, rr)
             } yield ExitCode.Success
         }
@@ -52,14 +56,3 @@ object Rollover {
 
 
 }
-
-
-// import gsp.math.{ Angle => GAngle, HourAngle }
-// ros.foreach { o =>
-//   val ra = HourAngle.HMS(HourAngle.fromDoubleHours(o.target.ra.toHr.mag)).format
-//   val dec = GAngle.DMS(GAngle.fromDoubleDegrees(o.target.dec.toDeg.mag)).format
-//   println(f"${o.partner.id}%-7s ${o.obsId}%-17s $ra%16s $dec%17s ${o.conditions.cc}%-6s ${o.conditions.iq}%-6s ${o.conditions.sb}%-6s ${o.conditions.wv}%-6s ${o.time.toMinutes}")
-// }
-
-
-
