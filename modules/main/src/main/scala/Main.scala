@@ -48,26 +48,36 @@ object Main extends CommandIOApp(
 // decline opts used by main, sliced off because it seems more tidy
 trait MainOpts { this: CommandIOApp =>
 
-  val cwd: Opts[Path] =
+  lazy val cwd: Opts[Path] =
     Opts.option[Path](
       short = "d",
       long  = "dir",
       help  = "Working directory. Default is current directory."
     ) .withDefault(Paths.get(System.getProperty("user.dir")))
 
-  val commonConfig: Opts[Path] =
+  lazy val commonConfig: Opts[Path] =
     Opts.option[Path](
       short = "c",
       long  = "common",
       help  = "Common configuation file, relative to workspace (or absolute). Default is common.yaml"
     ).withDefault(Paths.get("common.yaml"))
 
-  val siteConfig: Opts[Path] =
-    Opts.option[Path](
-      short = "s",
-      long  = "site",
-      help  = "Site-specific configuation file, relative to workspace (or absolute)."
+  lazy val siteConfig: Opts[Path] =
+    site.map {
+      case Site.GN => Paths.get("gn-queue.yaml")
+      case Site.GS => Paths.get("gn-queue.yaml")
+    } <+> Opts.option[Path](
+      short = "-c",
+      long  = "config",
+      help  = s"Site configuration file. Default is <site>-queue.yaml"
     )
+
+  lazy val rolloverReport: Opts[Option[Path]] =
+    Opts.option[Path](
+      short = "-r",
+      long  = "rollover",
+      help  = s"Rollover report. Default is <site>-rollovers.yaml"
+    ).orNone
 
   def out(default: Path): Opts[Path] =
     Opts.option[Path](
@@ -76,7 +86,7 @@ trait MainOpts { this: CommandIOApp =>
       help  = s"Output file. Default is $default"
     ).withDefault(default)
 
-  val semester: Opts[Semester] =
+  lazy val semester: Opts[Semester] =
     Opts.argument[String]("semester")
       .mapValidated { s =>
         Validated
@@ -101,46 +111,46 @@ trait MainOpts { this: CommandIOApp =>
         case s => s"Invalid log level: $s".invalidNel
       }
 
-  val init: Command[Operation[IO]] =
+  lazy val init: Command[Operation[IO]] =
     Command(
       name   = "init",
       header = "Initialize an ITAC workspace."
     )(semester.map(Init[IO]))
 
-  val ls: Command[Operation[IO]] =
+  lazy val ls: Command[Operation[IO]] =
     Command(
       name   = "ls",
       header = "List proposals in the workspace."
     )(Ls[IO].pure[Opts])
 
-  val queue: Command[Operation[IO]] =
+  lazy val queue: Command[Operation[IO]] =
     Command(
       name   = "queue",
       header = "Generate a queue."
-    )(siteConfig.map(sc => Queue[IO](QueueEngine, sc)))
+    )((siteConfig, rolloverReport).mapN((sc, rr) => Queue[IO](QueueEngine, sc, rr)))
 
-  val gn: Opts[Site.GN.type] = Opts.flag(
+  lazy val gn: Opts[Site.GN.type] = Opts.flag(
     short = "n",
     long  = "north",
     help  = Site.GN.displayName,
   ).as(Site.GN)
 
-  val gs: Opts[Site.GS.type] = Opts.flag(
+  lazy val gs: Opts[Site.GS.type] = Opts.flag(
     short = "s",
     long  = "south",
     help  = Site.GS.displayName,
   ).as(Site.GS)
 
-  val force: Opts[Boolean] =
+  lazy val force: Opts[Boolean] =
     Opts.flag(
       long  = "force",
       short = "f",
       help  = "Overwrite existing files."
     ).orFalse
 
-  val site = gn <+> gs
+  lazy val site = gn <+> gs
 
-  val rollover: Command[Operation[IO]] =
+  lazy val rollover: Command[Operation[IO]] =
     Command(
       name   = "rollover",
       header = "Generate a rollover report by fetching information from the observing database."
@@ -150,7 +160,7 @@ trait MainOpts { this: CommandIOApp =>
       help  = s"Output file. Default is GN-rollover.yaml or GS-rollover.yaml"
     ).orNone).mapN(Rollover(_, _)))
 
-  val ops: Opts[Operation[IO]] =
+  lazy val ops: Opts[Operation[IO]] =
     List(init, ls, queue, rollover).sortBy(_.name).map(Opts.subcommand(_)).foldK
 
 }
