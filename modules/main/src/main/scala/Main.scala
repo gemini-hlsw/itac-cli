@@ -20,6 +20,7 @@ import scala.util.control.NonFatal
 import edu.gemini.tac.qengine.impl.QueueEngine
 import edu.gemini.spModel.core.Semester
 import edu.gemini.spModel.core.Site
+import org.slf4j.impl.ColoredSimpleLogger
 
 object Main extends CommandIOApp(
   name    = "itac",
@@ -94,7 +95,9 @@ trait MainOpts { this: CommandIOApp =>
         case s @ ("trace" | "debug" | "info" | "warn" | "error" | "off") =>
           // http://www.slf4j.org/api/org/slf4j/impl/SimpleLogger.html
           System.setProperty("org.slf4j.simpleLogger.log.edu", s)
-          Slf4jLogger.getLoggerFromName[F]("edu.gemini.itac").validNel[String]
+          ColoredSimpleLogger.init() // sorry
+          val log = new ColoredSimpleLogger("edu.gemini.itac")
+          Slf4jLogger.getLoggerFromSlf4j(log).validNel[String]
         case s => s"Invalid log level: $s".invalidNel
       }
 
