@@ -13,7 +13,6 @@ package object codec {
        with ConditionsBinCodec
        with ConditionsCategoryCodec
        with QueueCalcEncoder
-       with NtacCodec
        with RaBinSizeCodec
        with DecBinSizeCodec
        with RolloverObservationCodec

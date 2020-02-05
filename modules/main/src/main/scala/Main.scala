@@ -119,12 +119,6 @@ trait MainOpts { this: CommandIOApp =>
       header = "Generate a queue."
     )(siteConfig.map(sc => Queue[IO](QueueEngine, sc)))
 
-  val ntac: Command[Operation[IO]] =
-    Command(
-      name   = "ntac",
-      header = "TBD"
-    )(out(Paths.get("ntac.yaml"))).map(Ntac[IO](_))
-
   val gn: Opts[Site.GN.type] = Opts.flag(
     short = "n",
     long  = "north",
@@ -157,6 +151,6 @@ trait MainOpts { this: CommandIOApp =>
     ).orNone).mapN(Rollover(_, _)))
 
   val ops: Opts[Operation[IO]] =
-    List(init, ls, queue, ntac, rollover).sortBy(_.name).map(Opts.subcommand(_)).foldK
+    List(init, ls, queue, rollover).sortBy(_.name).map(Opts.subcommand(_)).foldK
 
 }
