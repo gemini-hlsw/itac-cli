@@ -28,12 +28,12 @@ object Main extends CommandIOApp(
 ) with MainOpts {
 
   def main: Opts[IO[ExitCode]] =
-    (cwd, commonConfig, logger[IO], ops).mapN { (cwd, commonConfig, log, cmd) =>
+    (cwd, commonConfig, logger[IO], force, ops).mapN { (cwd, commonConfig, log, force, cmd) =>
       Blocker[IO].use { b =>
         for {
           _  <- IO(System.setProperty("edu.gemini.model.p1.schemaVersion", "2020.1.1")) // how do we figure out what to do here?
           _  <- log.debug(s"main: workspace directory is $cwd.")
-          ws <- Workspace[IO](cwd, commonConfig, log)
+          ws <- Workspace[IO](cwd, commonConfig, log, force)
           c  <- cmd.run(ws, log, b).handleErrorWith {
                   case ItacException(msg) => log.error(msg).as(ExitCode.Error)
                   case NonFatal(e)        => log.error(e)(e.getMessage).as(ExitCode.Error)
@@ -136,6 +136,13 @@ trait MainOpts { this: CommandIOApp =>
     long  = "south",
     help  = Site.GS.displayName,
   ).as(Site.GS)
+
+  val force: Opts[Boolean] =
+    Opts.flag(
+      long  = "force",
+      short = "f",
+      help  = "Overwrite existing files."
+    ).orFalse
 
   val site = gn <+> gs
 

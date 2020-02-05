@@ -86,7 +86,7 @@ object Workspace {
       // version = YamlVersion.Auto
     )
 
-  def apply[F[_]: Sync: Parallel](dir: Path, cc: Path, log: Logger[F]): F[Workspace[F]] =
+  def apply[F[_]: Sync: Parallel](dir: Path, cc: Path, log: Logger[F], force: Boolean): F[Workspace[F]] =
     Ref[F].of(Map.empty[Path, Any]).map { cache =>
       new Workspace[F] {
 
@@ -121,9 +121,9 @@ object Workspace {
         def writeData[A: Encoder](path: Path, a: A, header: String = ""): F[Path] = {
           val p = dir.resolve(path)
           Sync[F].delay(p.toFile.isFile).flatMap {
-            case true  => Sync[F].raiseError(ItacException(s"File exists: $p"))
-            case false => log.info(s"Writing: $p") *>
+            case false | `force` => log.info(s"Writing: $p") *>
               Sync[F].delay(Files.write(dir.resolve(path), (header + printer.pretty(a.asJson)).getBytes("UTF-8")))
+            case true  => Sync[F].raiseError(ItacException(s"File exists: $p"))
           }
         }
 
@@ -185,7 +185,6 @@ object Workspace {
             p   = Paths.get(n)
             _  <- mkdirs(p)
           } yield p
-
 
       }
     }

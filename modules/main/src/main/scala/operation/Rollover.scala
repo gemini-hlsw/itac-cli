@@ -18,8 +18,8 @@ import java.nio.file.{ Path, Paths }
 object Rollover {
 
   def apply[F[_]: ContextShift: Parallel: Sync](
-    site: Site,
-    out:  Option[Path]
+    site:  Site,
+    out:   Option[Path]
   ): Operation[F] =
     new Operation[F] {
 
