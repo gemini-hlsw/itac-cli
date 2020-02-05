@@ -1,7 +1,7 @@
 package edu.gemini.tac.qengine.impl.queue
 
 import edu.gemini.tac.qengine.api.queue.ProposalPosition
-import edu.gemini.tac.qengine.api.queue.time.{PartnerTime, QueueTime}
+import edu.gemini.tac.qengine.api.queue.time.{PartnerTimes, QueueTime}
 import edu.gemini.tac.qengine.ctx.Partner
 import edu.gemini.tac.qengine.p1._
 import edu.gemini.tac.qengine.p1.QueueBand._
@@ -180,7 +180,7 @@ class ProposalBuilderTest {
   @Test def testAddJointProposal() {
     val site = Site.GS
     val qs = ProposalQueueBuilder(
-      new QueueTime(site, PartnerTime.distribute(Time.hours(100), site, partners)),
+      new QueueTime(site, PartnerTimes.distribute(Time.hours(100), site, partners)),
       ProposalQueueBuilder.DefaultStrategy
     )
     val propGS = mkProp(10, "gs1")

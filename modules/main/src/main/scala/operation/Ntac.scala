@@ -13,13 +13,14 @@ import itac.Operation
 import itac.Workspace
 import java.nio.file.Path
 import cats.FlatMap
+import cats.effect.Blocker
 
 object Ntac {
 
   def apply[F[_]: FlatMap](out: Path): Operation[F] =
     new Operation[F] {
 
-      def run(ws: Workspace[F], log: Logger[F]): F[ExitCode] =
+      def run(ws: Workspace[F], log: Logger[F], b: Blocker): F[ExitCode] =
         for {
           ps <- ws.proposals
           j   = Json.obj("proposals" -> ps.map(_.ntac).asJson)

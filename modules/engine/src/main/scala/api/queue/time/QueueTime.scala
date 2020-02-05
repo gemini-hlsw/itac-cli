@@ -13,12 +13,12 @@ import edu.gemini.spModel.core.Site
 object QueueTime {
 
   /** Number of hours in each "cycle" of 100 Partner countries. */
-  val CycleTimeConstant = 300
+  private val CycleTimeConstant = 300
 
   val DefaultPartnerOverfillAllowance = Percent(5)
 
   def apply(s: Site, m: Map[Partner, Time], partners: List[Partner]): QueueTime =
-    new QueueTime(s, PartnerTime(partners, m))
+    new QueueTime(s, PartnerTimes(partners, m))
 }
 
 /**
@@ -27,7 +27,7 @@ object QueueTime {
  */
 class QueueTime(
   site: Site,
-  val fullPartnerTime: PartnerTime,
+  val fullPartnerTime: PartnerTimes,
   val bandPercentages: QueueBandPercentages = QueueBandPercentages(),
   val partnerOverfillAllowance: Option[Percent] = Some(QueueTime.DefaultPartnerOverfillAllowance)
 ) {
@@ -50,10 +50,10 @@ class QueueTime(
   def band4End = full
 
   /** Calculates the PartnerTime for the given queue band. */
-  def partnerTime(band: QueueBand): PartnerTime = fullPartnerTime * bandPercentages(band)
+  def partnerTime(band: QueueBand): PartnerTimes = fullPartnerTime * bandPercentages(band)
 
   /** Calculates the PartnerTime for the given queue category. */
-  def partnerTime(cat: Category): PartnerTime = fullPartnerTime * bandPercentages(cat)
+  def partnerTime(cat: Category): PartnerTimes = fullPartnerTime * bandPercentages(cat)
 
   /**
    * Time amount at which each particular queue band is defined to start and
@@ -148,8 +148,8 @@ class QueueTime(
   /**
    * Gets a map of Partner -> Time quantum with keys for all partners.
    */
-  def partnerQuanta: PartnerTime = {
-    val pt = fullPartnerTime.mapTimes(quantum)
+  def partnerQuanta: PartnerTimes = {
+    val pt = fullPartnerTime.modify(quantum)
     // println(s">> QueueTime.partnerQuanta: $pt")
     pt
   }

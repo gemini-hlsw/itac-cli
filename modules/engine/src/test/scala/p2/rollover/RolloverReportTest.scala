@@ -1,29 +1,29 @@
-package edu.gemini.tac.qengine.p2.rollover
+// package edu.gemini.tac.qengine.p2.rollover
 
-import org.junit._
-import Assert._
-import edu.gemini.spModel.core.Site
+// import org.junit._
+// import Assert._
+// import edu.gemini.spModel.core.Site
 
-class RolloverReportTest {
-  import RolloverFixture._
+// class RolloverReportTest {
+//   import RolloverFixture._
 
-  val report = RolloverReport(List(obsNormal, obsSpaces, obsGN, obsAnyConds))
+//   val report = RolloverReport(List(obsNormal, obsSpaces, obsGN, obsAnyConds))
 
-  @Test def testSiteFilter() {
-    val gs = report.filter(Site.GS)
-    assertEquals(List(obsNormal, obsSpaces, obsAnyConds), gs.obsList)
+//   @Test def testSiteFilter() {
+//     val gs = report.filter(Site.GS)
+//     assertEquals(List(obsNormal, obsSpaces, obsAnyConds), gs.obsList)
 
-    val gn = report.filter(Site.GN)
-    assertEquals(List(obsGN), gn.obsList)
+//     val gn = report.filter(Site.GN)
+//     assertEquals(List(obsGN), gn.obsList)
 
-    val empty = gn.filter(Site.GS)
-    assertEquals(Nil, empty.obsList)
+//     val empty = gn.filter(Site.GS)
+//     assertEquals(Nil, empty.obsList)
 
-    assertEquals(Nil, RolloverReport.empty.filter(Site.GS).obsList)
-  }
+//     assertEquals(Nil, RolloverReport.empty.filter(Site.GS).obsList)
+//   }
 
-  @Test def testTimeSum() {
-    assertEquals(0.0, RolloverReport.empty.total.toHours.value, 0.000001)
-    assertEquals(10.0, report.total.toHours.value, 0.000001)
-  }
-}
+//   @Test def testTimeSum() {
+//     assertEquals(0.0, RolloverReport.empty.total.toHours.value, 0.000001)
+//     assertEquals(10.0, report.total.toHours.value, 0.000001)
+//   }
+// }

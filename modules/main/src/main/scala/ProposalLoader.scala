@@ -61,7 +61,11 @@ object ProposalLoader {
             case Success(r)  => ctor.newInstance(context.createUnmarshaller.unmarshal(new StringReader(r.root.toString))).pure[F]
           }
         } else {
-          Sync[F].delay(ctor.newInstance(context.createUnmarshaller.unmarshal(f)))
+          Sync[F].delay {
+            // This can fail if there is a problem in the XML, so we need to raise a useful error here
+            // and catch it in the load methods below; or return Either here.
+            ctor.newInstance(context.createUnmarshaller.unmarshal(f))
+          }
         } .map { p =>
           // see https://github.com/gemini-hlsw/itac/pull/29 :-(
           p.copy(observations = p.nonEmptyObservations)
@@ -69,7 +73,7 @@ object ProposalLoader {
 
       def loadManyPhase1(dir: File): F[List[(File, I.Proposal)]] =
         Sync[F].delay(Option(dir.listFiles)).flatMap {
-          case Some(arr) => arr.sortBy(_.getAbsolutePath).toList.parTraverse(f => loadPhase1(f).tupleLeft(f))
+          case Some(arr) => arr.filter(_.getName().endsWith(".xml")).sortBy(_.getAbsolutePath).toList.parTraverse(f => loadPhase1(f).tupleLeft(f))
           case None      => Sync[F].raiseError(new RuntimeException(s"Not a directory: $dir"))
         }
 

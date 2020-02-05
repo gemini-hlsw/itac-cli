@@ -34,7 +34,7 @@ final case class RejectTarget(
   max: Time
 ) extends ObsRejectMessage {
   def reason: String = RejectTarget.reason(raDecType)
-  def detail: String = RejectTarget.detail(prop, obs, band, cur, max)
+  def detail: String = RejectTarget.detail(raDecType.toString, prop, obs, band, cur, max)
 
   override def toXML = <RejectTarget>
     <Reason>{raDecType.toXML}</Reason>

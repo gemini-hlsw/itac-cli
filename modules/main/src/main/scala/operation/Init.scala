@@ -7,25 +7,26 @@ import cats._
 import cats.effect.ExitCode
 import cats.implicits._
 import io.chrisdavenport.log4cats.Logger
-import itac.config.Common
+// import itac.config.Common
 import itac.Workspace
 import itac.Operation
-import java.nio.file.Paths
+// import java.nio.file.Paths
 import edu.gemini.spModel.core.Semester
+import cats.effect.Blocker
 
 object Init {
 
   def apply[F[_]: Monad](semester: Semester): Operation[F] =
     new Operation[F] {
 
-      def run(ws: Workspace[F], log: Logger[F]): F[ExitCode] = {
+      def run(ws: Workspace[F], log: Logger[F], b: Blocker): F[ExitCode] = {
 
         val initLog = log.withModifiedString("init: " + _)
 
         def init: F[ExitCode] =
           for {
             _ <- List("proposals", "emails").traverse(ws.mkdirs(_))
-            _ <- ws.writeData(Paths.get("common.yaml"), Common.dummy(semester))
+            // _ <- ws.writeData(Paths.get("common.yaml"), Common.dummy(semester))
           } yield ExitCode.Success
 
         for {

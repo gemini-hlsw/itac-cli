@@ -15,14 +15,14 @@ class SiteSemesterConfigTest {
   @Test def testPassSingleDecBinPercentageRequirement() {
     val ra  = RaBinGroup(List(Time.hours(100.0)))
     val dec = DecBinGroup(List(Percent(100)))
-    new SiteSemesterConfig(site, semester, ra, dec, List.empty)
+    new SiteSemesterConfig(site, semester, ra, dec, List.empty, Default.Conditions)
   }
 
   @Test def testFailSingleDecBinPercentageRequirement() {
     val ra  = RaBinGroup(List(Time.hours(100.0)))
     val dec = DecBinGroup(List(Percent(99)))
     try {
-      new SiteSemesterConfig(site, semester, ra, dec, List.empty)
+      new SiteSemesterConfig(site, semester, ra, dec, List.empty, Default.Conditions)
     } catch {
       case ex: IllegalArgumentException => // expected
     }
@@ -31,14 +31,14 @@ class SiteSemesterConfigTest {
   @Test def testPassMultiDecBinPercentageRequirement() {
     val ra  = RaBinGroup(List(Time.hours(100.0)))
     val dec = DecBinGroup(List(Percent(10), Percent(100), Percent(0)))
-    new SiteSemesterConfig(site, semester, ra, dec, List.empty)
+    new SiteSemesterConfig(site, semester, ra, dec, List.empty, Default.Conditions)
   }
 
   @Test def testFailMultiDecBinPercentageRequirement() {
     val ra  = RaBinGroup(List(Time.hours(100.0)))
     val dec = DecBinGroup(List(Percent(10), Percent(99), Percent(0)))
     try {
-      new SiteSemesterConfig(site, semester, ra, dec, List.empty)
+      new SiteSemesterConfig(site, semester, ra, dec, List.empty, Default.Conditions)
     } catch {
       case ex: IllegalArgumentException => // expected
     }

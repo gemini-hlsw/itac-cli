@@ -3,26 +3,30 @@
 
 package itac
 
-import java.nio.file.Path
-import io.circe._
-import io.circe.syntax._
-import io.circe.yaml.parser
-import io.circe.yaml.syntax._
+import cats.effect.concurrent.Ref
 import cats.effect.Sync
 import cats.implicits._
-import java.nio.file.Files
-import io.chrisdavenport.log4cats.Logger
 import cats.Parallel
-import java.nio.file.NoSuchFileException
-import io.circe.CursorOp.DownField
-import itac.config.Common
-import edu.gemini.tac.qengine.p1.Proposal
-import itac.config.QueueConfig
-import cats.effect.concurrent.Ref
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.nio.file.Paths
 import edu.gemini.spModel.core.Site
+import edu.gemini.tac.qengine.p1.Proposal
+import edu.gemini.tac.qengine.p2.rollover.RolloverReport
+import io.chrisdavenport.log4cats.Logger
+import io.circe.{ Encoder, Decoder, DecodingFailure }
+import io.circe.yaml.Printer
+import io.circe.CursorOp.DownField
+import io.circe.syntax._
+import io.circe.yaml.parser
+import itac.codec.rolloverreport._
+import itac.config.Common
+import itac.config.QueueConfig
+import java.nio.file.Files
+import java.nio.file.NoSuchFileException
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.time.format.DateTimeFormatter
+import java.time.LocalDateTime
+import java.time.ZonedDateTime
+import java.time.ZoneId
 
 /** Interface for some Workspace operations. */
 trait Workspace[F[_]] {
@@ -32,8 +36,8 @@ trait Workspace[F[_]] {
   /** True if the working directory is empty. */
   def isEmpty: F[Boolean]
 
-  /** Write an encodable value to a file. */
-  def writeData[A: Encoder](path: Path, a: A): F[Path]
+  /** Write an encodable value to a file. Header must be a YAML comment. */
+  def writeData[A: Encoder](path: Path, a: A, header: String = ""): F[Path]
 
   /** Read a decodable value from the specified file. */
   def readData[A: Decoder](path: Path): F[A]
@@ -56,9 +60,31 @@ trait Workspace[F[_]] {
    */
   def newQueueFolder(site: Site): F[Path]
 
+  def writeRolloveReport(path: Path, rr: RolloverReport): F[Path]
+
+  def readRolloverReport(path: Path): F[RolloverReport]
+
 }
 
 object Workspace {
+
+  val printer: Printer =
+    Printer(
+      preserveOrder = true,
+      // dropNullKeys = false,
+      // indent = 2,
+      maxScalarWidth = 120,
+      // splitLines = true,
+      // indicatorIndent = 0,
+      // tags = Map.empty,
+      // sequenceStyle = FlowStyle.Block,
+      // mappingStyle = FlowStyle.Block,
+      // stringStyle = StringStyle.Plain,
+      // lineBreak = LineBreak.Unix,
+      // explicitStart = false,
+      // explicitEnd = false,
+      // version = YamlVersion.Auto
+    )
 
   def apply[F[_]: Sync: Parallel](dir: Path, cc: Path, log: Logger[F]): F[Workspace[F]] =
     Ref[F].of(Map.empty[Path, Any]).map { cache =>
@@ -77,7 +103,7 @@ object Workspace {
             val p = dir.resolve(path)
             map.get(path) match {
               case Some(a) => log.debug(s"Getting $p from cache.").as(a.asInstanceOf[A])
-              case None    => log.info(s"Reading: $p") *>
+              case None    => log.debug(s"Reading: $p") *>
                 Sync[F].delay(new String(Files.readAllBytes(p), "UTF-8")).map(parser.parse(_)).flatMap[A] {
                   case Left(e)  => Sync[F].raiseError(ItacException(s"Failure reading $p\n$e.message"))
                   case Right(j) => j.as[A] match {
@@ -92,14 +118,31 @@ object Workspace {
             }
           }
 
-        def writeData[A: Encoder](path: Path, a: A): F[Path] = {
+        def writeData[A: Encoder](path: Path, a: A, header: String = ""): F[Path] = {
           val p = dir.resolve(path)
           Sync[F].delay(p.toFile.isFile).flatMap {
             case true  => Sync[F].raiseError(ItacException(s"File exists: $p"))
             case false => log.info(s"Writing: $p") *>
-              Sync[F].delay(Files.write(dir.resolve(path), a.asJson.asYaml.spaces2.getBytes("UTF-8")))
+              Sync[F].delay(Files.write(dir.resolve(path), (header + printer.pretty(a.asJson)).getBytes("UTF-8")))
           }
         }
+
+        def writeRolloveReport(path: Path, rr: RolloverReport): F[Path] = {
+          // The user cares about when report was generated in local time, so that's what we will
+          // use in the header comment.
+          val ldt = ZonedDateTime.ofInstant(rr.timestamp, ZoneId.systemDefault)
+          val fmt = DateTimeFormatter.ofPattern("yyyy-dd-MM HH:mm 'local time' (z)")
+          val header =
+            s"""|
+                |# This is the ${rr.semester} rollover report for ${rr.site.displayName}, generated at ${fmt.format(ldt)}.
+                |# It is ok to edit this file as long as the format is preserved, and it is ok to add comment lines.
+                |
+                |""".stripMargin
+          writeData(path, rr, header)
+        }
+
+        def readRolloverReport(path: Path): F[RolloverReport] =
+          commonConfig.flatMap(cc => readData(path)(decoderRolloverReport(cc.engine.partners)))
 
         def mkdirs(path: Path): F[Path] = {
           val p = dir.resolve(path)
@@ -142,6 +185,7 @@ object Workspace {
             p   = Paths.get(n)
             _  <- mkdirs(p)
           } yield p
+
 
       }
     }

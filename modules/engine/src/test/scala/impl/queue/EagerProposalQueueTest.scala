@@ -11,7 +11,7 @@ import SkyBackground.SB20
 import WaterVapor.WV50
 import edu.gemini.tac.qengine.api.config.QueueBandPercentages
 import edu.gemini.tac.qengine.api.queue.ProposalPosition
-import edu.gemini.tac.qengine.api.queue.time.{PartnerTime, QueueTime}
+import edu.gemini.tac.qengine.api.queue.time.{PartnerTimes, QueueTime}
 import edu.gemini.spModel.core.Site
 
 /**
@@ -45,7 +45,7 @@ class EagerProposalQueueTest {
   private val qs = ProposalQueueBuilder(
     new QueueTime(
       Site.GS,
-      PartnerTime(partners, GS -> Time.hours(100)),
+      PartnerTimes(GS -> Time.hours(100)),
       QueueBandPercentages(30, 30, 40)
     ),
     EagerMergeStrategy

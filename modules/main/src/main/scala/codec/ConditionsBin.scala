@@ -16,17 +16,17 @@ trait ConditionsBinCodec {
       Json.obj(
         "conditions" -> b.cat.asJson,
         "name"       -> b.cat.name.asJson,
-        "value"      -> b.binValue.asJson
+        "available"  -> b.binValue.asJson
       )
     }
 
   implicit def DecoderConditionsBin[A: Decoder]: Decoder[ConditionsBin[A]] =
     Decoder.instance { c =>
       for {
-        cat   <- c.downField("conditions").as[ConditionsCategory]
-        name  <- c.downField("name").as[Option[String]]
-        value <- c.downField("value").as[A]
-      } yield ConditionsBin(cat.copy(name = name), value)
+        cat  <- c.downField("conditions").as[ConditionsCategory]
+        name <- c.downField("name").as[Option[String]]
+        pct  <- c.downField("available").as[A]
+      } yield ConditionsBin(cat.copy(name = name), pct)
     }
 
 }

@@ -14,5 +14,9 @@ package object codec {
        with ConditionsCategoryCodec
        with QueueCalcEncoder
        with NtacCodec
+       with RaBinSizeCodec
+       with DecBinSizeCodec
+       with RolloverObservationCodec
+       with RolloverReportCodec
 
 }

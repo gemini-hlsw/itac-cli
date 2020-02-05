@@ -8,7 +8,7 @@ import edu.gemini.tac.qengine.api.config.{
   QueueEngineConfig,
   ProportionalPartnerSequence
 }
-import edu.gemini.tac.qengine.api.queue.time.{PartnerTime, QueueTime}
+import edu.gemini.tac.qengine.api.queue.time.{PartnerTimes, QueueTime}
 import org.junit.{Assert, Test}
 import resource.RaResource
 import edu.gemini.tac.qengine.p1._
@@ -16,6 +16,9 @@ import util.Random
 import edu.gemini.tac.qengine.util.{Angle, Percent, Time}
 import edu.gemini.spModel.core.Site
 import edu.gemini.spModel.core.Semester
+import edu.gemini.tac.qengine.api.config.Default
+import edu.gemini.tac.qengine.p2.rollover.RolloverReport
+import java.time.Instant
 
 /**
  * Higher-level tests. These are intended to exercise the Queue Engine with a large number of pseudo-random proposals.
@@ -58,7 +61,7 @@ class QueueEngineTest {
       UH -> Time.hours(163.0),
       GS -> Time.hours(108.0)
     )
-    new QueueTime(site, PartnerTime(partners, ptimes: _*))
+    new QueueTime(site, PartnerTimes(ptimes: _*))
   }
 
   def decBinGroup: DecBinGroup[Percent] = {
@@ -176,11 +179,12 @@ class QueueEngineTest {
     semester: Semester = semester,
     initialPick: Partner = initialPick
   ): QueueEngineConfig = {
-    val binConfig = new SiteSemesterConfig(site, semester, raBinGroup, decBinGroup, List.empty)
+    val binConfig = new SiteSemesterConfig(site, semester, raBinGroup, decBinGroup, List.empty, Default.Conditions)
     QueueEngineConfig(
       partners,
       binConfig,
-      new ProportionalPartnerSequence(partners, site, initialPick)
+      new ProportionalPartnerSequence(partners, site, initialPick),
+      new RolloverReport(Site.GN, Semester.parse("2020A"), Instant.now, Nil)
     )
   }
 

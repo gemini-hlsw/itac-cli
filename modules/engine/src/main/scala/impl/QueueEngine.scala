@@ -16,7 +16,7 @@ import edu.gemini.tac.qengine.api.config.{ConditionsCategory, QueueEngineConfig,
 import edu.gemini.tac.qengine.p2.rollover.RolloverObservation
 
 import collection.immutable.List._
-import edu.gemini.tac.qengine.api.queue.time.{PartnerTime, QueueTime}
+import edu.gemini.tac.qengine.api.queue.time.{PartnerTimes, QueueTime}
 
 import edu.gemini.tac.qengine.util.BoundedTime
 import org.slf4j.LoggerFactory
@@ -170,7 +170,7 @@ object QueueEngine extends edu.gemini.tac.qengine.api.QueueEngine {
     clean: QueueCalcStage,
     partiallyFilled: QueueCalcStage,
     config: QueueEngineConfig,
-    partnerQuanta: PartnerTime
+    partnerQuanta: PartnerTimes
   ): QueueCalcStage = {
     val band3ProposalCandidates = initialPrep.remove(clean.queue.toList).band3(partiallyFilled.log)
     val params = QueueCalcStage.Params(

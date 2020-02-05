@@ -25,7 +25,7 @@ final class SiteSemesterConfig(
   val raLimits: RaBinGroup[Time],
   val decLimits: DecBinGroup[Percent],
   val shutdowns: List[Shutdown],
-  val conditions: ConditionsBinGroup[Percent] = Default.Conditions
+  val conditions: ConditionsBinGroup[Percent]
 ) {
 
   // At least one DecBin has to be allocated 100%.  If all are less than 100%,
@@ -36,4 +36,8 @@ final class SiteSemesterConfig(
   require(decLimits.bins.exists(_.binValue.value == 100))
 
   def context: Context = new Context(site, semester)
+
+  override def toString: String =
+    s"SiteSemesterConfig($site, $semester, $raLimits, $decLimits, $shutdowns, $conditions)"
+
 }

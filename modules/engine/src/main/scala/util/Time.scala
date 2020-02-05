@@ -82,6 +82,8 @@ final class Time private (val ms: Long, val unit: Units) extends Ordered[Time] w
   def isZero = ms == 0
   def toZero = if (ms == 0) this else new Time(0, unit)
 
+  def nonNegative = Time.max(Time.Zero, this)
+
   def value: Double = unit.toUnits(ms)
   def compare(that: Time): Int = ms match {
     case n if n < that.ms => -1
@@ -98,7 +100,7 @@ final class Time private (val ms: Long, val unit: Units) extends Ordered[Time] w
   def toHours: Time     = to(Time.Hours)
   def toNights: Time    = to(Time.Nights)
 
-  override def toString = value + " " + unit.toString
+  override def toString = f"$value%3.5f $unit%s"
 
   override def equals(other: Any): Boolean = other match {
     case that: Time => ms == that.ms
