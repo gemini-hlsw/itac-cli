@@ -92,7 +92,7 @@ trait MainOpts { this: CommandIOApp =>
   lazy val siteConfig: Opts[Path] =
     site.map {
       case Site.GN => Paths.get("gn-queue.yaml")
-      case Site.GS => Paths.get("gn-queue.yaml")
+      case Site.GS => Paths.get("gs-queue.yaml")
     } <+> Opts.option[Path](
       short = "-c",
       long  = "config",
