@@ -1,0 +1,39 @@
+## @NTAC_REF_NUMBER@ : 2020A Gemini NGO Notification
+**********************************
+@COUNTRY@ UNSUCCESSFUL PROPOSAL
+@NTAC_REF_NUMBER@
+**********************************
+
+Program Title: @PROG_TITLE@
+Principal Investigator: @PI_NAME@
+Principal Investigator e-mail: @PI_MAIL@
+Time Awarded: @TIME_AWARDED@
+
+This program was not awarded time on Gemini.  Due to the pressure on
+the available science time, only a subset of highly ranked programs
+could be scheduled.
+
+
+ITAC FEEDBACK
+-------------
+The primary evaluation of proposals for scientific merit and technical
+feasibility is conducted by the National Time Allocation Committees (NTACs),
+that feedback is shown under the Partner TAC information below.  Additional
+comments from the International Time Allocation Committee (ITAC), if any,
+are given here:
+
+
+@ITAC_COMMENTS@
+
+@GEMINI_COMMENT@
+
+
+Partner/National TAC information
+--------------------------------
+Partner reference number: @NTAC_REF_NUMBER@
+Partner Ranking: @NTAC_RANKING@
+Partner recommended time: @NTAC_RECOMMENDED_TIME@
+Partner comments (if any):
+@NTAC_COMMENT@
+
+********************************************************************
