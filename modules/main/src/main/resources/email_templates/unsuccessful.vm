@@ -1,13 +1,13 @@
-## @NTAC_REF_NUMBER@ : 2020A Gemini NGO Notification
+## $values.ntacRefNumber : $values.semester Gemini NGO Notification
 **********************************
-@COUNTRY@ UNSUCCESSFUL PROPOSAL
-@NTAC_REF_NUMBER@
+$values.country UNSUCCESSFUL PROPOSAL
+$values.ntacRefNumber
 **********************************
 
-Program Title: @PROG_TITLE@
-Principal Investigator: @PI_NAME@
-Principal Investigator e-mail: @PI_MAIL@
-Time Awarded: @TIME_AWARDED@
+Program Title: $values.progTitle
+Principal Investigator: $values.piName
+Principal Investigator e-mail: $values.piMail
+Time Awarded: $values.timeAwarded
 
 This program was not awarded time on Gemini.  Due to the pressure on
 the available science time, only a subset of highly ranked programs
@@ -23,17 +23,17 @@ comments from the International Time Allocation Committee (ITAC), if any,
 are given here:
 
 
-@ITAC_COMMENTS@
+$values.itacComments
 
-@GEMINI_COMMENT@
+$values.geminiComment
 
 
 Partner/National TAC information
 --------------------------------
-Partner reference number: @NTAC_REF_NUMBER@
-Partner Ranking: @NTAC_RANKING@
-Partner recommended time: @NTAC_RECOMMENDED_TIME@
+Partner reference number: $values.ntacRefNumber
+Partner Ranking: $values.ntacRanking
+Partner recommended time: $values.ntacRecommendedTime
 Partner comments (if any):
-@NTAC_COMMENT@
+$values.ntacComment
 
 ********************************************************************

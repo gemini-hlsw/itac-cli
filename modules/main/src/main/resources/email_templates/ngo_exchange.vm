@@ -1,16 +1,16 @@
-## @NTAC_REF_NUMBER@ : 2020A Gemini NGO Notification
+## $values.ntacRefNumber : $values.semester Gemini NGO Notification
 ************************************
-@COUNTRY@ ACCEPTED EXCHANGE PROPOSAL
-@NTAC_REF_NUMBER@
+$values.country ACCEPTED EXCHANGE PROPOSAL
+$values.ntacRefNumber
 ************************************
 
-Program Title: @PROG_TITLE@
-Principal Investigator: @PI_NAME@
-Principal Investigator e-mail: @PI_MAIL@
-Gemini Program ID: @PROG_ID@
-Time Awarded: @TIME_AWARDED@
-Program Time Awarded: @PROG_TIME@
-Partner Calibration Time Awarded: @PARTNER_TIME@
+Program Title: $values.progTitle
+Principal Investigator: $values.piName
+Principal Investigator e-mail: $values.piMail
+Gemini Program ID: $values.progId
+Time Awarded: $values.timeAwarded
+Program Time Awarded: $values.programTime
+Partner Calibration Time Awarded: $values.partnerTime
 
 This program has been awarded time on a non-Gemini telescope through
 the Gemini Time Allocation process.  The PI will be contacted by the
@@ -26,17 +26,17 @@ additional comments from the International Time Allocation Committee (ITAC)
 are given here:
 
 
-@ITAC_COMMENTS@
+$values.itacComments
 
-@GEMINI_COMMENT@
+$values.geminiComment
 
 
 Partner/National TAC information
 --------------------------------
-Partner reference number: @NTAC_REF_NUMBER@
-Partner Ranking: @NTAC_RANKING@
-Partner recommended time: @NTAC_RECOMMENDED_TIME@
+Partner reference number: $values.ntacRefNumber
+Partner Ranking: $values.ntacRanking
+Partner recommended time: $values.ntacRecommendedTime
 Partner comments (if any):
-@NTAC_COMMENT@
+$values.ntacComment
 
 ********************************************************************
