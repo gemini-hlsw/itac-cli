@@ -13,7 +13,8 @@ case class Ntac(
   ranking: Rank,
   awardedTime: Time,
   poorWeather: Boolean = false,
-  lead: Option[String] = None
+  lead: Option[String] = None,
+  comment: Option[String] = None
 ) extends Ordered[Ntac] {
   require(awardedTime.ms >= 0, "Awarded time must be non-negative, not " + awardedTime.ms)
 

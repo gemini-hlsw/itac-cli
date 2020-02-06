@@ -28,7 +28,7 @@ object NtacIo {
   def UNKNOWN_PARTNER_ID(id: String): String =
     s"Unrecognized partner id in proposal submission: $id"
 
-  private case class Response(ref: String, rank: Rank, awardedTime: Time, poorWeather: Boolean)
+  private case class Response(ref: String, rank: Rank, awardedTime: Time, poorWeather: Boolean, comment: Option[String])
 
   private val EmptyResponse = none[Response].successNel[String]
 
@@ -42,7 +42,7 @@ object NtacIo {
           case im.SubmissionDecision(Right(sa)) =>
             sa.recommended.nonNegativeQueueEngineTime(s"$partnerId recommended time").map {
               awarded =>
-                Some(Response(pid, Rank(sa.ranking), awarded, sa.poorWeather))
+                Some(Response(pid, Rank(sa.ranking), awarded, sa.poorWeather, sub.response.flatMap(_.comment).map(_.trim).filterNot(_.isEmpty)))
             }
           case _ => EmptyResponse
         }
@@ -50,7 +50,7 @@ object NtacIo {
 
   private def mkNtac(lead: Option[String])(p: Partner)(response: Option[Response]): Option[Ntac] =
     response.map { r =>
-      Ntac(p, r.ref, r.rank, r.awardedTime, r.poorWeather, lead)
+      Ntac(p, r.ref, r.rank, r.awardedTime, r.poorWeather, lead, r.comment)
     }
 
   private val NoneAccepted = NONE_ACCEPTED.failureNel[NonEmptyList[Ntac]]
