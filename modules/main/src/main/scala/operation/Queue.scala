@@ -86,6 +86,7 @@ object Queue {
               ps.filterNot(p => pids.contains(p.id)).foreach { p =>
                 println(f"- ${p.id.reference} (${p.site.abbreviation}, ${p.mode.programId}%2s, ${p.ntac.awardedTime.toHours.value}%4.1fh ${p.ntac.partner.id}, ${p.obsList.length}%3d obs)")
               }
+              println()
 
               QueueBand.Category.values.foreach { qc =>
                 println(s"${Console.BOLD}The following proposals were rejected for $qc.${Console.RESET}")
@@ -103,7 +104,12 @@ object Queue {
                     case Some(lm) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s $lm")
                   }
                 }
+                println()
               }
+
+              println(s"${Console.BOLD}RA/Conditions Bucket Allocations:${Console.RESET}")
+              println(queueCalc.bucketsAllocation.raTablesANSI)
+              println()
 
               QueueBand.values.foreach { qb =>
                 val q = queueCalc.queue

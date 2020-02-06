@@ -31,7 +31,7 @@ lazy val main = project
     libraryDependencies ++= Seq(
       "com.monovore"      %% "decline-effect"         % "1.0.0",
       "com.monovore"      %% "decline"                % "1.0.0",
-      "edu.gemini"              %% "gsp-math"                    % "0.1.10",
+      "edu.gemini"        %% "gsp-math"               % "0.1.10",
       "io.chrisdavenport" %% "log4cats-slf4j"         % "1.0.1",
       "io.circe"          %% "circe-core"             % "0.11.1",
       "io.circe"          %% "circe-generic"          % "0.11.1",
