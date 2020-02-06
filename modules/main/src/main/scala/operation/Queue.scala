@@ -35,17 +35,17 @@ object Queue {
     *   (in which case it will be resolved relative to the workspace directory).
     */
   def apply[F[_]: Sync: Parallel](
-    qe:        QueueEngine,
-    siteConfig: Path
+    qe:             QueueEngine,
+    siteConfig:     Path,
+    rolloverReport: Option[Path]
   ): Operation[F] =
     new Operation[F] {
-
 
       def run(ws: Workspace[F], log: Logger[F], b: Blocker): F[ExitCode] =
         for {
           cc <- ws.commonConfig
-          rr <- ws.readRolloverReport("gs-rollovers.yaml")
           qc <- ws.queueConfig(siteConfig)
+          rr <- ws.readRolloverReport(rolloverReport.getOrElse(s"${qc.site.abbreviation.toLowerCase}-rollovers.yaml"))
           ps <- ws.proposals
           partners  = cc.engine.partners
           queueCalc = qe.calc(
@@ -70,7 +70,7 @@ object Queue {
               )
             ),
           )
-          _ <- log.warn("File output has been commented out!")
+          // _ <- log.warn("File output has been commented out!")
           // qf <- ws.newQueueFolder(qc.site)
           // _  <- ws.writeData(qf.resolve("common.yaml"), cc)
           // _  <- ws.writeData(qf.resolve(s"${qc.site.abbreviation}.yaml"), qc)

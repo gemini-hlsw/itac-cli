@@ -63,6 +63,7 @@ trait Workspace[F[_]] {
   def writeRolloveReport(path: Path, rr: RolloverReport): F[Path]
 
   def readRolloverReport(path: Path): F[RolloverReport]
+  def writeText(path: Path, text: String): F[Path]
 
 }
 
@@ -87,11 +88,9 @@ object Workspace {
     )
 
   def apply[F[_]: Sync: Parallel](dir: Path, cc: Path, log: Logger[F], force: Boolean): F[Workspace[F]] =
+    ItacException(s"Workspace directory not found: $dir").raiseError[F, Workspace[F]].unlessA(dir.toFile.isDirectory) *>
     Ref[F].of(Map.empty[Path, Any]).map { cache =>
       new Workspace[F] {
-
-        // This should have been checked by the caller.
-        assert(dir.toFile.isDirectory, s"$dir is not a directory")
 
         def cwd = dir.pure[F]
 
@@ -114,18 +113,23 @@ object Workspace {
                   case f: DecodingFailure =>
                     ItacException(s"Failure reading $p\n  ${f.message}\n    at ${f.history.collect { case DownField(k) => k } mkString("/")}")
                       .raiseError[F, Unit]
+                  case _: NoSuchFileException =>
+                    ItacException(s"No such file: $path").raiseError[F, Unit]
                 }
             }
           }
 
-        def writeData[A: Encoder](path: Path, a: A, header: String = ""): F[Path] = {
+        def writeText(path: Path, text: String): F[Path] = {
           val p = dir.resolve(path)
           Sync[F].delay(p.toFile.isFile).flatMap {
             case false | `force` => log.info(s"Writing: $p") *>
-              Sync[F].delay(Files.write(dir.resolve(path), (header + printer.pretty(a.asJson)).getBytes("UTF-8")))
+              Sync[F].delay(Files.write(dir.resolve(path), text.getBytes("UTF-8")))
             case true  => Sync[F].raiseError(ItacException(s"File exists: $p"))
           }
         }
+
+        def writeData[A: Encoder](path: Path, a: A, header: String = ""): F[Path] =
+          writeText(path, header + printer.pretty(a.asJson))
 
         def writeRolloveReport(path: Path, rr: RolloverReport): F[Path] = {
           // The user cares about when report was generated in local time, so that's what we will
