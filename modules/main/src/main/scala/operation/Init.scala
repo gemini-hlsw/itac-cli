@@ -18,6 +18,7 @@ import java.time.LocalDate
 import edu.gemini.spModel.core.Site
 import cats.effect.ContextShift
 import cats.effect.Sync
+import itac.EmailTemplate
 
 object Init {
 
@@ -30,7 +31,8 @@ object Init {
 
         def init: F[ExitCode] =
           for {
-            _ <- List("proposals", "emails").traverse(ws.mkdirs(_))
+            _ <- List("proposals", "email_templates").traverse(ws.mkdirs(_))
+            _ <- EmailTemplate.all.traverse(t => ws.extractResource(t.resourceName, t.workspacePath))
             _ <- ws.writeText("common.yaml", initialCommonConfig(semester))
             _ <- Site.values.toList.traverse(s => ws.writeText(s"${s.abbreviation.toLowerCase}-queue.yaml", initialSiteConfig(s)))
             _ <- Rollover(Site.GN, None).run(ws, log, b)

@@ -27,6 +27,8 @@ import java.time.format.DateTimeFormatter
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.time.ZoneId
+import cats.effect.Resource
+import java.nio.file.StandardCopyOption
 
 /** Interface for some Workspace operations. */
 trait Workspace[F[_]] {
@@ -41,6 +43,8 @@ trait Workspace[F[_]] {
 
   /** Read a decodable value from the specified file. */
   def readData[A: Decoder](path: Path): F[A]
+
+  def extractResource(name: String, path: Path): F[Path]
 
   /**
    * Create a directory relative to `cwd`, including any intermediate ones, returning the path of
@@ -118,6 +122,17 @@ object Workspace {
                 }
             }
           }
+
+        def extractResource(name: String, path: Path): F[Path] =
+          Resource.make(Sync[F].delay(getClass.getResourceAsStream(name)))(is => Sync[F].delay(is.close()))
+            .use { is =>
+              val p = dir.resolve(path)
+              Sync[F].delay(p.toFile.isFile).flatMap {
+                case false | `force` => log.info(s"Writing: $p") *>
+                  Sync[F].delay(Files.copy(is, p, StandardCopyOption.REPLACE_EXISTING)).as(p)
+                case true  => Sync[F].raiseError(ItacException(s"File exists: $p"))
+              }
+            }
 
         def writeText(path: Path, text: String): F[Path] = {
           val p = dir.resolve(path)
