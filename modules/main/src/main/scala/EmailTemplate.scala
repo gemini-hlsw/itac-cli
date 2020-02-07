@@ -1,8 +1,8 @@
 package itac
 
 sealed abstract case class EmailTemplate(filename: String) {
-  val workspacePath = s"email_templates/$filename"
-  val resourceName  = s"/$workspacePath"
+  // we "just know" that this is where the template file lives on the classpath
+  val resourcePath = s"/email_templates/$filename"
 }
 
 object EmailTemplate {

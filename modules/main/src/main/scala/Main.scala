@@ -86,17 +86,14 @@ trait MainOpts { this: CommandIOApp =>
     Opts.option[Path](
       short = "c",
       long  = "common",
-      help  = "Common configuation file, relative to workspace (or absolute). Default is common.yaml"
-    ).withDefault(Paths.get("common.yaml"))
+      help  = s"Common configuation file, relative to workspace (or absolute). Default is ${Workspace.Default.CommonConfigFile}"
+    ).withDefault(Workspace.Default.CommonConfigFile)
 
   lazy val siteConfig: Opts[Path] =
-    site.map {
-      case Site.GN => Paths.get("gn-queue.yaml")
-      case Site.GS => Paths.get("gs-queue.yaml")
-    } <+> Opts.option[Path](
+    site.map(Workspace.Default.queueConfigFile) <+> Opts.option[Path](
       short = "-c",
       long  = "config",
-      help  = s"Site configuration file, relative to workspace (or absolute). Default is <site>-queue.yaml"
+      help  = s"Site configuration file, relative to workspace (or absolute). Default is ${Site.values.toList.map(Workspace.Default.queueConfigFile).mkString(" or ")}"
     )
 
   lazy val rolloverReport: Opts[Option[Path]] =
