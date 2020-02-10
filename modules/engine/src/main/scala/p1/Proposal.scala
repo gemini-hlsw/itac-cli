@@ -67,6 +67,13 @@ sealed trait Proposal {
     <Proposal id={id.toString}>
       <PI>{piName}</PI>
     </Proposal>
+
+  // these aren't required by the engine but are needed for generating emails
+  // easiest solution is to just add them here
+  def isJointComponent: Boolean = false
+  def piEmail: Option[String]
+
+
 }
 
 /**
@@ -82,7 +89,8 @@ case class CoreProposal(
   obsList: List[Observation] = Nil,
   band3Observations: List[Observation] = Nil,
   isPoorWeather: Boolean = false,
-  piName: Option[String] = None
+  piName: Option[String] = None,
+  piEmail: Option[String] = None
 ) extends Proposal {
   def core: CoreProposal = this
 }
@@ -91,7 +99,7 @@ case class CoreProposal(
  * Base class for Proposal implementations that delegate the implementation of
  * the abstract Proposal functions to another Proposal instance.
  */
-abstract class DelegatingProposal(coreProposal: Proposal) extends Proposal {
+sealed abstract class DelegatingProposal(coreProposal: Proposal) extends Proposal {
   def ntac: Ntac                           = coreProposal.ntac
   def site: Site                           = coreProposal.site
   def mode: Mode                           = coreProposal.mode
@@ -100,6 +108,7 @@ abstract class DelegatingProposal(coreProposal: Proposal) extends Proposal {
   def band3Observations: List[Observation] = coreProposal.band3Observations
   def isPoorWeather: Boolean               = coreProposal.isPoorWeather
   def piName: Option[String]               = coreProposal.piName
+  def piEmail: Option[String]              = coreProposal.piEmail
 }
 
 /**
@@ -111,6 +120,7 @@ case class JointProposalPart(
   core: CoreProposal
 ) extends DelegatingProposal(core) {
   override def jointId = Some(jointIdValue)
+  override def isJointComponent: Boolean = true
 
   /**
    * Tests whether the given JointProposalPart is mergeable with this one
@@ -123,6 +133,7 @@ case class JointProposalPart(
    * Creates a JointProposal containing only this part.
    */
   def toJoint: JointProposal = JointProposal(jointIdValue, core, List(core.ntac))
+
 }
 
 object JointProposalPart {

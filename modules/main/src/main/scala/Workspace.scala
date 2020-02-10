@@ -50,6 +50,8 @@ trait Workspace[F[_]] {
 
   def extractEmailTemplate(template: EmailTemplate): F[Path]
 
+  def readEmailTemplate(template: EmailTemplate): F[String]
+
   /**
    * Create a directory relative to `cwd`, including any intermediate ones, returning the path of
    * the created directory.
@@ -130,6 +132,9 @@ object Workspace {
                   }
             }
           }
+
+        def readEmailTemplate(template: EmailTemplate): F[String] =
+          readText(EmailTemplateDir.resolve(template.filename))
 
         def readData[A: Decoder](path: Path): F[A] =
           readText(path)

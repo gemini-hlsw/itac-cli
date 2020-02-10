@@ -1,5 +1,5 @@
-## $values.semester Gemini PI Notification
-Dear $values.semester Gemini Principal Investigator,
+## $semester Gemini PI Notification
+Dear $semester Gemini Principal Investigator,
 
 Congratulations! You are receiving this email because your proposal for time on Gemini was successful.  This email contains important information concerning the Phase II definition of your program.
 
@@ -12,19 +12,19 @@ http://www.gemini.edu/node/21275
 PROGRAM SUMMARY
 -----------------------
 
-Program Title: $values.progTitle
-Principal Investigator: $values.piName
-Gemini Program ID: $values.progId
-Total Time Awarded: $values.timeAwarded
-Program Time Awarded: $values.programTime
-Partner Calibration Time Awarded: $values.partnerTime
-Scientific Ranking Band: $values.queueBand
-Gemini Participant Phase II support: $values.country
-Principal Support: $values.ntacSupportEmail
-Additional Support: $values.geminiContactEmail
-Program Key Password: $values.progKey
+Program Title: $progTitle
+Principal Investigator: $piName
+Gemini Program ID: $progId
+Total Time Awarded: $timeAwarded
+Program Time Awarded: $programTime
+Partner Calibration Time Awarded: $partnerTime
+Scientific Ranking Band: $queueBand
+Gemini Participant Phase II support: $country
+Principal Support: $ntacSupportEmail
+Additional Support: $geminiContactEmail
+Program Key Password: $progKey
 Remote Eavesdropping Google Spreadsheet link (Band 1 and 2 only):
-$values.eavesdroppingLink
+$eavesdroppingLink
 
 !!! Your program key password is necessary for accessing both your Phase II program using the Observing Tool and your data in the Gemini Observatory Archive!!!
 
@@ -37,9 +37,9 @@ ITAC FEEDBACK
 
 You may receive feedback concerning your proposal from your National TAC or NGO. In addition, the following comment (if any) comes from the International Time Allocation Committee (ITAC):
 
-$values.itacComments
+$itacComments
 
-$values.geminiComment
+$geminiComment
 
 Thank you for your prompt attention to your Phase II submission and we wish you well in your investigations.
 

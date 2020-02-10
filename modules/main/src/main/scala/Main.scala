@@ -201,9 +201,15 @@ trait MainOpts { this: CommandIOApp =>
       header = s"Placeholder for $name, which is not yet implemented."
     )(Placeholder.pure[Opts])
 
+  lazy val email: Command[Operation[IO]] =
+    Command(
+      name   = "email",
+      header = "Generate queue emails."
+    )(siteConfig.map((sc) => Email[IO](sc)))
+
   lazy val ops: Opts[Operation[IO]] =
     List(
-      placeholder("email"),
+      email,
       placeholder("skeleton"),
       init,
       ls,
