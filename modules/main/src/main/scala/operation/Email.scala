@@ -17,7 +17,7 @@ import _root_.io.chrisdavenport.log4cats.Logger
 import itac.Workspace
 import java.nio.file.Path
 import edu.gemini.spModel.core.Site
-import itac.EmailTemplate
+import itac.EmailTemplateRef
 import edu.gemini.spModel.core.Semester
 import org.apache.velocity.app.VelocityEngine
 
@@ -50,10 +50,12 @@ object Email {
           // TODO: assert that p is successful
           for {
             s  <- ws.commonConfig.map(_.semester)
-            t  <- ws.readEmailTemplate(EmailTemplate.PiSuccessful)
+            t  <- ws.readEmailTemplate(EmailTemplateRef.PiSuccessful)
             ps  = velocityBindings(p, s)
-            out = merge(velocity, t, ps)
-            _  <- Sync[F].delay(println(out))
+            tit = merge(velocity, t.name, t.titleTemplate, ps)
+            _  <- Sync[F].delay(println(tit))
+            bod = merge(velocity, t.name, t.bodyTemplate, ps)
+            _  <- Sync[F].delay(println(bod))
           } yield "ok"
         }
 
@@ -76,11 +78,11 @@ object Email {
        * Given a Velocity template (as a String) and a map of bindings, evaluate the template and
        * return the generated text, or an indication of why it failed.
        */
-      def merge(velocity: VelocityEngine, template: String, bindings: Map[String, AnyRef]): Either[Throwable, String] =
+      def merge(velocity: VelocityEngine, templateName: String, template: String, bindings: Map[String, AnyRef]): Either[Throwable, String] =
         Either.catchNonFatal {
           val ctx = new VelocityContext(bindings.asJava)
           val out = new StringWriter
-          if (!velocity.evaluate(ctx, out, "itac", template)) {
+          if (!velocity.evaluate(ctx, out, templateName, template)) {
             // It's not at all clear when we get `false` here rather than a thrown exception. It
             // has never come up in testing. But this is here just in case.
             throw new RuntimeException("Velocity evaluation failed (see the log, or re-run with -v debug if there is none!).")

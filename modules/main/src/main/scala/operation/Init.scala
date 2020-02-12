@@ -18,7 +18,7 @@ import java.time.LocalDate
 import edu.gemini.spModel.core.Site
 import cats.effect.ContextShift
 import cats.effect.Sync
-import itac.EmailTemplate
+import itac.EmailTemplateRef
 
 object Init {
 
@@ -32,7 +32,7 @@ object Init {
         def init: F[ExitCode] =
           for {
             _ <- Workspace.WorkspaceDirs.traverse(ws.mkdirs(_))
-            _ <- EmailTemplate.all.traverse(ws.extractEmailTemplate)
+            _ <- EmailTemplateRef.all.traverse(ws.extractEmailTemplate)
             _ <- ws.writeText(Workspace.Default.CommonConfigFile, initialCommonConfig(semester))
             _ <- Site.values.toList.traverse(s => ws.writeText(Workspace.Default.queueConfigFile(s), initialSiteConfig(s)))
             _ <- Site.values.toList.traverse(s => Rollover(s, None).run(ws, log, b))

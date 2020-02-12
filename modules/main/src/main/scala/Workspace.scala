@@ -48,9 +48,9 @@ trait Workspace[F[_]] {
 
   def extractResource(name: String, path: Path): F[Path]
 
-  def extractEmailTemplate(template: EmailTemplate): F[Path]
+  def extractEmailTemplate(template: EmailTemplateRef): F[Path]
 
-  def readEmailTemplate(template: EmailTemplate): F[String]
+  def readEmailTemplate(template: EmailTemplateRef): F[EmailTemplate]
 
   /**
    * Create a directory relative to `cwd`, including any intermediate ones, returning the path of
@@ -133,8 +133,14 @@ object Workspace {
             }
           }
 
-        def readEmailTemplate(template: EmailTemplate): F[String] =
-          readText(EmailTemplateDir.resolve(template.filename))
+        def readEmailTemplate(template: EmailTemplateRef): F[EmailTemplate] =
+          readText(EmailTemplateDir.resolve(template.filename)).map { text =>
+            new EmailTemplate {
+              def name          = template.filename + " "
+              def titleTemplate = text.lines.next.drop(2).trim
+              def bodyTemplate  = text
+            }
+          }
 
         def readData[A: Decoder](path: Path): F[A] =
           readText(path)
@@ -164,7 +170,7 @@ object Workspace {
               }
             }
 
-        def extractEmailTemplate(template: EmailTemplate): F[Path] =
+        def extractEmailTemplate(template: EmailTemplateRef): F[Path] =
           extractResource(template.resourcePath, EmailTemplateDir.resolve(template.filename))
 
         def writeText(path: Path, text: String): F[Path] = {
