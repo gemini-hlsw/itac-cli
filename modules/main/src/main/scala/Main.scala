@@ -55,6 +55,7 @@ object Main extends CommandIOApp(
         |""".stripMargin.trim
 ) with MainOpts {
 
+
   def main: Opts[IO[ExitCode]] =
     (cwd, commonConfig, logger[IO], force, ops).mapN { (cwd, commonConfig, log, force, cmd) =>
       Blocker[IO].use { b =>
@@ -127,11 +128,19 @@ trait MainOpts { this: CommandIOApp =>
     ) .withDefault("info")
       .mapValidated {
         case s @ ("trace" | "debug" | "info" | "warn" | "error" | "off") =>
+
           // http://www.slf4j.org/api/org/slf4j/impl/SimpleLogger.html
           System.setProperty("org.slf4j.simpleLogger.log.edu", s)
-          ColoredSimpleLogger.init() // sorry
+
+          // slf4j forces us to be dumb
+          ColoredSimpleLogger.init()
+
+          // the logger we actually want to use
           val log = new ColoredSimpleLogger("edu.gemini.itac")
+
+          // done
           Slf4jLogger.getLoggerFromSlf4j(log).validNel[String]
+
         case s => s"Invalid log level: $s".invalidNel
       }
 

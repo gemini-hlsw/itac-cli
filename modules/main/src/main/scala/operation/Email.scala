@@ -7,7 +7,6 @@ import edu.gemini.tac.qengine.p1.Mode
 import edu.gemini.tac.qengine.p1.CoreProposal
 import edu.gemini.tac.qengine.p1._
 import org.apache.velocity.VelocityContext
-import org.apache.velocity.app.Velocity
 import java.io.StringWriter
 import scala.collection.JavaConverters._
 import cats.effect.Sync
@@ -20,244 +19,265 @@ import java.nio.file.Path
 import edu.gemini.spModel.core.Site
 import itac.EmailTemplate
 import edu.gemini.spModel.core.Semester
+import scala.util.Try
+import org.apache.velocity.app.VelocityEngine
 
 object Email {
 
   type MailMessage = String
 
-  private implicit class ProposalListOps(ps: List[Proposal]) {
-    def classicalProposalsForSite(site: Site): List[Proposal] =
-      ps.filter { p =>
-          p.site == site           &&
-          p.mode == Mode.Classical &&
-        !p.isJointComponent
-      }
-  }
-
-  private implicit class WorkspaceOps[F[_]: Sync: Parallel](ws: Workspace[F]) {
-
-        def createPiEmail(p: Proposal): F[MailMessage] = {
-        // // merging of proposals will merge PI emails to semi-colon separated list of emails
-        // final PhaseIProposal phaseIProposal = proposal.getPhaseIProposal();
-        // String recipients = phaseIProposal.getInvestigators().getPi().getEmail();
-        // Submission submission = phaseIProposal.getPrimary();
-        // VariableValues values = new VariableValues(proposal, banding, submission, successful);
-
-        // final List<String> ccRecipients = extractCcRecipientsFromProposal(proposal, phaseIProposal);
-
-        // return createEmail(queue, banding, proposal, template, values, recipients, StringUtils.join(ccRecipients,"; "));
-
-        for {
-          s  <- ws.commonConfig.map(_.semester)
-          t  <- ws.readEmailTemplate(EmailTemplate.PiSuccessful)
-          ps  = velocityProperties(p, s)
-          out = merge(t, ps)
-          _  <- Sync[F].delay(println(out))
-        } yield "ok"
-
-        // p.piEmail.getOrElse("??? unknown email!").pure[F]
-      }
-
-      def createNgoEmails(p: Proposal): List[MailMessage] =
-        p match {
-          case c: CoreProposal      => List(s"<email for ${c.ntac.partner.id}>")
-          case j: JointProposal     => j.ntacs.map(n =>s"<email for ${n.partner.id}>")
-          case _: JointProposalPart => Nil // Don't create mails for joint parts
-        }
-
-      def createSuccessfulEmailsForClassical(ps: List[Proposal], qc: QueueConfig): F[List[MailMessage]] =
-        ps.classicalProposalsForSite(qc.site).flatTraverse { cp =>
-          createPiEmail(cp).map(_ :: createNgoEmails(cp))
-        }
-
-  }
+  // Velocty is dumb. We have to turn down the default log level or else init code will use the
+  // default logger before we have a chance to swap it out.
+  // System.setProperty("org.slf4j.simpleLogger.log.org", s)
 
   def apply[F[_]: Sync: Parallel](
     siteConfig: Path,
   ): Operation[F] =
     new Operation[F] {
 
+      implicit class ProposalListOps(ps: List[Proposal]) {
+        def classicalProposalsForSite(site: Site): List[Proposal] =
+          ps.filter { p =>
+              p.site == site           &&
+              p.mode == Mode.Classical &&
+            !p.isJointComponent
+          }
+      }
 
-      def run(ws: Workspace[F], log: Logger[F], b: Blocker): F[ExitCode] =
+      implicit class WorkspaceOps(ws: Workspace[F]) {
+
+        def createPiEmail(velocity: VelocityEngine, p: Proposal): F[MailMessage] = {
+          // // merging of proposals will merge PI emails to semi-colon separated list of emails
+          // final PhaseIProposal phaseIProposal = proposal.getPhaseIProposal();
+          // String recipients = phaseIProposal.getInvestigators().getPi().getEmail();
+          // Submission submission = phaseIProposal.getPrimary();
+          // VariableValues values = new VariableValues(proposal, banding, submission, successful);
+
+          // final List<String> ccRecipients = extractCcRecipientsFromProposal(proposal, phaseIProposal);
+
+          // return createEmail(queue, banding, proposal, template, values, recipients, StringUtils.join(ccRecipients,"; "));
+
+          for {
+            s  <- ws.commonConfig.map(_.semester)
+            t  <- ws.readEmailTemplate(EmailTemplate.PiSuccessful)
+            ps  = velocityBindings(p, s)
+            out = merge(velocity, t, ps)
+            _  <- Sync[F].delay(println(out))
+          } yield "ok"
+
+          // p.piEmail.getOrElse("??? unknown email!").pure[F]
+        }
+
+        def createNgoEmails(p: Proposal): List[MailMessage] =
+          p match {
+            case c: CoreProposal      => List(s"<email for ${c.ntac.partner.id}>")
+            case j: JointProposal     => j.ntacs.map(n =>s"<email for ${n.partner.id}>")
+            case _: JointProposalPart => Nil // Don't create mails for joint parts
+          }
+
+        def createSuccessfulEmailsForClassical(velocity: VelocityEngine, ps: List[Proposal], qc: QueueConfig): F[List[MailMessage]] =
+          ps.classicalProposalsForSite(qc.site).flatTraverse { cp =>
+            createPiEmail(velocity, cp).map(_ :: createNgoEmails(cp))
+          }
+
+      }
+
+      /**
+       * Given a Velocity template (as a String) and a map of bindings, evaluate the template and
+       * return the generated text, or an indication of why it failed.
+       */
+      def merge(velocity: VelocityEngine, template: String, bindings: Map[String, AnyRef]): Either[Throwable, String] =
+        Either.catchNonFatal {
+          val ctx = new VelocityContext(bindings.asJava)
+          val out = new StringWriter
+          if (!velocity.evaluate(ctx, out, "itac", template))
+            throw new RuntimeException("Velocity evaluation failed (see the log).")
+          out.toString
+        }
+
+
+      /**
+       * Construct a map of key/value pairs that will be bound to the Velocity context. Our strategy
+       * is to define only the keys where values are available (rather than using `null`) and then
+       * running in strict reference mode. What this means is, undefined references will throw an
+       * exception as Satan intended. Templates can use `#if` to determine whether a key is defined or
+       * not, before attempting a dereference.
+       * @see strict reference mode https://velocity.apache.org/engine/1.7/user-guide.html#strict-reference-mode
+       */
+      def velocityBindings(p: Proposal, s: Semester): Map[String, AnyRef] = {
+
+        var mut = scala.collection.mutable.Map.empty[String, AnyRef]
+        mut = mut // defeat bogus unused warning
+
+        // bindings that are always present
+        mut += "country"             -> p.ntac.partner.fullName
+        mut += "ntacRecommendedTime" -> p.ntac.awardedTime.toHours.toString
+        mut += "ntacRefNumber"       -> p.ntac.reference
+        mut += "ntacRanking"         -> p.ntac.ranking.format
+        mut += "semester"            -> s.toString
+
+        // bindings that may be missing
+        p.ntac.comment.foreach(v => mut += "itacComments" -> v)
+        p.ntac.comment.foreach(v => mut += "ntacComment"  -> v)
+        p.piEmail     .foreach(v => mut += "piMail"       -> v)
+        p.piName      .foreach(v => mut += "piName"       -> v)
+
+        // Not implemented yet
+        // mut += "geminiComment"       -> null
+        // mut += "geminiContactEmail"  -> null
+        // mut += "geminiId"            -> null
+        // mut += "jointInfo"           -> null
+        // mut += "jointTimeContribs"   -> null
+        // mut += "ntacSupportEmail"    -> null // need to add to Partner based on c
+        // mut += "progId"              -> null
+        // mut += "progTitle"           -> null
+        // mut += "progKey"             -> null
+        // mut += "queueBand"           -> null
+        // mut += "timeAwarded"         -> null
+
+        // Done
+        mut.toMap
+
+      }
+
+
+      def run(ws: Workspace[F], log: Logger[F], b: Blocker): F[ExitCode] = {
+
+        // I feel bad about this but it's the best I could figure out. I need the underlying
+        // side-effecting logger from `log` so I can make stupid Velocity use it, but there's no
+        // direct accessor. So we will try to pull it out and if it fails we get the normal logger
+        // and well, too bad that's what we get. The underlying class is probably
+        // io.chrisdavenport.log4cats.slf4j.internal.Slf4jLoggerInternal.Slf4jLogger, which has a
+        // `logger` member (and generated accessor `logger()`). In the future maybe someone will
+        // use something else, in which case they'll find this comment and work something out.
+        val sideEffectingLogger: Option[org.slf4j.Logger] =
+          Try {
+            val getter     = log.getClass.getDeclaredMethod("logger")
+            val underlying = getter.invoke(log).asInstanceOf[org.slf4j.Logger]
+            underlying
+          } .toOption
+
+        // The engine we're using, all configured locally. No config file, no resource loading.
+        val velocity = new VelocityEngine
+        sideEffectingLogger.foreach(velocity.setProperty("runtime.log.instance", _))
+
+        // And here we go...
         for {
           qc <- ws.queueConfig(siteConfig)
           ps <- ws.proposals
-          mm <- ws.createSuccessfulEmailsForClassical(ps, qc)
-          _  <- Sync[F].delay(mm.foreach(println))
+          _  <- ws.createSuccessfulEmailsForClassical(velocity, ps, qc)
         } yield ExitCode.Success
 
-    }
+      }
 
 
-  // def createPiEmail(p: Proposal): MailMessage = {
-  //   // // merging of proposals will merge PI emails to semi-colon separated list of emails
-  //   // final PhaseIProposal phaseIProposal = proposal.getPhaseIProposal();
-  //   // String recipients = phaseIProposal.getInvestigators().getPi().getEmail();
-  //   // Submission submission = phaseIProposal.getPrimary();
-  //   // VariableValues values = new VariableValues(proposal, banding, submission, successful);
+        // def createPiEmail(p: Proposal): MailMessage = {
+      //   // // merging of proposals will merge PI emails to semi-colon separated list of emails
+      //   // final PhaseIProposal phaseIProposal = proposal.getPhaseIProposal();
+      //   // String recipients = phaseIProposal.getInvestigators().getPi().getEmail();
+      //   // Submission submission = phaseIProposal.getPrimary();
+      //   // VariableValues values = new VariableValues(proposal, banding, submission, successful);
 
-  //   // final List<String> ccRecipients = extractCcRecipientsFromProposal(proposal, phaseIProposal);
+      //   // final List<String> ccRecipients = extractCcRecipientsFromProposal(proposal, phaseIProposal);
 
-  //   // return createEmail(queue, banding, proposal, template, values, recipients, StringUtils.join(ccRecipients,"; "));
-  //   ???
-  // }
-
-  // def createNgoEmails(p: Proposal): List[MailMessage] =
-  //   p match {
-  //     case _: CoreProposal      => Nil
-  //     case _: JointProposal     => Nil
-  //     case _: JointProposalPart => Nil // Don't create mails for joint parts
-  //   }
-
-  // def createSuccessfulEmailsForClassical(ps: List[Proposal], qc: QueueConfig): List[MailMessage] =
-  //   ps.filter { p =>
-  //     p.site == qc.site        &&
-  //     p.mode == Mode.Classical &&
-  //    !p.isJointComponent
-  //   } .flatMap { cp =>
-  //     createPiEmail(cp) :: createNgoEmails(cp)
-  //   }
-
-  // def createSuccessfulEmailsForBanded: List[MailMessage] = {
-  //   Nil
-  // }
-
-  // def createUnsuccessfulEmails: List[MailMessage] = {
-  //   Nil
-  // }
-
-  // def createEmails(ps: List[Proposal], qc: QueueConfig): List[MailMessage] = {
-  //   createSuccessfulEmailsForClassical(ps, qc) ++
-  //   createSuccessfulEmailsForBanded    ++
-  //   createUnsuccessfulEmails
-  // }
-
-  def merge(template: String, properties: Map[String, AnyRef]): Either[String, String] =
-    Either.catchNonFatal {
-
-      // Our context
-      val ctx = new VelocityContext(properties.asJava)
-
-      // Output writer
-      val out = new StringWriter
-
-      // Evaluate the template
-      if (!Velocity.evaluate(ctx, out, "itac", template))
-        throw new RuntimeException("Velocity evaluation failed for some reason.")
-
-      // Done
-      out.toString
-
-    } .leftMap(_.getMessage)
-
-
-  /**
-   * Construct a map of key/value pairs that will be bound to the Velocity context. Our strategy
-   * is to define only the keys where values are available (rather than using `null`) and then
-   * running in strict reference mode. What this means is, undefined references will throw an
-   * exception as Satan intended. Templates can use `#if` to determine whether a key is defined or
-   * not, before attempting a dereference.
-   * @see strict reference mode https://velocity.apache.org/engine/1.7/user-guide.html#strict-reference-mode
-   */
-  def velocityProperties(p: Proposal, s: Semester): Map[String, AnyRef] = {
-
-    var mut = scala.collection.mutable.Map.empty[String, AnyRef]
-    mut = mut // defeat bogus unused warning
-
-    // properties that are always present
-    mut += "country"             -> p.ntac.partner.fullName
-    mut += "ntacRecommendedTime" -> p.ntac.awardedTime.toHours.toString
-    mut += "ntacRefNumber"       -> p.ntac.reference
-    mut += "ntacRanking"         -> p.ntac.ranking.format
-    mut += "semester"            -> s.toString
-
-    // properties that may be missing
-    p.ntac.comment.foreach(v => mut += "itacComments" -> v)
-    p.ntac.comment.foreach(v => mut += "ntacComment"  -> v)
-    p.piEmail     .foreach(v => mut += "piMail"       -> v)
-    p.piName      .foreach(v => mut += "piName"       -> v)
-
-    // Not implemented yet
-    // mut += "geminiComment"       -> null
-    // mut += "geminiContactEmail"  -> null
-    // mut += "geminiId"            -> null
-    // mut += "jointInfo"           -> null
-    // mut += "jointTimeContribs"   -> null
-    // mut += "ntacSupportEmail"    -> null // need to add to Partner based on c
-    // mut += "progId"              -> null
-    // mut += "progTitle"           -> null
-    // mut += "progKey"             -> null
-    // mut += "queueBand"           -> null
-    // mut += "timeAwarded"         -> null
-
-    // Done
-    mut.toMap
-
-  }
-
-
-      // this.geminiComment = itac.getGeminiComment() != null ? itac.getGeminiComment() : "";
-      // this.itacComments =  itac.getComment() != null ? itac.getComment() : "";
-      // if (itac.getRejected() || itac.getAccept() == null) {
-      //     // either rejected or no accept part yet: set empty values
-      //     this.progId = "";
-      //     this.progKey = "";
-      //     this.geminiContactEmail = "";
-      //     this.timeAwarded = "";
-      // } else {
-      //     this.progId = itac.getAccept().getProgramId();
-      //     this.progKey = ProgIdHash.pass(this.progId);
-      //     this.geminiContactEmail = itac.getAccept().getContact();
-      //     this.timeAwarded = itac.getAccept().getAward().toPrettyString();
+      //   // return createEmail(queue, banding, proposal, template, values, recipients, StringUtils.join(ccRecipients,"; "));
+      //   ???
       // }
 
-      // if (!successful) {
-      //     // ITAC-70: use original partner time, the partner time might have been edited by ITAC to "optimize" queue
-      //     this.timeAwarded = "0.0 " + ntacExtension.getRequest().getTime().getUnits();
+      // def createNgoEmails(p: Proposal): List[MailMessage] =
+      //   p match {
+      //     case _: CoreProposal      => Nil
+      //     case _: JointProposal     => Nil
+      //     case _: JointProposalPart => Nil // Don't create mails for joint parts
+      //   }
+
+      // def createSuccessfulEmailsForClassical(ps: List[Proposal], qc: QueueConfig): List[MailMessage] =
+      //   ps.filter { p =>
+      //     p.site == qc.site        &&
+      //     p.mode == Mode.Classical &&
+      //    !p.isJointComponent
+      //   } .flatMap { cp =>
+      //     createPiEmail(cp) :: createNgoEmails(cp)
+      //   }
+
+      // def createSuccessfulEmailsForBanded: List[MailMessage] = {
+      //   Nil
       // }
 
-      // if (proposal.isJoint()) {
-      //     StringBuffer info = new StringBuffer();
-      //     StringBuffer time = new StringBuffer();
-      //     for(Submission submission : doc.getSubmissions()){
-      //         NgoSubmission ngoSubmission = (NgoSubmission) submission;
-      //         info.append(ngoSubmission.getPartner().getName());
-      //         info.append(" ");
-      //         info.append(ngoSubmission.getReceipt().getReceiptId());
-      //         info.append(" ");
-      //         info.append(ngoSubmission.getPartner().getNgoFeedbackEmail()); //TODO: Confirm -- not sure
-      //         info.append("\n");
-      //         time.append(ngoSubmission.getPartner().getName() + ": " + ngoSubmission.getAccept().getRecommend().toPrettyString());
-      //         time.append("\n");
-      //     }
-      //     this.jointInfo = info.toString();
-      //     this.jointTimeContribs = time.toString();
+      // def createUnsuccessfulEmails: List[MailMessage] = {
+      //   Nil
       // }
 
-      // // ITAC-70 & ITAC-583: use original recommended time, the awarded time might have been edited by ITAC to optimize queue
-      // TimeAmount time = ntacExtension.getAccept().getRecommend();
-      // this.country = ntacExtension.getPartner().getName();
-      // this.ntacComment = ntacExtension.getComment() != null ? ntacExtension.getComment() : "";
-      // this.ntacRanking = ntacExtension.getAccept().getRanking().toString();
-      // this.ntacRecommendedTime = time.toPrettyString();
-      // this.ntacRefNumber = ntacExtension.getReceipt().getReceiptId();
-      // this.ntacSupportEmail = ntacExtension.getAccept().getEmail();
-
-      // // Merging of PIs: first names and last names will be concatenated separated by '/',
-      // // emails will be concatenated to a list separated by semi-colons
-      // this.piMail = pi.getEmail();
-      // this.piName = pi.getFirstName() + " " + pi.getLastName();
-      // if (doc.getTitle() != null) {
-      //     this.progTitle = doc.getTitle();
+      // def createEmails(ps: List[Proposal], qc: QueueConfig): List[MailMessage] = {
+      //   createSuccessfulEmailsForClassical(ps, qc) ++
+      //   createSuccessfulEmailsForBanded    ++
+      //   createUnsuccessfulEmails
       // }
 
-      // if (banding != null) {
-      //     this.queueBand = banding.getBand().getDescription();
-      // } else if (proposal.isClassical()) {
-      //     this.queueBand = "classical";
-      // } else {
-      //     this.queueBand = N_A;
-      // }
+          // this.geminiComment = itac.getGeminiComment() != null ? itac.getGeminiComment() : "";
+          // this.itacComments =  itac.getComment() != null ? itac.getComment() : "";
+          // if (itac.getRejected() || itac.getAccept() == null) {
+          //     // either rejected or no accept part yet: set empty values
+          //     this.progId = "";
+          //     this.progKey = "";
+          //     this.geminiContactEmail = "";
+          //     this.timeAwarded = "";
+          // } else {
+          //     this.progId = itac.getAccept().getProgramId();
+          //     this.progKey = ProgIdHash.pass(this.progId);
+          //     this.geminiContactEmail = itac.getAccept().getContact();
+          //     this.timeAwarded = itac.getAccept().getAward().toPrettyString();
+          // }
+
+          // if (!successful) {
+          //     // ITAC-70: use original partner time, the partner time might have been edited by ITAC to "optimize" queue
+          //     this.timeAwarded = "0.0 " + ntacExtension.getRequest().getTime().getUnits();
+          // }
+
+          // if (proposal.isJoint()) {
+          //     StringBuffer info = new StringBuffer();
+          //     StringBuffer time = new StringBuffer();
+          //     for(Submission submission : doc.getSubmissions()){
+          //         NgoSubmission ngoSubmission = (NgoSubmission) submission;
+          //         info.append(ngoSubmission.getPartner().getName());
+          //         info.append(" ");
+          //         info.append(ngoSubmission.getReceipt().getReceiptId());
+          //         info.append(" ");
+          //         info.append(ngoSubmission.getPartner().getNgoFeedbackEmail()); //TODO: Confirm -- not sure
+          //         info.append("\n");
+          //         time.append(ngoSubmission.getPartner().getName() + ": " + ngoSubmission.getAccept().getRecommend().toPrettyString());
+          //         time.append("\n");
+          //     }
+          //     this.jointInfo = info.toString();
+          //     this.jointTimeContribs = time.toString();
+          // }
+
+          // // ITAC-70 & ITAC-583: use original recommended time, the awarded time might have been edited by ITAC to optimize queue
+          // TimeAmount time = ntacExtension.getAccept().getRecommend();
+          // this.country = ntacExtension.getPartner().getName();
+          // this.ntacComment = ntacExtension.getComment() != null ? ntacExtension.getComment() : "";
+          // this.ntacRanking = ntacExtension.getAccept().getRanking().toString();
+          // this.ntacRecommendedTime = time.toPrettyString();
+          // this.ntacRefNumber = ntacExtension.getReceipt().getReceiptId();
+          // this.ntacSupportEmail = ntacExtension.getAccept().getEmail();
+
+          // // Merging of PIs: first names and last names will be concatenated separated by '/',
+          // // emails will be concatenated to a list separated by semi-colons
+          // this.piMail = pi.getEmail();
+          // this.piName = pi.getFirstName() + " " + pi.getLastName();
+          // if (doc.getTitle() != null) {
+          //     this.progTitle = doc.getTitle();
+          // }
+
+          // if (banding != null) {
+          //     this.queueBand = banding.getBand().getDescription();
+          // } else if (proposal.isClassical()) {
+          //     this.queueBand = "classical";
+          // } else {
+          //     this.queueBand = N_A;
+          // }
+
+        }
 
 
 }

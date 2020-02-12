@@ -122,7 +122,7 @@ object Workspace {
           cache.get.flatMap { map =>
             val p = dir.resolve(path)
             map.get(path) match {
-              case Some(a) => log.info(s"Getting $p from cache.").as(a)
+              case Some(a) => log.debug(s"Getting $p from cache.").as(a)
               case None    => log.debug(s"Reading: $p") *>
                 Sync[F].delay(new String(Files.readAllBytes(p), "UTF-8"))
                   .flatTap(text =>  cache.set(map + (path -> text)))
