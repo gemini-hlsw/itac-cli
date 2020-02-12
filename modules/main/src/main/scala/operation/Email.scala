@@ -19,16 +19,14 @@ import java.nio.file.Path
 import edu.gemini.spModel.core.Site
 import itac.EmailTemplate
 import edu.gemini.spModel.core.Semester
-import scala.util.Try
 import org.apache.velocity.app.VelocityEngine
 
+/**
+ * @see Velocity documentation https://velocity.apache.org/engine/2.2/developer-guide.html
+ */
 object Email {
 
   type MailMessage = String
-
-  // Velocty is dumb. We have to turn down the default log level or else init code will use the
-  // default logger before we have a chance to swap it out.
-  // System.setProperty("org.slf4j.simpleLogger.log.org", s)
 
   def apply[F[_]: Sync: Parallel](
     siteConfig: Path,
@@ -47,16 +45,9 @@ object Email {
       implicit class WorkspaceOps(ws: Workspace[F]) {
 
         def createPiEmail(velocity: VelocityEngine, p: Proposal): F[MailMessage] = {
-          // // merging of proposals will merge PI emails to semi-colon separated list of emails
-          // final PhaseIProposal phaseIProposal = proposal.getPhaseIProposal();
-          // String recipients = phaseIProposal.getInvestigators().getPi().getEmail();
-          // Submission submission = phaseIProposal.getPrimary();
-          // VariableValues values = new VariableValues(proposal, banding, submission, successful);
-
-          // final List<String> ccRecipients = extractCcRecipientsFromProposal(proposal, phaseIProposal);
-
-          // return createEmail(queue, banding, proposal, template, values, recipients, StringUtils.join(ccRecipients,"; "));
-
+          // We have no types to ensure these things, so let's assert to be sure.
+          assert(!p.isJointComponent, "Program must not be a joint component.")
+          // TODO: assert that p is successful
           for {
             s  <- ws.commonConfig.map(_.semester)
             t  <- ws.readEmailTemplate(EmailTemplate.PiSuccessful)
@@ -64,20 +55,19 @@ object Email {
             out = merge(velocity, t, ps)
             _  <- Sync[F].delay(println(out))
           } yield "ok"
-
-          // p.piEmail.getOrElse("??? unknown email!").pure[F]
         }
 
-        def createNgoEmails(p: Proposal): List[MailMessage] =
+        def createNgoEmails(p: Proposal): F[List[MailMessage]] = {
           p match {
             case c: CoreProposal      => List(s"<email for ${c.ntac.partner.id}>")
             case j: JointProposal     => j.ntacs.map(n =>s"<email for ${n.partner.id}>")
             case _: JointProposalPart => Nil // Don't create mails for joint parts
           }
+        } .pure[F]
 
         def createSuccessfulEmailsForClassical(velocity: VelocityEngine, ps: List[Proposal], qc: QueueConfig): F[List[MailMessage]] =
-          ps.classicalProposalsForSite(qc.site).flatTraverse { cp =>
-            createPiEmail(velocity, cp).map(_ :: createNgoEmails(cp))
+          ps.classicalProposalsForSite(qc.site).parFlatTraverse { cp =>
+            (createPiEmail(velocity, cp), createNgoEmails(cp)).parMapN(_ :: _)
           }
 
       }
@@ -90,8 +80,11 @@ object Email {
         Either.catchNonFatal {
           val ctx = new VelocityContext(bindings.asJava)
           val out = new StringWriter
-          if (!velocity.evaluate(ctx, out, "itac", template))
-            throw new RuntimeException("Velocity evaluation failed (see the log).")
+          if (!velocity.evaluate(ctx, out, "itac", template)) {
+            // It's not at all clear when we get `false` here rather than a thrown exception. It
+            // has never come up in testing. But this is here just in case.
+            throw new RuntimeException("Velocity evaluation failed (see the log, or re-run with -v debug if there is none!).")
+          }
           out.toString
         }
 
@@ -151,7 +144,7 @@ object Email {
         // `logger` member (and generated accessor `logger()`). In the future maybe someone will
         // use something else, in which case they'll find this comment and work something out.
         val sideEffectingLogger: Option[org.slf4j.Logger] =
-          Try {
+          Either.catchNonFatal {
             val getter     = log.getClass.getDeclaredMethod("logger")
             val underlying = getter.invoke(log).asInstanceOf[org.slf4j.Logger]
             underlying
@@ -159,6 +152,8 @@ object Email {
 
         // The engine we're using, all configured locally. No config file, no resource loading.
         val velocity = new VelocityEngine
+        velocity.setProperty("runtime.strict_math",        true)
+        velocity.setProperty("runtime.strict_mode.enable", true)
         sideEffectingLogger.foreach(velocity.setProperty("runtime.log.instance", _))
 
         // And here we go...
@@ -169,7 +164,6 @@ object Email {
         } yield ExitCode.Success
 
       }
-
 
         // def createPiEmail(p: Proposal): MailMessage = {
       //   // // merging of proposals will merge PI emails to semi-colon separated list of emails

@@ -129,16 +129,15 @@ trait MainOpts { this: CommandIOApp =>
       .mapValidated {
         case s @ ("trace" | "debug" | "info" | "warn" | "error" | "off") =>
 
+          // Construct a logger that we will use in the application. Note that this gets hooked up
+          // to the Velocity engine used by the Email operation, so look over there if Velocity
+          // logging isn't doing what you expect.
+
           // http://www.slf4j.org/api/org/slf4j/impl/SimpleLogger.html
           System.setProperty("org.slf4j.simpleLogger.log.edu", s)
-
-          // slf4j forces us to be dumb
-          ColoredSimpleLogger.init()
-
-          // the logger we actually want to use
+          System.setProperty("org.slf4j.simpleLogger.log.org", s)
+          ColoredSimpleLogger.init() // slf4j forces us to be dumb
           val log = new ColoredSimpleLogger("edu.gemini.itac")
-
-          // done
           Slf4jLogger.getLoggerFromSlf4j(log).validNel[String]
 
         case s => s"Invalid log level: $s".invalidNel
