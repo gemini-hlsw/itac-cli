@@ -1,6 +1,7 @@
 
 inThisBuild(Seq(
   scalaVersion := "2.12.10",
+  organization := "edu.gemini",
   resolvers    += "Gemini Repository" at "https://github.com/gemini-hlsw/maven-repo/raw/master/releases",
   addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3"),
 ))

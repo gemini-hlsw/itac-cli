@@ -43,7 +43,7 @@ class QueueTime(
   /** The time amount at which Band 2 scheduling ends. */
   val band2End = full * bandPercentages(Category.B1_2)
 
-  /** The time amount at which Band 3 scheduling ends (and alias for {@link #guaranteed}). */
+  /** The time amount at which Band 3 scheduling ends (and alias for guaranteed). */
   val band3End = full * bandPercentages(Category.Guaranteed)
 
   /** The time amount at which Band 4 scheduling ends (an alias for {@link #full}). */
