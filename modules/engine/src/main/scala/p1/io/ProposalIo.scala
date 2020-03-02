@@ -77,7 +77,7 @@ class ProposalIo(partners: Map[String, Partner]) {
           val ntac = ntacs.head
           val b12  = bandList(QueueBand.Category.B1_2)
           val b3   = bandList(QueueBand.Category.B3)
-          val core = CoreProposal(ntac, site, mode(p), too(p), b12, b3, ntac.poorWeather, piName(p), piEmail(p))
+          val core = CoreProposal(ntac, site, mode(p), too(p), b12, b3, ntac.poorWeather, piName(p), piEmail(p), Some(p))
 
           // If there are more ntacs, it is a Joint, otherwise just this core.
           val (prop, newGen) = ntacs.tail.toList match {

@@ -73,6 +73,7 @@ sealed trait Proposal {
   def isJointComponent: Boolean = false
   def piEmail: Option[String]
 
+  def p1proposal: Option[edu.gemini.model.p1.immutable.Proposal]
 
 }
 
@@ -90,7 +91,8 @@ case class CoreProposal(
   band3Observations: List[Observation] = Nil,
   isPoorWeather: Boolean = false,
   piName: Option[String] = None,
-  piEmail: Option[String] = None
+  piEmail: Option[String] = None,
+  p1proposal: Option[edu.gemini.model.p1.immutable.Proposal] = None
 ) extends Proposal {
   def core: CoreProposal = this
 }
@@ -109,6 +111,7 @@ sealed abstract class DelegatingProposal(coreProposal: Proposal) extends Proposa
   def isPoorWeather: Boolean               = coreProposal.isPoorWeather
   def piName: Option[String]               = coreProposal.piName
   def piEmail: Option[String]              = coreProposal.piEmail
+  def p1proposal: Option[edu.gemini.model.p1.immutable.Proposal] = coreProposal.p1proposal
 }
 
 /**
@@ -133,6 +136,7 @@ case class JointProposalPart(
    * Creates a JointProposal containing only this part.
    */
   def toJoint: JointProposal = JointProposal(jointIdValue, core, List(core.ntac))
+
 
 }
 

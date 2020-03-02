@@ -213,7 +213,7 @@ trait MainOpts { this: CommandIOApp =>
     Command(
       name   = "email",
       header = "Generate queue emails."
-    )(siteConfig.map((sc) => Email[IO](sc)))
+    )((siteConfig, rolloverReport).mapN((sc, rr) => Email[IO](QueueEngine, sc, rr)))
 
   lazy val ops: Opts[Operation[IO]] =
     List(
