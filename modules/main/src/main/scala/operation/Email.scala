@@ -24,6 +24,13 @@ import itac.EmailTemplateRef
 import edu.gemini.spModel.core.Semester
 import org.apache.velocity.app.VelocityEngine
 import edu.gemini.tac.qengine.api.QueueEngine
+import edu.gemini.tac.qengine.api.queue.ProposalQueue
+import edu.gemini.model.p1.immutable.TimeAmount
+import edu.gemini.tac.qengine.p1.QueueBand.QBand1
+import edu.gemini.tac.qengine.p1.QueueBand.QBand2
+import edu.gemini.tac.qengine.p1.QueueBand.QBand3
+import edu.gemini.tac.qengine.p1.QueueBand.QBand4
+import edu.gemini.model.p1.immutable.Band
 
 /**
  * @see Velocity documentation https://velocity.apache.org/engine/2.2/developer-guide.html
@@ -67,9 +74,11 @@ object Email {
         }
 
         for {
-          qc <- ws.queueConfig(siteConfig)
-          ps <- ws.proposals
-          _  <- createSuccessfulEmailsForClassical(velocity, ws, ps, qc)
+          q  <- computeQueue(ws)
+          (ps, qc) = q
+          c <- ws.queueConfig(siteConfig)
+          // _  <- createSuccessfulEmailsForClassical(velocity, ws, ps, c, qc.queue)
+          _  <- createSuccessfulEmailsForQueue(velocity, ws, ps, c, qc.queue)
           // TODO: more!
         } yield ExitCode.Success
 
@@ -80,22 +89,32 @@ object Email {
 
       /** Some convenience operations for filtering a list of proposals. */
       implicit class ProposalListOps(ps: List[Proposal]) {
+
         def classicalProposalsForSite(site: Site): List[Proposal] =
           ps.filter { p =>
               p.site == site           &&
               p.mode == Mode.Classical &&
             !p.isJointComponent
           }
+
+        def successfulQueueProposalsForSite(site: Site, pq: ProposalQueue): List[Proposal] =
+          ps.filter { p =>
+             pq.positionOf(p).isDefined &&
+             p.site == site       &&
+             p.mode == Mode.Queue &&
+            !p.isJointComponent
+          }
+
       }
 
-      def createPiEmail(velocity: VelocityEngine,ws: Workspace[F], p: Proposal): F[MailMessage] = {
+      def createPiEmail(velocity: VelocityEngine,ws: Workspace[F], p: Proposal, pq: ProposalQueue): F[MailMessage] = {
         // We have no types to ensure these things, so let's assert to be sure.
         assert(!p.isJointComponent, "Program must not be a joint component.")
         // TODO: assert that p is successful
         for {
           s  <- ws.commonConfig.map(_.semester)
           t  <- ws.readEmailTemplate(EmailTemplateRef.PiSuccessful)
-          ps  = velocityBindings(p, s)
+          ps  = velocityBindings(p, s, pq)
           tit = merge(velocity, t.name, t.titleTemplate, ps)
           _  <- Sync[F].delay(println(tit))
           bod = merge(velocity, t.name, t.bodyTemplate, ps)
@@ -111,9 +130,14 @@ object Email {
         }
       } .pure[F]
 
-      def createSuccessfulEmailsForClassical(velocity: VelocityEngine, ws: Workspace[F], ps: List[Proposal], qc: QueueConfig): F[List[MailMessage]] =
-        ps.classicalProposalsForSite(qc.site).parFlatTraverse { cp =>
-          (createPiEmail(velocity, ws, cp), createNgoEmails(cp)).parMapN(_ :: _)
+      // def createSuccessfulEmailsForClassical(velocity: VelocityEngine, ws: Workspace[F], ps: List[Proposal], qc: QueueConfig, pq: ProposalQueue): F[List[MailMessage]] =
+      //   ps.classicalProposalsForSite(qc.site).parFlatTraverse { cp =>
+      //     (createPiEmail(velocity, ws, cp, pq), createNgoEmails(cp)).parMapN(_ :: _)
+      //   }
+
+      def createSuccessfulEmailsForQueue(velocity: VelocityEngine, ws: Workspace[F], ps: List[Proposal], qc: QueueConfig, pq: ProposalQueue): F[List[MailMessage]] =
+        ps.successfulQueueProposalsForSite(qc.site, pq).flatTraverse { cp => // TODO: parFlatTraverse
+          (createPiEmail(velocity, ws, cp, pq), createNgoEmails(cp)).parMapN(_ :: _)
         }
 
       /**
@@ -140,24 +164,46 @@ object Email {
        * not, before attempting a dereference.
        * @see strict reference mode https://velocity.apache.org/engine/1.7/user-guide.html#strict-reference-mode
        */
-      def velocityBindings(p: Proposal, s: Semester): Map[String, AnyRef] = {
+      def velocityBindings(p: Proposal, s: Semester, q: ProposalQueue): Map[String, AnyRef] = {
+
+        println(s"==> ${p.id.reference} - ${q.programId(p).map(_.toString).orEmpty}")
 
         var mut = scala.collection.mutable.Map.empty[String, AnyRef]
         mut = mut // defeat bogus unused warning
 
         // bindings that are always present
         mut += "country"             -> p.ntac.partner.fullName
+
+        // What's the difference?
         mut += "ntacRecommendedTime" -> p.ntac.awardedTime.toHours.toString
+        mut += "timeAwarded"         -> p.ntac.awardedTime.toHours.toString
+
         mut += "ntacRefNumber"       -> p.ntac.reference
         mut += "ntacRanking"         -> p.ntac.ranking.format
         mut += "semester"            -> s.toString
 
+        val (partTime, progTime) =
+          p.p1proposal.get.observations.foldLeft((TimeAmount.empty, TimeAmount.empty)) { case ((pa, pr), o) =>
+            val inBand: Boolean =
+              q.positionOf(p).get.band match {
+                case QBand1 | QBand2 => o.band == Band.BAND_1_2
+                case QBand3 | QBand4 => o.band == Band.BAND_3
+              }
+            if (o.enabled && inBand) {
+              val ts = o.calculatedTimes.get
+              (pa |+| ts.partTime, pr |+| ts.progTime)
+            } else (pa, pr)
+          }
+
+        println(s"Awarded time is ${p.ntac.awardedTime.toHours.toString}, progTime is ${progTime.toHours.format()}, partTime is ${partTime.toHours.format()}")
+
         // bindings that may be missing
-        p.ntac.comment.foreach(v => mut += "itacComments" -> v)
         p.ntac.comment.foreach(v => mut += "ntacComment"  -> v)
         p.piEmail     .foreach(v => mut += "piMail"       -> v)
         p.piName      .foreach(v => mut += "piName"       -> v)
         p.p1proposal  .foreach(p => mut += "progTitle"    -> p.title)
+        q.programId(p).foreach(v => mut += "progId"       -> v)
+
 
         // Not implemented yet
         // mut += "geminiComment"       -> null
@@ -166,10 +212,8 @@ object Email {
         // mut += "jointInfo"           -> null
         // mut += "jointTimeContribs"   -> null
         // mut += "ntacSupportEmail"    -> null // need to add to Partner based on c
-        // mut += "progId"              -> null
         // mut += "progKey"             -> null
         // mut += "queueBand"           -> null
-        // mut += "timeAwarded"         -> null
 
         // Done
         mut.toMap

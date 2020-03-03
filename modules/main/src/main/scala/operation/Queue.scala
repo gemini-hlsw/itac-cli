@@ -33,63 +33,59 @@ object Queue {
     new AbstractQueueOperation[F](qe, siteConfig, rolloverReport) {
 
       def run(ws: Workspace[F], log: Logger[F], b: Blocker): F[ExitCode] =
-         computeQueue(ws).flatMap { case (ps, queueCalc) =>
-          for {
-            cc <- ws.commonConfig
-            qc <- ws.queueConfig(siteConfig)
-            _  <- {
-              val log = queueCalc.proposalLog
-              Sync[F].delay {
+        computeQueue(ws).flatMap { case (ps, queueCalc) =>
+          val log = queueCalc.proposalLog
+          Sync[F].delay {
 
-                val pids = log.proposalIds // proposals that were considered
+            val pids = log.proposalIds // proposals that were considered
 
-                println(s"${Console.BOLD}The following proposals were not considered due to site, mode, or lack of awarded time or observations.${Console.RESET}")
-                ps.filterNot(p => pids.contains(p.id)).foreach { p =>
-                  println(f"- ${p.id.reference} (${p.site.abbreviation}, ${p.mode.programId}%2s, ${p.ntac.awardedTime.toHours.value}%4.1fh ${p.ntac.partner.id}, ${p.obsList.length}%3d obs)")
-                }
-                println()
-
-                QueueBand.Category.values.foreach { qc =>
-                  println(s"${Console.BOLD}The following proposals were rejected for $qc.${Console.RESET}")
-                  pids.foreach { pid =>
-                    val p = ps.find(_.id == pid).get
-                    log.get(pid, qc) match {
-                      case None =>
-                      case Some(AcceptMessage(_, _, _)) =>
-                      case Some(m: RejectPartnerOverAllocation) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s ${m.detail}")
-                      case Some(m: RejectNotBand3) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s ${m.detail}")
-                      case Some(m: RejectNoTime) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s ${m.detail}")
-                      case Some(m: RejectCategoryOverAllocation) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s ${m.detail}")
-                      case Some(m: RejectTarget) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s ${m.detail}")
-                      case Some(m: RejectConditions) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s ${m.detail}")
-                      case Some(lm) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s $lm")
-                    }
-                  }
-                  println()
-                }
-
-                println(s"${Console.BOLD}RA/Conditions Bucket Allocations:${Console.RESET}")
-                println(queueCalc.bucketsAllocation.raTablesANSI)
-                println()
-
-                QueueBand.values.foreach { qb =>
-                  val q = queueCalc.queue
-                  println(s"${Console.BOLD}The following proposals were accepted for Band ${qb.number}.${Console.RESET}")
-                  println(qb.number match {
-                    case 1 => Console.YELLOW
-                    case 2 => Console.GREEN
-                    case 3 => Console.BLUE
-                    case 4 => Console.RED
-                  })
-                  q.bandedQueue.get(qb).orEmpty.foreach { p =>
-                    println(f"- ${p.id.reference}%-20s -> ${qc.site.abbreviation}-${cc.semester}-${p.mode.programId}-${q.positionOf(p).get.programNumber} ${p.piName.orEmpty}")
-                  }
-                  println(Console.RESET)
-                }
-
-              }
+            println(s"${Console.BOLD}The following proposals were not considered due to site, mode, or lack of awarded time or observations.${Console.RESET}")
+            ps.filterNot(p => pids.contains(p.id)).foreach { p =>
+              println(f"- ${p.id.reference} (${p.site.abbreviation}, ${p.mode.programId}%2s, ${p.ntac.awardedTime.toHours.value}%4.1fh ${p.ntac.partner.id}, ${p.obsList.length}%3d obs)")
             }
-          } yield ExitCode.Success
+            println()
+
+            QueueBand.Category.values.foreach { qc =>
+              println(s"${Console.BOLD}The following proposals were rejected for $qc.${Console.RESET}")
+              pids.foreach { pid =>
+                val p = ps.find(_.id == pid).get
+                log.get(pid, qc) match {
+                  case None =>
+                  case Some(AcceptMessage(_, _, _)) =>
+                  case Some(m: RejectPartnerOverAllocation) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s ${m.detail}")
+                  case Some(m: RejectNotBand3) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s ${m.detail}")
+                  case Some(m: RejectNoTime) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s ${m.detail}")
+                  case Some(m: RejectCategoryOverAllocation) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s ${m.detail}")
+                  case Some(m: RejectTarget) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s ${m.detail}")
+                  case Some(m: RejectConditions) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s ${m.detail}")
+                  case Some(lm) => println(f"- ${pid.reference}%-20s ${p.piName.orEmpty}%-15s $lm")
+                }
+              }
+              println()
+            }
+
+            println(s"${Console.BOLD}RA/Conditions Bucket Allocations:${Console.RESET}")
+            println(queueCalc.bucketsAllocation.raTablesANSI)
+            println()
+
+            QueueBand.values.foreach { qb =>
+              val q = queueCalc.queue
+              println(s"${Console.BOLD}The following proposals were accepted for Band ${qb.number}.${Console.RESET}")
+              println(qb.number match {
+                case 1 => Console.YELLOW
+                case 2 => Console.GREEN
+                case 3 => Console.BLUE
+                case 4 => Console.RED
+              })
+              q.bandedQueue.get(qb).orEmpty.foreach { p =>
+                println(f"- ${p.id.reference}%-20s -> ${q.programId(p).get} ${p.piName.orEmpty}")
+              }
+              println(Console.RESET)
+            }
+
+            ExitCode.Success
+
+          }
         }
 
   }
