@@ -26,13 +26,13 @@ object Angle {
     override def toString = abbr
   }
 
-  object Mas    extends Unit(360 * 60 * 60 * 1000, "mas")
-  object Arcsec extends Unit(360 * 60 * 60, "arcsec")
-  object Arcmin extends Unit(360 * 60, "arcmin")
-  object Deg    extends Unit(360, "deg")
-  object Sec    extends Unit(24 * 60 * 60, "sec")
-  object Min    extends Unit(24 * 60, "min")
-  object Hr     extends Unit(24, "hr")
+  object Mas    extends Unit(1.0 * 360 * 60 * 60 * 1000, "mas")
+  object Arcsec extends Unit(1.0 * 360 * 60 * 60, "arcsec")
+  object Arcmin extends Unit(1.0 * 360 * 60, "arcmin")
+  object Deg    extends Unit(1.0 * 360, "deg")
+  object Sec    extends Unit(1.0 * 24 * 60 * 60, "sec")
+  object Min    extends Unit(1.0 * 24 * 60, "min")
+  object Hr     extends Unit(1.0 * 24, "hr")
   object Rad    extends Unit(2 * math.Pi, "rad")
 
   val allUnits = List(Mas, Arcsec, Arcmin, Deg, Sec, Min, Hr, Rad)

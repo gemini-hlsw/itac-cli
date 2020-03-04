@@ -55,6 +55,7 @@ object Main extends CommandIOApp(
         |""".stripMargin.trim
 ) with MainOpts {
 
+
   def main: Opts[IO[ExitCode]] =
     (cwd, commonConfig, logger[IO], force, ops).mapN { (cwd, commonConfig, log, force, cmd) =>
       Blocker[IO].use { b =>
@@ -86,17 +87,14 @@ trait MainOpts { this: CommandIOApp =>
     Opts.option[Path](
       short = "c",
       long  = "common",
-      help  = "Common configuation file, relative to workspace (or absolute). Default is common.yaml"
-    ).withDefault(Paths.get("common.yaml"))
+      help  = s"Common configuation file, relative to workspace (or absolute). Default is ${Workspace.Default.CommonConfigFile}"
+    ).withDefault(Workspace.Default.CommonConfigFile)
 
   lazy val siteConfig: Opts[Path] =
-    site.map {
-      case Site.GN => Paths.get("gn-queue.yaml")
-      case Site.GS => Paths.get("gs-queue.yaml")
-    } <+> Opts.option[Path](
+    site.map(Workspace.Default.queueConfigFile) <+> Opts.option[Path](
       short = "-c",
       long  = "config",
-      help  = s"Site configuration file, relative to workspace (or absolute). Default is <site>-queue.yaml"
+      help  = s"Site configuration file, relative to workspace (or absolute). Default is ${Site.values.toList.map(Workspace.Default.queueConfigFile).mkString(" or ")}"
     )
 
   lazy val rolloverReport: Opts[Option[Path]] =
@@ -130,11 +128,18 @@ trait MainOpts { this: CommandIOApp =>
     ) .withDefault("info")
       .mapValidated {
         case s @ ("trace" | "debug" | "info" | "warn" | "error" | "off") =>
+
+          // Construct a logger that we will use in the application. Note that this gets hooked up
+          // to the Velocity engine used by the Email operation, so look over there if Velocity
+          // logging isn't doing what you expect.
+
           // http://www.slf4j.org/api/org/slf4j/impl/SimpleLogger.html
           System.setProperty("org.slf4j.simpleLogger.log.edu", s)
-          ColoredSimpleLogger.init() // sorry
+          System.setProperty("org.slf4j.simpleLogger.log.org", s)
+          ColoredSimpleLogger.init() // slf4j forces us to be dumb
           val log = new ColoredSimpleLogger("edu.gemini.itac")
           Slf4jLogger.getLoggerFromSlf4j(log).validNel[String]
+
         case s => s"Invalid log level: $s".invalidNel
       }
 
@@ -204,9 +209,15 @@ trait MainOpts { this: CommandIOApp =>
       header = s"Placeholder for $name, which is not yet implemented."
     )(Placeholder.pure[Opts])
 
+  lazy val email: Command[Operation[IO]] =
+    Command(
+      name   = "email",
+      header = "Generate queue emails."
+    )((siteConfig, rolloverReport).mapN((sc, rr) => Email[IO](QueueEngine, sc, rr)))
+
   lazy val ops: Opts[Operation[IO]] =
     List(
-      placeholder("email"),
+      email,
       placeholder("skeleton"),
       init,
       ls,

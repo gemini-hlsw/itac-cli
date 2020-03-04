@@ -27,6 +27,8 @@ import java.time.format.DateTimeFormatter
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.time.ZoneId
+import cats.effect.Resource
+import java.nio.file.StandardCopyOption
 
 /** Interface for some Workspace operations. */
 trait Workspace[F[_]] {
@@ -41,6 +43,14 @@ trait Workspace[F[_]] {
 
   /** Read a decodable value from the specified file. */
   def readData[A: Decoder](path: Path): F[A]
+
+  def readText(path: Path): F[String]
+
+  def extractResource(name: String, path: Path): F[Path]
+
+  def extractEmailTemplate(template: EmailTemplateRef): F[Path]
+
+  def readEmailTemplate(template: EmailTemplateRef): F[EmailTemplate]
 
   /**
    * Create a directory relative to `cwd`, including any intermediate ones, returning the path of
@@ -69,6 +79,17 @@ trait Workspace[F[_]] {
 
 object Workspace {
 
+  val EmailTemplateDir = Paths.get("email_templates")
+  val ProposalDir      = Paths.get("proposals")
+
+  val WorkspaceDirs: List[Path] =
+    List(EmailTemplateDir, ProposalDir)
+
+  object Default {
+    val CommonConfigFile = Paths.get("common.yaml")
+    def queueConfigFile(site: Site) = Paths.get(s"${site.abbreviation.toLowerCase}-queue.yaml")
+  }
+
   val printer: Printer =
     Printer(
       preserveOrder = true,
@@ -89,7 +110,7 @@ object Workspace {
 
   def apply[F[_]: Sync: Parallel](dir: Path, cc: Path, log: Logger[F], force: Boolean): F[Workspace[F]] =
     ItacException(s"Workspace directory not found: $dir").raiseError[F, Workspace[F]].unlessA(dir.toFile.isDirectory) *>
-    Ref[F].of(Map.empty[Path, Any]).map { cache =>
+    Ref[F].of(Map.empty[Path, String]).map { cache =>
       new Workspace[F] {
 
         def cwd = dir.pure[F]
@@ -97,27 +118,60 @@ object Workspace {
         def isEmpty: F[Boolean] =
           Sync[F].delay(Option(dir.toFile.listFiles).foldMap(_.toList).isEmpty)
 
-        def readData[A: Decoder](path: Path): F[A] =
+        def readText(path: Path): F[String] =
           cache.get.flatMap { map =>
             val p = dir.resolve(path)
             map.get(path) match {
-              case Some(a) => log.debug(s"Getting $p from cache.").as(a.asInstanceOf[A])
+              case Some(a) => log.debug(s"Getting $p from cache.").as(a)
               case None    => log.debug(s"Reading: $p") *>
-                Sync[F].delay(new String(Files.readAllBytes(p), "UTF-8")).map(parser.parse(_)).flatMap[A] {
-                  case Left(e)  => Sync[F].raiseError(ItacException(s"Failure reading $p\n$e.message"))
-                  case Right(j) => j.as[A] match {
-                    case Left(e)  => Sync[F].raiseError(e)
-                    case Right(a) => cache.set(map + (path -> a)).as(a)
+                Sync[F].delay(new String(Files.readAllBytes(p), "UTF-8"))
+                  .flatTap(text =>  cache.set(map + (path -> text)))
+                  .onError {
+                    case _: NoSuchFileException =>
+                      ItacException(s"No such file: $path").raiseError[F, Unit]
                   }
-                } .onError {
-                  case f: DecodingFailure =>
-                    ItacException(s"Failure reading $p\n  ${f.message}\n    at ${f.history.collect { case DownField(k) => k } mkString("/")}")
-                      .raiseError[F, Unit]
-                  case _: NoSuchFileException =>
-                    ItacException(s"No such file: $path").raiseError[F, Unit]
-                }
             }
           }
+
+        def readEmailTemplate(template: EmailTemplateRef): F[EmailTemplate] =
+          readText(EmailTemplateDir.resolve(template.filename)).map { text =>
+            new EmailTemplate {
+              def name          = template.filename + " "
+              def titleTemplate = text.lines.next.drop(2).trim
+              def bodyTemplate  = text
+            }
+          }
+
+        def readData[A: Decoder](path: Path): F[A] =
+          readText(path)
+            .map(parser.parse(_))
+            .flatMap {
+              _.leftMap(ex => ItacException(s"Failure reading $path\n$ex.message"))
+               .flatMap(Decoder[A].decodeJson)
+               .liftTo[F]
+            }
+            .onError {
+              case f: DecodingFailure =>
+                Sync[F].raiseError(
+                  ItacException(s"""|Failure reading $path\n  ${f.message}
+                                    |    at ${f.history.collect { case DownField(k) => k } mkString("/")}
+                                    |""".stripMargin.trim)
+                )
+            }
+
+        def extractResource(name: String, path: Path): F[Path] =
+          Resource.make(Sync[F].delay(getClass.getResourceAsStream(name)))(is => Sync[F].delay(is.close()))
+            .use { is =>
+              val p = dir.resolve(path)
+              Sync[F].delay(p.toFile.isFile).flatMap {
+                case false | `force` => log.info(s"Writing: $p") *>
+                  Sync[F].delay(Files.copy(is, p, StandardCopyOption.REPLACE_EXISTING)).as(p)
+                case true  => Sync[F].raiseError(ItacException(s"File exists: $p"))
+              }
+            }
+
+        def extractEmailTemplate(template: EmailTemplateRef): F[Path] =
+          extractResource(template.resourcePath, EmailTemplateDir.resolve(template.filename))
 
         def writeText(path: Path, text: String): F[Path] = {
           val p = dir.resolve(path)
@@ -171,7 +225,7 @@ object Workspace {
           for {
             cwd  <- cwd
             conf <- commonConfig
-            p     = cwd.resolve("proposals")
+            p     = cwd.resolve(ProposalDir)
             pas   = conf.engine.partners.map { p => (p.id, p) } .toMap
             when  = conf.semester.getMidpointDate(Site.GN).getTime // arbitrary
             _    <- log.info(s"Reading proposals from $p")
